@@ -1,12 +1,9 @@
+import Libbox
 import Library
 import SwiftUI
 
 @MainActor
 public struct EditProfileView: View {
-    #if os(macOS)
-        @Environment(\.openWindow) private var openWindow
-    #endif
-
     @EnvironmentObject private var environments: ExtensionEnvironments
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var profile: Profile
@@ -14,6 +11,8 @@ public struct EditProfileView: View {
     @State private var isLoading = false
     @State private var isChanged = false
     @State private var alert: Alert?
+    @State private var shareLinkPresented = false
+    @State private var shareLinkText: String?
 
     public init() {}
     public var body: some View {
@@ -55,49 +54,45 @@ public struct EditProfileView: View {
                     FormTextItem("Last Updated", profile.lastUpdatedString)
                 }
             }
-            #if os(iOS) || os(tvOS)
-                Section("Action") {
-                    if profile.type != .remote {
-                        #if os(iOS)
-                            NavigationLink {
-                                EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
-                            } label: {
-                                Text("Edit Content").foregroundColor(.accentColor)
-                            }
-                        #endif
-                    } else {
-                        #if os(iOS)
-                            NavigationLink {
-                                EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
-                            } label: {
-                                Text("View Content").foregroundColor(.accentColor)
-                            }
-                            ProfileShareButton($alert, profile) {
-                                Text("Share")
-                            }
-                        #endif
-                        #if os(iOS) || os(macOS)
-                            ShareButtonCompat($alert) {
-                                Text("Share URL")
-                            } itemURL: {
-                                profile.shareLink
-                            }
-                        #endif
-                        Button("Update") {
-                            isLoading = true
-                            Task {
-                                await updateProfile()
-                            }
+            Section("Action") {
+                if profile.type != .remote {
+                    #if os(iOS) || os(macOS)
+                        FormNavigationLink {
+                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
+                        } label: {
+                            Label("Edit Content", systemImage: "pencil")
+                                .foregroundColor(.accentColor)
                         }
-                        .disabled(isLoading)
-                    }
-                    Button("Delete", role: .destructive) {
+                    #endif
+                } else {
+                    #if os(iOS) || os(macOS)
+                        FormNavigationLink {
+                            EditProfileContentView(EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
+                        } label: {
+                            Label("View Content", systemImage: "doc.fill")
+                                .foregroundColor(.accentColor)
+                        }
+                    #endif
+                    FormButton {
+                        isLoading = true
                         Task {
-                            await deleteProfile()
+                            await updateProfile()
                         }
+                    } label: {
+                        Label("Update", systemImage: "arrow.clockwise")
                     }
+                    .foregroundColor(.accentColor)
+                    .disabled(isLoading)
                 }
-            #endif
+                FormButton(role: .destructive) {
+                    Task {
+                        await deleteProfile()
+                    }
+                } label: {
+                    Label("Delete", systemImage: "trash.fill")
+                }
+                .foregroundColor(.red)
+            }
         }
         .onChangeCompat(of: profile.name) {
             isChanged = true
@@ -121,30 +116,6 @@ public struct EditProfileView: View {
                         Image("save", bundle: ApplicationLibrary.bundle, label: Text("Save"))
                     }
                     .disabled(isLoading || !isChanged)
-                    if profile.type != .remote {
-                        Button {
-                            openWindow(id: EditProfileContentView.windowID, value: EditProfileContentView.Context(profileID: profile.id!, readOnly: false))
-                        } label: {
-                            Label("Edit Content", systemImage: "pencil")
-                        }
-                        .disabled(isLoading)
-                    } else {
-                        Button {
-                            isLoading = true
-                            Task {
-                                await updateProfile()
-                            }
-                        } label: {
-                            Label("Update", systemImage: "arrow.clockwise")
-                        }
-                        .disabled(isLoading)
-                        Button {
-                            openWindow(id: EditProfileContentView.windowID, value: EditProfileContentView.Context(profileID: profile.id!, readOnly: true))
-                        } label: {
-                            Label("View Content", systemImage: "doc.text.fill")
-                        }
-                        .disabled(isLoading)
-                    }
                 }
             }
         #elseif os(iOS)

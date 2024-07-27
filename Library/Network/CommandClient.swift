@@ -94,6 +94,9 @@ public class CommandClient: ObservableObject {
 
         func connected() {
             DispatchQueue.main.async { [self] in
+                if commandClient.connectionType == .log {
+                    commandClient.logList = []
+                }
                 commandClient.isConnected = true
             }
         }
@@ -152,6 +155,9 @@ public class CommandClient: ObservableObject {
             DispatchQueue.main.async { [self] in
                 commandClient.clashMode = newMode!
             }
+        }
+        
+        func write(_ message: LibboxConnections?) {
         }
     }
 }

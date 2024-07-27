@@ -5,10 +5,6 @@
 
     @MainActor
     public struct EditProfileContentView: View {
-        #if os(macOS)
-            public static let windowID = "edit-profile-content"
-        #endif
-
         public struct Context: Codable, Hashable {
             public let profileID: Int64
             public let readOnly: Bool
@@ -26,7 +22,7 @@
 
         @State private var isLoading = true
         @State private var profile: Profile!
-        @State private var profileContent: String = ""
+        @State private var profileContent = ""
         @State private var isChanged = false
         @State private var alert: Alert?
 
@@ -47,8 +43,12 @@
                         }
                     }
                     .font(Font.system(.caption2, design: .monospaced))
-                    .autocorrectionDisabled()
+                    .autocorrectionDisabled(true)
+                    // https://stackoverflow.com/questions/66721935/swiftui-how-to-disable-the-smart-quotes-in-texteditor
+                    // https://stackoverflow.com/questions/74034171/textfield-with-autocorrectiondisabled-still-shows-predictive-text-bar
+                    .textContentType(.init(rawValue: ""))
                     #if os(iOS)
+                        .keyboardType(.asciiCapable)
                         .textInputAutocapitalization(.none)
                         .background(Color(UIColor.secondarySystemGroupedBackground))
                     #elseif os(macOS)
@@ -70,9 +70,15 @@
                                     await saveContent()
                                 }
                             } label: {
-                                Image("save", label: Text("Save"))
+                                Label("Save", image: "save")
                             }
                             .disabled(!isChanged)
+                        } else {
+                            Button {
+                                NSPasteboard.general.setString(profileContent, forType: .fileContents)
+                            } label: {
+                                Label("Copy", systemImage: "clipboard.fill")
+                            }
                         }
                     }
                 }
@@ -85,6 +91,10 @@
                                     await saveContent()
                                 }
                             }.disabled(!isChanged)
+                        } else {
+                            Button("Copy") {
+                                UIPasteboard.general.string = profileContent
+                            }
                         }
                     }
                 }

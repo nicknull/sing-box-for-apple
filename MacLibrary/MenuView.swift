@@ -96,7 +96,7 @@ public struct MenuView: View {
                 if isEnabled {
                     try await profile.start()
                 } else {
-                    profile.stop()
+                    try await profile.stop()
                 }
             } catch {
                 alert = Alert(error)
@@ -201,7 +201,7 @@ public struct MenuView: View {
         }
 
         private nonisolated func serviceReload() async throws {
-            try LibboxNewStandaloneCommandClient()?.serviceReload()
+            try LibboxNewStandaloneCommandClient()!.serviceReload()
         }
     }
 }

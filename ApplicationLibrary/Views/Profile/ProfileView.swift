@@ -2,6 +2,7 @@ import Foundation
 import Libbox
 import Library
 import Network
+import QRCode
 import SwiftUI
 
 @MainActor
@@ -20,8 +21,6 @@ public struct ProfileView: View {
 
     #if os(iOS) || os(tvOS)
         @State private var editMode = EditMode.inactive
-    #elseif os(macOS)
-        @Environment(\.openWindow) private var openWindow
     #endif
 
     #if os(tvOS)
@@ -38,73 +37,67 @@ public struct ProfileView: View {
                     }
                 }
             } else {
-                #if os(iOS) || os(tvOS)
-                    ZStack {
-                        if let importRemoteProfileRequest {
-                            NavigationDestinationCompat(isPresented: $importRemoteProfilePresented) {
-                                NewProfileView(importRemoteProfileRequest)
-                            }
+                ZStack {
+                    if let importRemoteProfileRequest {
+                        NavigationDestinationCompat(isPresented: $importRemoteProfilePresented) {
+                            NewProfileView(importRemoteProfileRequest)
                         }
-                        FormView {
-                            #if os(iOS)
-                                NavigationLink {
+                    }
+                    FormView {
+                        #if os(iOS)
+                            FormNavigationLink {
+                                NewProfileView()
+                            } label: {
+                                Text("New Profile").foregroundColor(.accentColor)
+                            }
+                            .disabled(editMode.isEditing)
+                        #elseif os(macOS)
+                            FormNavigationLink {
+                                NewProfileView()
+                            } label: {
+                                Text("New Profile")
+                            }
+                        #elseif os(tvOS)
+                            Section {
+                                FormNavigationLink {
                                     NewProfileView()
                                 } label: {
                                     Text("New Profile").foregroundColor(.accentColor)
                                 }
-                                .disabled(editMode.isEditing)
-                            #elseif os(tvOS)
-                                Section {
-                                    NavigationLink {
-                                        NewProfileView()
-                                    } label: {
-                                        Text("New Profile").foregroundColor(.accentColor)
-                                    }
-                                    if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
-                                        NavigationLink {
-                                            ImportProfileView {
-                                                await doReload()
-                                            }
-                                        } label: {
-                                            Text("Import Profile").foregroundColor(.accentColor)
+                                if ApplicationLibrary.inPreview || devicePickerSupports(.applicationService(name: "sing-box"), parameters: { .applicationService }) {
+                                    FormNavigationLink {
+                                        ImportProfileView {
+                                            await doReload()
                                         }
+                                    } label: {
+                                        Text("Import Profile").foregroundColor(.accentColor)
                                     }
                                 }
-                            #endif
-                            if profileList.isEmpty {
-                                Text("Empty profiles")
-                            } else {
-                                List {
-                                    ForEach(profileList, id: \.id) { profile in
-                                        viewBuilder {
+                            }
+                        #endif
+                        if profileList.isEmpty {
+                            Text("Empty profiles")
+                        } else {
+                            List {
+                                ForEach(profileList, id: \.id) { profile in
+                                    viewBuilder {
+                                        #if os(iOS) || os(tvOS)
                                             if editMode.isEditing == true {
                                                 Text(profile.name)
                                             } else {
                                                 ProfileItem(self, profile)
                                             }
-                                        }
+                                        #else
+                                            ProfileItem(self, profile)
+                                        #endif
                                     }
-                                    .onMove(perform: moveProfile)
-                                    .onDelete(perform: deleteProfile)
-                                }
-                            }
-                        }
-                    }
-                #elseif os(macOS)
-                    if profileList.isEmpty {
-                        Text("Empty profiles")
-                    } else {
-                        FormView {
-                            List {
-                                ForEach(profileList, id: \.id) { profile in
-                                    ProfileItem(self, profile)
                                 }
                                 .onMove(perform: moveProfile)
                                 .onDelete(perform: deleteProfile)
                             }
                         }
                     }
-                #endif
+                }
             }
         }
         .disabled(isUpdating)
@@ -132,24 +125,11 @@ public struct ProfileView: View {
             }
         }
         .onReceive(environments.profileUpdate) { _ in
-            profileList = []
-            isLoading = true
-//            not updated, but why?
-//            Task {
-//                await doReload()
-//            }
-        }
-        #if os(macOS)
-        .toolbar {
-            ToolbarItem {
-                Button {
-                    openWindow(id: NewProfileView.windowID)
-                } label: {
-                    Label("New Profile", systemImage: "plus.square.fill")
-                }
+            Task {
+                await doReload()
             }
         }
-        #elseif os(iOS)
+        #if os(iOS)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 EditButton().disabled(profileList.isEmpty)
@@ -201,11 +181,7 @@ public struct ProfileView: View {
             title: Text("Import Remote Profile"),
             message: Text("Are you sure to import remote profile \(newValue.name)? You will connect to \(newValue.host) to download the configuration."),
             primaryButton: .default(Text("Import")) {
-                #if os(iOS) || os(tvOS)
-                    importRemoteProfilePresented = true
-                #elseif os(macOS)
-                    openWindow(id: NewProfileView.windowID, value: importRemoteProfileRequest!)
-                #endif
+                importRemoteProfilePresented = true
             },
             secondaryButton: .cancel()
         )
@@ -228,6 +204,7 @@ public struct ProfileView: View {
                 return
             }
         }
+        environments.emptyProfiles = profileList.isEmpty
     }
 
     private func updateProfile(_ profile: Profile) async {
@@ -252,7 +229,7 @@ public struct ProfileView: View {
             alert = Alert(error)
             return
         }
-        await doReload()
+        environments.profileUpdate.send()
     }
 
     private func moveProfile(from source: IndexSet, to destination: Int) {
@@ -267,6 +244,7 @@ public struct ProfileView: View {
             } catch {
                 alert = Alert(error)
             }
+            environments.profileUpdate.send()
         }
     }
 
@@ -275,18 +253,23 @@ public struct ProfileView: View {
             profileList[index].origin
         }
         profileList.remove(atOffsets: profileIndex)
+        environments.emptyProfiles = profileList.isEmpty
         Task {
             do {
                 _ = try await ProfileManager.delete(profileToDelete)
             } catch {
                 alert = Alert(error)
             }
+            environments.profileUpdate.send()
         }
     }
 
+    @MainActor
     public struct ProfileItem: View {
         private let parent: ProfileView
         @State private var profile: ProfilePreview
+        @State private var shareLinkPresented = false
+
         public init(_ parent: ProfileView, _ profile: ProfilePreview) {
             self.parent = parent
             _profile = State(initialValue: profile)
@@ -304,20 +287,28 @@ public struct ProfileView: View {
             #endif
         }
 
-        @MainActor
         private var body0: some View {
             viewBuilder {
                 #if !os(macOS)
-                    NavigationLink {
+                    FormNavigationLink {
                         EditProfileView().environmentObject(profile.origin)
                     } label: {
                         Text(profile.name)
+                    }
+                    .sheet(isPresented: $shareLinkPresented) {
+                        shareLinkView.padding()
                     }
                     .contextMenu {
                         ProfileShareButton(parent.$alert, profile.origin) {
                             Label("Share", systemImage: "square.and.arrow.up.fill")
                         }
+
                         if profile.type == .remote {
+                            Button {
+                                shareLinkPresented = true
+                            } label: {
+                                Label("Share URL as QR Code", systemImage: "qrcode")
+                            }
                             Button {
                                 parent.isUpdating = true
                                 Task {
@@ -337,48 +328,97 @@ public struct ProfileView: View {
                         }
                     }
                 #else
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(profile.name)
-                            if profile.type == .remote {
-                                Spacer(minLength: 4)
-                                Text("Last Updated: \(profile.origin.lastUpdatedString)").font(.caption)
-                            }
-                        }
+                    FormNavigationLink {
+                        EditProfileView().environmentObject(profile.origin)
+                    } label: {
                         HStack {
-                            if profile.type == .remote {
+                            VStack(alignment: .leading) {
+                                Text(profile.name)
+                                if profile.type == .remote {
+                                    Spacer(minLength: 4)
+                                    Text("Last Updated: \(profile.origin.lastUpdatedString)").font(.caption)
+                                }
+                            }
+                            HStack {
+                                if profile.type == .remote {
+                                    Button {
+                                        parent.isUpdating = true
+                                        Task {
+                                            await parent.updateProfile(profile.origin)
+                                            profile = ProfilePreview(profile.origin)
+                                        }
+                                    } label: {
+                                        Image(systemName: "arrow.clockwise")
+                                    }
+                                    .padding(.leading, 4)
+
+                                    Button {
+                                        shareLinkPresented = true
+                                    } label: {
+                                        Image(systemName: "qrcode")
+                                    }
+                                    .padding(.leading, 4)
+                                    .popover(isPresented: $shareLinkPresented, arrowEdge: .bottom) {
+                                        shareLinkView
+                                    }
+                                }
+                                ProfileShareButton(parent.$alert, profile.origin) {
+                                    Image(systemName: "square.and.arrow.up.fill")
+                                }
+                                .padding(.leading, 4)
                                 Button {
-                                    parent.isUpdating = true
                                     Task {
-                                        await parent.updateProfile(profile.origin)
-                                        profile = ProfilePreview(profile.origin)
+                                        await parent.deleteProfile(profile.origin)
                                     }
                                 } label: {
-                                    Image(systemName: "arrow.clockwise")
+                                    Image(systemName: "trash.fill")
                                 }
+                                .padding([.leading, .trailing], 4)
                             }
-                            ProfileShareButton(parent.$alert, profile.origin) {
-                                Image(systemName: "square.and.arrow.up.fill")
-                            }
-                            Button {
-                                parent.openWindow(id: EditProfileWindowView.windowID, value: profile.id)
-                            } label: {
-                                Image(systemName: "pencil")
-                            }
-                            Button {
-                                Task {
-                                    await parent.deleteProfile(profile.origin)
-                                }
-                            } label: {
-                                Image(systemName: "trash.fill")
-                            }
+                            .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity, alignment: .trailing)
                         }
-                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .padding(.vertical, 8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding(.vertical, 8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 #endif
             }
+        }
+
+        private var shareLinkView: some View {
+            #if os(iOS)
+                viewBuilder {
+                    if #available(iOS 16.0, *) {
+                        shareLinkView0
+                            .presentationDetents([.medium])
+                            .presentationDragIndicator(.visible)
+                    } else {
+                        shareLinkView0
+                    }
+                }
+            #elseif os(macOS)
+                shareLinkView0
+                    .frame(minWidth: 300, minHeight: 300)
+            #else
+                shareLinkView0
+            #endif
+        }
+
+        private var foregroundColor: CGColor {
+            #if canImport(UIKit)
+                return UIColor.label.cgColor
+            #elseif canImport(AppKit)
+                return NSColor.labelColor.cgColor
+            #endif
+        }
+
+        private var shareLinkView0: some View {
+            QRCodeViewUI(
+                content: LibboxGenerateRemoteProfileImportLink(profile.name, profile.remoteURL!),
+                errorCorrection: .low,
+                foregroundColor: foregroundColor,
+                backgroundColor: CGColor(gray: 1.0, alpha: 0.0)
+            )
         }
     }
 }

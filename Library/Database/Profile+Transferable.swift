@@ -64,6 +64,16 @@ public extension LibboxProfileContent {
     }
 }
 
+public extension String {
+    func generateShareFile(name: String) throws -> URL {
+        let shareDirectory = FilePath.cacheDirectory.appendingPathComponent("share", isDirectory: true)
+        try FileManager.default.createDirectory(at: shareDirectory, withIntermediateDirectories: true)
+        let shareFile = shareDirectory.appendingPathComponent(name)
+        try write(to: shareFile, atomically: true, encoding: .utf8)
+        return shareFile
+    }
+}
+
 @available(iOS 16.0, macOS 13.0, *)
 public struct TypedProfile: Transferable, Codable {
     public let content: LibboxProfileContent
@@ -79,7 +89,7 @@ public struct TypedProfile: Transferable, Codable {
 
     public static var transferRepresentation: some TransferRepresentation {
         FileRepresentation(contentType: .profile) { typed in
-            try SentTransferredFile(typed.content.generateShareFile())
+            try SentTransferredFile(typed.content.generateShareFile(), allowAccessingOriginalFile: true)
         } importing: { received in
             try TypedProfile(.from(Data(contentsOf: received.file)))
         }

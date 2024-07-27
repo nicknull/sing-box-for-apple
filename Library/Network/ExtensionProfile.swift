@@ -1,4 +1,5 @@
 import Foundation
+import Libbox
 import NetworkExtension
 
 public class ExtensionProfile: ObservableObject {
@@ -49,6 +50,7 @@ public class ExtensionProfile: ObservableObject {
     }
 
     public func start() async throws {
+        await fetchProfile()
         manager.isEnabled = true
         if await SharedPreferences.alwaysOn.get() {
             manager.isOnDemandEnabled = true
@@ -75,8 +77,24 @@ public class ExtensionProfile: ObservableObject {
         try manager.connection.startVPNTunnel()
     }
 
-    public func stop() {
-        manager.isOnDemandEnabled = false
+    public func fetchProfile() async {
+        do {
+            if let profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get())) {
+                if profile.type == .icloud {
+                    _ = try profile.read()
+                }
+            }
+        } catch {}
+    }
+
+    public func stop() async throws {
+        if manager.isOnDemandEnabled {
+            manager.isOnDemandEnabled = false
+            try await manager.saveToPreferences()
+        }
+        do {
+            try LibboxNewStandaloneCommandClient()!.serviceClose()
+        } catch {}
         manager.connection.stopVPNTunnel()
     }
 
