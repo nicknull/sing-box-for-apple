@@ -10,9 +10,9 @@
 	<true/>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>io.nekohasekai.sfa.independent</key>
+		<key>com.gy.iflash.independent</key>
 		<string>XC io nekohasekai sfa independent</string>
-		<key>io.nekohasekai.sfa.system</key>
+		<key>com.gy.iflash.system</key>
 		<string>XC io nekohasekai sfa system</string>
 	</dict>
 </dict>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1520"
+   LastUpgradeVersion = "1540"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "3AEC20F22A459AB400A63465"
-               BuildableName = "sing-box.app"
+               BuildableName = "iFlash.app"
                BlueprintName = "SFI"
                ReferencedContainer = "container:sing-box.xcodeproj">
             </BuildableReference>
@@ -44,7 +44,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3AEC20F22A459AB400A63465"
-            BuildableName = "sing-box.app"
+            BuildableName = "iFlash.app"
             BlueprintName = "SFI"
             ReferencedContainer = "container:sing-box.xcodeproj">
          </BuildableReference>
@@ -61,7 +61,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3AEC20F22A459AB400A63465"
-            BuildableName = "sing-box.app"
+            BuildableName = "iFlash.app"
             BlueprintName = "SFI"
             ReferencedContainer = "container:sing-box.xcodeproj">
          </BuildableReference>

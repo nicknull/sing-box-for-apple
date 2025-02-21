@@ -1,15 +1,16 @@
 import ApplicationLibrary
+import Defaults
 import Foundation
 import Libbox
 import Library
 import Network
 import UIKit
-
+import FirebaseCore
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     private var profileServer: ProfileServer?
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        NSLog("Here I stand")
+        FirebaseApp.configure()
         LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
         setup()
         return true

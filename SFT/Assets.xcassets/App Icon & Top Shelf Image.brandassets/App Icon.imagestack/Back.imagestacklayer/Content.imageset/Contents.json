@@ -1,12 +1,12 @@
 {
   "images" : [
     {
-      "filename" : "tv- App Icon Small - Back - 400 x 240 pt.png",
+      "filename" : "1.png",
       "idiom" : "tv",
       "scale" : "1x"
     },
     {
-      "filename" : "tv - App Icon Small - Back - 400 x 240 pt@2x.png",
+      "filename" : "1 1.png",
       "idiom" : "tv",
       "scale" : "2x"
     }

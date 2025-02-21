@@ -4,3 +4,8 @@ xcuserdata/
 .DS_Store/
 /build/
 /sing-box.xcodeproj/project.pbxproj.back
+/Pods/
+Podfile.lock
+SFT/.DS_Store
+SFT/Assets.xcassets/.DS_Store
+*/.DS_Store

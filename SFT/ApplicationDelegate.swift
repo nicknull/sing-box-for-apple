@@ -3,10 +3,11 @@ import Foundation
 import Libbox
 import Library
 import UIKit
+import FirebaseCore
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        NSLog("Here I stand")
+        FirebaseApp.configure()
         LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, true)
         setup()
         return true

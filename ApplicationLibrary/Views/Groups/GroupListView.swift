@@ -7,12 +7,20 @@ public struct GroupListView: View {
     @State private var isLoading = true
     @StateObject private var commandClient = CommandClient(.groups)
     @State private var groups: [OutboundGroup] = []
+    @Environment(\.dismiss) var dismiss
 
     public init() {}
     public var body: some View {
         VStack {
             if isLoading {
+                
                 Text("Loading...")
+                Button {
+                    dismiss()
+                } label: {
+                    Text("返回")
+                }
+
             } else if !groups.isEmpty {
                 ScrollView {
                     VStack {

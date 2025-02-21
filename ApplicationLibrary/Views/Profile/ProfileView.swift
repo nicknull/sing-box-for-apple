@@ -4,7 +4,6 @@ import Library
 import Network
 import QRCode
 import SwiftUI
-
 @MainActor
 public struct ProfileView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments

@@ -126,14 +126,14 @@ public struct ExtensionStatusView: View {
             VStack(alignment: .leading) {
                 HStack {
                     Text(title)
-                        .font(.headline)
+                        .font(.footnote)
                     Spacer()
                 }.padding(.bottom, 8)
                 content()
             }
             .frame(minWidth: 125, alignment: .topLeading)
             #if os(tvOS)
-                .padding(EdgeInsets(top: 20, leading: 26, bottom: 20, trailing: 26))
+                .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
             #else
                 .padding(EdgeInsets(top: 10, leading: 13, bottom: 10, trailing: 13))
             #endif
@@ -164,11 +164,11 @@ public struct ExtensionStatusView: View {
         var body: some View {
             HStack {
                 Text(name)
-                    .font(.subheadline)
+                    .font(.system(size: 14))
                     .foregroundColor(.secondary)
                 Spacer()
                 Text(value)
-                    .font(.subheadline)
+                    .font(.system(size: 14))
             }
         }
     }

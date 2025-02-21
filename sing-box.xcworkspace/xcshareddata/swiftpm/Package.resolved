@@ -1,0 +1,105 @@
+{
+  "originHash" : "7a4a72f54e6f6e2586fb44ef561eebbe21227957e21bfe511cfdcfea1ad7d940",
+  "pins" : [
+    {
+      "identity" : "bettersafariview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stleamist/BetterSafariView",
+      "state" : {
+        "branch" : "main",
+        "revision" : "884533749e55949b2566030948c6fdbe2873ed0c"
+      }
+    },
+    {
+      "identity" : "binarycodable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/christophhagen/BinaryCodable",
+      "state" : {
+        "revision" : "33643e2343f591368647935d14a94e35dc2d3bf0",
+        "version" : "2.0.3"
+      }
+    },
+    {
+      "identity" : "codescanner",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/twostraws/CodeScanner.git",
+      "state" : {
+        "revision" : "34da57fb63b47add20de8a85da58191523ccce57",
+        "version" : "2.5.0"
+      }
+    },
+    {
+      "identity" : "grdb.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDB.swift",
+      "state" : {
+        "revision" : "dd6b98ce04eda39aa22f066cd421c24d7236ea8a",
+        "version" : "6.29.1"
+      }
+    },
+    {
+      "identity" : "loadingbutton",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Changemin/LoadingButton",
+      "state" : {
+        "revision" : "5045668df822a04c248a9b40aca888a4d37f275a",
+        "version" : "1.1.2"
+      }
+    },
+    {
+      "identity" : "maccontrolcenterui",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/orchetect/MacControlCenterUI",
+      "state" : {
+        "revision" : "6565bcb33bfdb446a4fd81f3c78dce27b0ab7e09",
+        "version" : "2.0.8"
+      }
+    },
+    {
+      "identity" : "menubarextraaccess",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/orchetect/MenuBarExtraAccess",
+      "state" : {
+        "revision" : "f5896b47e15e114975897354c7e1082c51a2bffd",
+        "version" : "1.0.5"
+      }
+    },
+    {
+      "identity" : "qrcode",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dagronf/qrcode",
+      "state" : {
+        "revision" : "e7bcd89a987cf43bc64e414f3e26cb8eded8ae1e",
+        "version" : "20.5.0"
+      }
+    },
+    {
+      "identity" : "swift-qrcode-generator",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dagronf/swift-qrcode-generator",
+      "state" : {
+        "revision" : "2b1980b825f08a81ccc762b0c4d17fcde9d5e953",
+        "version" : "2.0.2"
+      }
+    },
+    {
+      "identity" : "swiftimagereadwrite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/dagronf/SwiftImageReadWrite",
+      "state" : {
+        "revision" : "42ace2412279f18bc264bc306e96b51c36e12a33",
+        "version" : "1.9.2"
+      }
+    },
+    {
+      "identity" : "swiftyping",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/samiyr/SwiftyPing.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "05591bc0047e41e0e1d98135c6bc457192a72d39"
+      }
+    }
+  ],
+  "version" : 3
+}

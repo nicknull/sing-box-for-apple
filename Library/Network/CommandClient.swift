@@ -107,21 +107,21 @@ public class CommandClient: ObservableObject {
             }
         }
 
-        func clearLog() {
+        func clearLogs() {
             DispatchQueue.main.async { [self] in
                 commandClient.logList.removeAll()
             }
         }
 
-        func writeLog(_ message: String?) {
-            guard let message else {
+        func writeLogs(_ messageList: (any LibboxStringIteratorProtocol)?) {
+            guard let messageList else {
                 return
             }
             DispatchQueue.main.async { [self] in
                 if commandClient.logList.count > commandClient.logMaxLines {
-                    commandClient.logList.removeFirst()
+                    commandClient.logList.removeFirst(messageList.toArray().count)
                 }
-                commandClient.logList.append(message)
+                commandClient.logList = commandClient.logList + messageList.toArray()
             }
         }
 

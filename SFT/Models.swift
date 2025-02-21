@@ -1,0 +1,93 @@
+//
+//  Models.swift
+//  SFT
+//
+//  Created by xiaokang chen on 2023/9/2.
+//
+
+import Foundation
+import CodableWrappers
+struct HotKey:Codable,Hashable,Identifiable{
+    var id:String{return UUID().uuidString}
+    var name:String
+    var rtype:String
+    var hotValue:String
+}
+
+
+struct AppVersion : Codable{
+    var windows_version:String
+    var windows_download_url:String
+    var macos_version:String
+    var macos_download_url:String
+    var android_version:String
+    var android_download_url:String
+    var ios_version:String
+    var ios_download_url:String
+    var appletv_version:String
+    var appletv_download_url:String
+}
+class AuthModel: Codable{
+    @BoolAsIntCoding
+    var is_admin :Bool
+    var token : String
+    var auth_data :String
+}
+
+class UserInfoModel:Codable{
+    var email : String?
+    var transfer_enable : Int64?
+    var last_login_at : TimeInterval?
+    var created_at : TimeInterval?
+    var expired_at : TimeInterval?
+    @BoolAsIntCoding
+    var banned : Bool
+    var remind_expire : Int?
+    var remind_traffic : Int64?
+    var balance : Int
+    var commission_balance : Int?
+    var plan_id : Int?
+//    var discount : Any?//未知数据
+    var commission_rate : String?
+    var telegram_id : String?
+    var avatar_url : String?
+}
+
+
+
+class SubscribeModel: Codable,Equatable{
+    static func == (lhs: SubscribeModel, rhs: SubscribeModel) -> Bool {
+        lhs.d == rhs.d &&  lhs.u == rhs.u &&  lhs.transfer_enable == rhs.transfer_enable &&  lhs.name == rhs.name &&  lhs.subscribe_url == rhs.subscribe_url &&  lhs.plan == rhs.plan 
+    }
+    
+    var d :Int64?
+    var u :Int64?
+    var transfer_enable :Int64?
+    var name :String?
+    var subscribe_url:String?
+    var sing_url:String?
+    var plan:Plan?
+}
+class Plan:Codable,Equatable{
+    static func == (lhs: Plan, rhs: Plan) -> Bool {
+        lhs.id == rhs.id
+    }
+    var id:Int64
+    var group_id:Int64
+    var transfer_enable :Int64
+    var name:String
+    var speed_limit:Int64?
+    var show:Int64
+    var sort:Int64?
+    var renew:Int64
+    var content:String
+    var month_price:Int64?
+    var quarter_price:Int64?
+    var half_year_price:Int64?
+    var year_price:Int64?
+    var reset_price:Int64?
+    var reset_traffic_method:String?
+    var created_at:TimeInterval
+    var updated_at:TimeInterval
+
+}

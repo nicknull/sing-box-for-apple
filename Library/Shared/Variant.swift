@@ -8,10 +8,10 @@ public enum Variant {
     #endif
 
     #if os(iOS)
-        public static let applicationName = "SFI"
+        public static let applicationName = "iFlash"
     #elseif os(macOS)
-        public static let applicationName = "SFM"
+        public static let applicationName = "iFlash"
     #elseif os(tvOS)
-        public static let applicationName = "SFT"
+        public static let applicationName = "iFlash"
     #endif
 }

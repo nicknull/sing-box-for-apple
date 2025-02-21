@@ -114,9 +114,9 @@ public class ExtensionProfile: ObservableObject {
         if Variant.useSystemExtension {
             tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).system"
         } else {
-            tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).extension"
+            tunnelProtocol.providerBundleIdentifier = "\(FilePath.packageName).extensions"
         }
-        tunnelProtocol.serverAddress = "sing-box"
+        tunnelProtocol.serverAddress = Variant.applicationName
         manager.protocolConfiguration = tunnelProtocol
         manager.isEnabled = true
         try await manager.saveToPreferences()

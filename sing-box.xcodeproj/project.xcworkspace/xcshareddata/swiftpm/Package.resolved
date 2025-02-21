@@ -1,6 +1,15 @@
 {
-  "originHash" : "82fb479ec8c73c3348b93e33a9102fc692bb5a0a0d6f14beb4c5f31445c36e81",
+  "originHash" : "8d2253b24e80e77aef33925277088f5e7ec5fc4557d30c83ba0fe45344a3c617",
   "pins" : [
+    {
+      "identity" : "bettersafariview",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/stleamist/BetterSafariView",
+      "state" : {
+        "branch" : "main",
+        "revision" : "884533749e55949b2566030948c6fdbe2873ed0c"
+      }
+    },
     {
       "identity" : "binarycodable",
       "kind" : "remoteSourceControl",
@@ -17,6 +26,15 @@
       "state" : {
         "revision" : "284a4ee1acf9bf6c8b3d045494d0a7e3046ebf92",
         "version" : "6.15.1"
+      }
+    },
+    {
+      "identity" : "loadingbutton",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Changemin/LoadingButton",
+      "state" : {
+        "revision" : "5045668df822a04c248a9b40aca888a4d37f275a",
+        "version" : "1.1.2"
       }
     },
     {
@@ -42,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/qrcode.git",
       "state" : {
-        "revision" : "13c605cfa866e257ac9d4ac8a47320a0e11fb6e0",
-        "version" : "17.0.0"
+        "revision" : "350573762a43ac6e381ad915fb2ce6a3fb5a650d",
+        "version" : "20.3.0"
       }
     },
     {
@@ -60,8 +78,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/SwiftImageReadWrite",
       "state" : {
-        "revision" : "02c141026a0c5d74635a457d2d0964c4cb8935b3",
-        "version" : "1.4.1"
+        "revision" : "016a9cb842038e4078a91e506e35cef4f4ff76ff",
+        "version" : "1.7.2"
+      }
+    },
+    {
+      "identity" : "swiftyping",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/samiyr/SwiftyPing.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "05591bc0047e41e0e1d98135c6bc457192a72d39"
       }
     }
   ],
