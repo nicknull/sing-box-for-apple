@@ -1,6 +1,12 @@
 import Foundation
 import Libbox
 import NetworkExtension
+#if os(iOS)
+    import WidgetKit
+#endif
+#if os(macOS)
+    import CoreLocation
+#endif
 
 open class ExtensionProvider: NEPacketTunnelProvider {
     public var username: String? = nil
@@ -13,25 +19,27 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     override open func startTunnel(options _: [String: NSObject]?) async throws {
         LibboxClearServiceError()
 
+        let options = LibboxSetupOptions()
+        options.basePath = FilePath.sharedDirectory.relativePath
+        options.workingPath = FilePath.workingDirectory.relativePath
+        options.tempPath = FilePath.cacheDirectory.relativePath
+        var error: NSError?
+        #if os(tvOS)
+            options.isTVOS = true
+        #endif
         if let username {
-            var error: NSError?
-            LibboxSetupWithUsername(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, username, &error)
-            if let error {
-                writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
-                return
-            }
-        } else {
-            var isTVOS = false
-            #if os(tvOS)
-                isTVOS = true
-            #endif
-            LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, isTVOS)
+            options.username = username
+        }
+        LibboxSetup(options, &error)
+        if let error {
+            writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
+            return
         }
 
-        var error: NSError?
         LibboxRedirectStderr(FilePath.cacheDirectory.appendingPathComponent("stderr.log").relativePath, &error)
         if let error {
             writeFatalError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
+            return
         }
 
         await LibboxSetMemoryLimit(!SharedPreferences.ignoreMemoryLimit.get())
@@ -48,13 +56,16 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         writeMessage("(packet-tunnel): Here I stand")
         await startService()
+        #if os(iOS)
+            if #available(iOS 18.0, *) {
+                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
+            }
+        #endif
     }
 
     func writeMessage(_ message: String) {
         if let commandServer {
             commandServer.writeMessage(message)
-        } else {
-            NSLog(message)
         }
     }
 
@@ -65,7 +76,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         writeMessage(message)
         var error: NSError?
         LibboxWriteServiceError(message, &error)
-        cancelTunnelWithError(NSError(domain: message, code: 0))
+        cancelTunnelWithError(nil)
     }
 
     private func startService() async {
@@ -96,19 +107,50 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         guard let service else {
             return
         }
-        commandServer.setService(service)
         do {
             try service.start()
         } catch {
-            commandServer.setService(nil)
             writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
             return
         }
+        commandServer.setService(service)
         boxService = service
         #if os(macOS)
             await SharedPreferences.startedByUser.set(true)
+            if service.needWIFIState() {
+                if !Variant.useSystemExtension {
+                    locationManager = CLLocationManager()
+                    locationDelegate = stubLocationDelegate(boxService)
+                    locationManager?.delegate = locationDelegate
+                    locationManager?.requestLocation()
+                } else {
+                    commandServer.writeMessage("(packet-tunnel) WIFI SSID and BSSID information is not currently available in the standalone version of SFM. We are working on resolving this issue.")
+                }
+            }
         #endif
     }
+
+    #if os(macOS)
+
+        private var locationManager: CLLocationManager?
+        private var locationDelegate: stubLocationDelegate?
+
+        class stubLocationDelegate: NSObject, CLLocationManagerDelegate {
+            private unowned let boxService: LibboxBoxService
+            init(_ boxService: LibboxBoxService) {
+                self.boxService = boxService
+            }
+
+            func locationManagerDidChangeAuthorization(_: CLLocationManager) {
+                boxService.updateWIFIState()
+            }
+
+            func locationManager(_: CLLocationManager, didUpdateLocations _: [CLLocation]) {}
+
+            func locationManager(_: CLLocationManager, didFailWithError _: Error) {}
+        }
+
+    #endif
 
     private func stopService() {
         if let service = boxService {
@@ -151,6 +193,11 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #if os(macOS)
             if reason == .userInitiated {
                 await SharedPreferences.startedByUser.set(reason == .userInitiated)
+            }
+        #endif
+        #if os(iOS)
+            if #available(iOS 18.0, *) {
+                ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
             }
         #endif
     }

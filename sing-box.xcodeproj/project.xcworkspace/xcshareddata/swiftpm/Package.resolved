@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/christophhagen/BinaryCodable",
       "state" : {
-        "revision" : "295ca6399b2b01d1aa4fa84d666416f3bf99ffde",
-        "version" : "2.0.0"
+        "revision" : "33643e2343f591368647935d14a94e35dc2d3bf0",
+        "version" : "2.0.3"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDB.swift",
       "state" : {
-        "revision" : "284a4ee1acf9bf6c8b3d045494d0a7e3046ebf92",
-        "version" : "6.15.1"
+        "revision" : "2cf6c756e1e5ef6901ebae16576a7e4e4b834622",
+        "version" : "6.29.3"
       }
     },
     {
@@ -42,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MacControlCenterUI",
       "state" : {
-        "revision" : "e7f7e0834a146b59a9d86b5751b711eb3a57be69",
-        "version" : "2.0.1"
+        "revision" : "30bff7163905641bb2b80898e7191bec0ef507f9",
+        "version" : "2.3.3"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MenuBarExtraAccess",
       "state" : {
-        "revision" : "8757eb7c2cd708320df92e6ad6572efe90e58f16",
-        "version" : "1.0.4"
+        "revision" : "e911e6454f8cbfe34a52136fc48e1ceb989a60e7",
+        "version" : "1.2.1"
       }
     },
     {

@@ -1,6 +1,8 @@
 import Foundation
 
 public enum SharedPreferences {
+    public static let language = Preference<String>("language", defaultValue: "")
+
     public static let selectedProfileID = Preference<Int64>("selected_profile_id", defaultValue: -1)
 
     #if os(macOS)
@@ -68,6 +70,11 @@ public enum SharedPreferences {
         await excludeAPNsRoute.set(nil)
     }
 
+    // Connections Filter
+
+    public static let connectionStateFilter = Preference<Int>("connection_state_filter", defaultValue: 0)
+    public static let connectionSort = Preference<Int>("connection_sort", defaultValue: 0)
+
     // On Demand Rules
 
     public static let alwaysOn = Preference<Bool>("always_on", defaultValue: false)
@@ -75,6 +82,10 @@ public enum SharedPreferences {
     public static func resetOnDemandRules() async {
         await alwaysOn.set(nil)
     }
+
+    // Core
+
+    public static let disableDeprecatedWarnings = Preference<Bool>("disable_deprecated_warnings", defaultValue: false)
 
     #if DEBUG
         public static let inDebug = true

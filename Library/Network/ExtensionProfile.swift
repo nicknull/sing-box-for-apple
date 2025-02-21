@@ -3,6 +3,8 @@ import Libbox
 import NetworkExtension
 
 public class ExtensionProfile: ObservableObject {
+    public static let controlKind = "io.nekohasekai.sfavt.widget.ServiceToggle"
+
     private let manager: NEVPNManager
     private var connection: NEVPNConnection
     private var observer: Any?
@@ -47,6 +49,11 @@ public class ExtensionProfile: ObservableObject {
         manager.isOnDemandEnabled = newState
         setOnDemandRules()
         try await manager.saveToPreferences()
+    }
+
+    @available(iOS 16.0, macOS 13.0, tvOS 17.0, *)
+    public func fetchLastDisconnectError() async throws {
+        try await connection.fetchLastDisconnectError()
     }
 
     public func start() async throws {

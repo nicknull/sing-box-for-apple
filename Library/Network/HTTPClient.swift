@@ -10,6 +10,8 @@ public class HTTPClient {
         userAgent += Bundle.main.versionNumber
         userAgent += "; sing-box "
         userAgent += LibboxVersion()
+        userAgent += "; language "
+        userAgent += Locale.current.identifier
         userAgent += ")"
         return userAgent
     }
@@ -26,12 +28,8 @@ public class HTTPClient {
         request.setUserAgent(HTTPClient.userAgent)
         try request.setURL(url)
         let response = try request.execute()
-        var error: NSError?
-        let contentString = response.getContentString(&error)
-        if let error {
-            throw error
-        }
-        return contentString
+        let content = try response.getContent()
+        return content.value
     }
 
     deinit {

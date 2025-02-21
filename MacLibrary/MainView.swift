@@ -14,23 +14,19 @@ public struct MainView: View {
     @State private var alert: Alert?
 
     public init() {}
-    public var body: some View {
-        if ApplicationLibrary.inPreview {
-            body1.frame(width: 1280, height: 750, alignment: .topLeading)
-        } else {
-            body1
-        }
-    }
 
-    private var body1: some View {
+    public var body: some View {
         NavigationSplitView {
             SidebarView()
+                .navigationSplitViewColumnWidth(150)
         } detail: {
             NavigationStack {
                 selection.contentView
                     .navigationTitle(selection.title)
             }
+            .navigationSplitViewColumnWidth(650)
         }
+        .frame(minHeight: 500)
         .onAppear {
             environments.postReload()
             #if !DEBUG
@@ -60,7 +56,6 @@ public struct MainView: View {
         .onReceive(environments.openSettings) {
             selection = .settings
         }
-        .formStyle(.grouped)
         .environment(\.selection, $selection)
         .environment(\.importProfile, $importProfile)
         .environment(\.importRemoteProfile, $importRemoteProfile)
@@ -83,7 +78,7 @@ public struct MainView: View {
                 await importURLProfile(url)
             }
         } else {
-            alert = Alert(errorMessage: "Handled unknown URL \(url.absoluteString)")
+            alert = Alert(errorMessage: String(localized: "Handled unknown URL \(url.absoluteString)"))
         }
     }
 
@@ -110,7 +105,7 @@ public struct MainView: View {
         if directoryName != "Applications" {
             alert = Alert(
                 title: Text("Wrong application location"),
-                message: Text("This app needs to be placed under ~/Applications to work."),
+                message: Text("This app needs to be placed under the Applications folder to work."),
                 dismissButton: .default(Text("Ok")) {
                     NSWorkspace.shared.selectFile(Bundle.main.bundlePath, inFileViewerRootedAtPath: "")
                     NSApp.terminate(nil)

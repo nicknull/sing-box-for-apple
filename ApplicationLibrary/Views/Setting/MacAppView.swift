@@ -1,39 +1,35 @@
+
+import Library
+import SwiftUI
+
 #if os(macOS)
-
     import AppKit
-    import Library
     import ServiceManagement
-    import SwiftUI
+#endif
 
-    public struct MacAppView: View {
-        @State private var isLoading = true
+public struct AppView: View {
+    @State private var isLoading = true
 
-        @State private var startAtLogin = false
-        @Environment(\.showMenuBarExtra) private var showMenuBarExtra
-        @State private var menuBarExtraInBackground = false
+    @State private var startAtLogin = false
+    @Environment(\.showMenuBarExtra) private var showMenuBarExtra
+    @State private var menuBarExtraInBackground = false
 
-        @State private var alert: Alert?
+    @State private var alert: Alert?
 
-        public init() {}
-        public var body: some View {
-            viewBuilder {
-                if isLoading {
-                    ProgressView().onAppear {
-                        Task {
-                            await loadSettings()
-                        }
+    public init() {}
+    public var body: some View {
+        viewBuilder {
+            if isLoading {
+                ProgressView().onAppear {
+                    Task {
+                        await loadSettings()
                     }
-                } else {
-                    FormView {
-                        FormSection {
-                            Toggle("Start At Login", isOn: $startAtLogin)
-                                .onChangeCompat(of: startAtLogin) { newValue in
-                                    Task {
-                                        updateLoginItems(newValue)
-                                    }
-                                }
-                        } footer: {
-                            Text("Launch the application when the system is logged in. If enabled at the same time as `Show in Menu Bar` and `Keep Menu Bar in Background`, the application interface will not be opened automatically.")
+                }
+            } else {
+                FormView {
+                    #if os(macOS)
+                        FormToggle("Start At Login", "Launch the application when the system is logged in. If enabled at the same time as `Show in Menu Bar` and `Keep Menu Bar in Background`, the application interface will not be opened automatically.", $startAtLogin) { newValue in
+                            updateLoginItems(newValue)
                         }
 
                         Toggle("Show in Menu Bar", isOn: showMenuBarExtra)
@@ -73,21 +69,26 @@
                                 }
                             }
                         }
-                    }
+                    #endif
                 }
             }
-            .alertBinding($alert)
-            .navigationTitle("App")
-            #if os(iOS)
-                .navigationBarTitleDisplayMode(.inline)
-            #endif
         }
+        .alertBinding($alert)
+        .navigationTitle("App")
+        #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+        #endif
+    }
 
-        private func loadSettings() async {
+    private func loadSettings() async {
+        #if os(macOS)
             startAtLogin = SMAppService.mainApp.status == .enabled
             menuBarExtraInBackground = await SharedPreferences.menuBarExtraInBackground.get()
-            isLoading = false
-        }
+        #endif
+        isLoading = false
+    }
+
+    #if os(macOS)
 
         private func updateLoginItems(_ startAtLogin: Bool) {
             do {
@@ -150,6 +151,6 @@
                 alert = Alert(error)
             }
         }
-    }
 
-#endif
+    #endif
+}

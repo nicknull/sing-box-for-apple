@@ -17,7 +17,7 @@ public struct EditProfileView: View {
     public init() {}
     public var body: some View {
         FormView {
-            FormItem("Name") {
+            FormItem(String(localized: "Name")) {
                 TextField("Name", text: $profile.name, prompt: Text("Required"))
                     .multilineTextAlignment(.trailing)
             }
@@ -31,17 +31,17 @@ public struct EditProfileView: View {
             }
             .disabled(true)
             if profile.type == .icloud {
-                FormItem("Path") {
+                FormItem(String(localized: "Path")) {
                     TextField("Path", text: $profile.path, prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
                 }
             } else if profile.type == .remote {
-                FormItem("URL") {
+                FormItem(String(localized: "URL")) {
                     TextField("URL", text: $profile.remoteURL.unwrapped(""), prompt: Text("Required"))
                         .multilineTextAlignment(.trailing)
                 }
                 Toggle("Auto Update", isOn: $profile.autoUpdate)
-                FormItem("Auto Update Interval") {
+                FormItem(String(localized: "Auto Update Interval")) {
                     TextField("Auto Update Interval", text: $profile.autoUpdateInterval.stringBinding(defaultValue: 60), prompt: Text("In Minutes"))
                         .multilineTextAlignment(.trailing)
                     #if os(iOS)
@@ -51,7 +51,7 @@ public struct EditProfileView: View {
             }
             if profile.type == .remote {
                 Section("Status") {
-                    FormTextItem("Last Updated", profile.lastUpdatedString)
+                    FormTextItem("Last Updated", profile.lastUpdated!.myFormat)
                 }
             }
             Section("Action") {
@@ -162,10 +162,11 @@ public struct EditProfileView: View {
         do {
             _ = try await ProfileManager.update(profile)
             #if os(iOS) || os(tvOS)
-                try await UIProfileUpdateTask.configure()
+                try UIProfileUpdateTask.configure()
             #else
                 try await ProfileUpdateTask.configure()
             #endif
+            try await profile.onProfileUpdated()
         } catch {
             alert = Alert(error)
             return

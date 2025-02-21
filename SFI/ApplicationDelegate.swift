@@ -6,16 +6,57 @@ import Library
 import Network
 import UIKit
 import FirebaseCore
-class ApplicationDelegate: NSObject, UIApplicationDelegate {
+
+import FirebaseCore
+import UserNotifications
+
+class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     private var profileServer: ProfileServer?
 
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        NSLog("Here I stand")
         FirebaseApp.configure()
-        LibboxSetup(FilePath.sharedDirectory.relativePath, FilePath.workingDirectory.relativePath, FilePath.cacheDirectory.relativePath, false)
+
+        let options = LibboxSetupOptions()
+        options.basePath = FilePath.sharedDirectory.relativePath
+        options.workingPath = FilePath.workingDirectory.relativePath
+        options.tempPath = FilePath.cacheDirectory.relativePath
+        var error: NSError?
+        LibboxSetup(options, &error)
+        LibboxSetLocale(Locale.current.identifier)
+        let notificationCenter = UNUserNotificationCenter.current()
+        notificationCenter.setNotificationCategories([
+            UNNotificationCategory(
+                identifier: "OPEN_URL",
+                actions: [
+                    UNNotificationAction(identifier: "COPY_URL", title: "Copy URL", options: .foreground, icon: UNNotificationActionIcon(systemImageName: "clipboard.fill")),
+                    UNNotificationAction(identifier: "OPEN_URL", title: "Open", options: .foreground, icon: UNNotificationActionIcon(systemImageName: "safari.fill")),
+                ],
+                intentIdentifiers: []
+            ),
+        ]
+        )
+        notificationCenter.delegate = self
         setup()
         return true
     }
 
+    func userNotificationCenter(_: UNUserNotificationCenter, willPresent _: UNNotification) async -> UNNotificationPresentationOptions {
+        .banner
+    }
+
+    func userNotificationCenter(_: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        if let url = response.notification.request.content.userInfo["OPEN_URL"] as? String {
+            switch response.actionIdentifier {
+            case "COPY_URL":
+                UIPasteboard.general.string = url
+            case "OPEN_URL":
+                fallthrough
+            default:
+                await UIApplication.shared.open(URL(string: url)!)
+            }
+        }
+    }
     private func setup() {
         do {
             try UIProfileUpdateTask.configure()
