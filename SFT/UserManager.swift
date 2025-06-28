@@ -12,6 +12,8 @@ import Libbox
 import ApplicationLibrary
 import CryptoSwift
 import Defaults
+import FirebaseCore
+import FirebaseMessaging
 
 class UserManager: ObservableObject {
     @AppStorage(ConstantKey.email) var email: String = ""
@@ -104,7 +106,22 @@ class UserManager: ObservableObject {
     }
     func refreshUserInfo() {
         refreshingUserInfo = true
-        NewNetWorkRequest(AQAPIService.getUserInfo,modelType:UserInfoModel.self) { [self] (userInfo,responseModel) in
+//        Messaging.messaging().token { token, error in
+//          if let error = error {
+//            print("Error fetching FCM registration token: \(error)")
+//          } else if let token = token {
+//            print("FCM registration token: \(token)")
+//          }
+//        }
+        
+        var apnsToken = ""
+        if (Messaging.messaging().apnsToken != nil) {
+            apnsToken = apnsTokenString(from: (Messaging.messaging().apnsToken! as Data))
+
+        }
+
+//        Messaging.messaging().fcmToken
+        NewNetWorkRequest(AQAPIService.getUserInfo(apnsToken: apnsToken),modelType:UserInfoModel.self) { [self] (userInfo,responseModel) in
             refreshingUserInfo = false
             if(( userInfo) != nil){
                 userInfoJsonStr = responseModel.dataString!
@@ -116,9 +133,18 @@ class UserManager: ObservableObject {
             
         }
     }
-    
+    func apnsTokenString(from deviceToken: Data) -> String {
+        return deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+    }
+
     func getSubscribe() {
+        if(gettingSubscribe){
+            return
+        }
         gettingSubscribe = true
+        
+        
+
         
         NewNetWorkRequest(AQAPIService.getSubscribe,modelType:SubscribeModel.self) { [self] (subscribe,responseModel) in
             gettingSubscribe = false

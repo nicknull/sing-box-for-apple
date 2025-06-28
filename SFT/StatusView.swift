@@ -233,9 +233,10 @@ struct StatusView: View {
 
                 }
             } catch {
-                //                await MainActor.run {
-                //                    alert = Alert(error)
-                //                }
+                print(error)
+//                                await MainActor.run {
+//                                    alert = Alert(error)
+//                                }
             }
         }
     }
@@ -247,8 +248,15 @@ struct StatusView: View {
         
         do {
             if isEnabled {
-                try await extensionProfile.start()
-                await environments.logClient.connect()
+                
+                do{
+                    try await extensionProfile.start()
+                    await environments.logClient.connect()
+
+                }catch{
+                    print(error)
+
+                }
             } else {
                 try await extensionProfile.stop()
             }

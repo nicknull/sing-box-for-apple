@@ -68,6 +68,7 @@ def lib
   use_frameworks!
   pod 'FirebaseRemoteConfig'
   pod 'FirebaseAnalytics'
+  pod 'FirebaseMessaging'
   pod 'SwiftyJSON'
   pod 'Moya'
   pod 'Alamofire'
@@ -80,6 +81,7 @@ def lib
   pod 'Defaults'
   pod 'CryptoSwift'
   pod 'ExytePopupView'
+  pod 'SwiftDate'
 
 
 end
@@ -88,12 +90,33 @@ target 'SFI' do
   lib
   pod 'AlertToast'
   pod 'Kingfisher'
+  
+
 
 end
 target 'SFT' do
   lib
   pod "GCDWebServer"
 end
+
+#post_install do |installer|
+#  installer.pods_project.targets.each do |target|
+#    target.build_configurations.each do |config|
+#      config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Onone'
+#      config.build_settings['ENABLE_BITCODE'] = 'NO'
+#      config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+#      config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
+#      config.build_settings['SWIFT_VERSION'] = '5'
+#      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+##      config.build_settings['SWIFT_INSTALL_OBJC_HEADER'] = 'NO'
+#      if target.platform_name == :ios
+#        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '16.0'
+#      elsif target.platform_name == :tvos
+#        config.build_settings['TVOS_DEPLOYMENT_TARGET'] = '16.0'
+#      end
+#    end
+#  end
+#end
 
 #target 'ApplicationLibrary' do
 #  use_frameworks!

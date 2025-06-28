@@ -30,7 +30,7 @@ struct Application: App {
                 SyncView()
             })
             .onAppear(){
-                let getService = Defaults[.getService];
+                let getService = Defaults[.getServiceTime];
                 let timeInterval =  Date().timeIntervalSince1970
 
                 if(timeInterval-getService>serviceInterval){

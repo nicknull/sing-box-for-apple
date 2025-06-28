@@ -15,6 +15,7 @@ import ApplicationLibrary
 import Foundation
 import Defaults
 import ExytePopupView
+import SwiftDate
 
 enum FocusableField {
     case board
@@ -89,8 +90,8 @@ struct DashBoardView: View {
             Spacer(minLength: 40)
             NavigationView {
                 List {
-                    Section() {
-                        Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/, label: {
+                    Section {
+                        Button(action: {}, label: {
                             LabeledContent {
                                 Text(userManager.email)
                                     .foregroundColor(Color.secondary)
@@ -101,7 +102,7 @@ struct DashBoardView: View {
                             }
                         })
                         
-                        Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/, label: {
+                        Button(action: {}, label: {
                             
                             LabeledContent {
                                 let date = Date(timeIntervalSince1970: userManager.userInfo?.expired_at ?? 100*365*24*60*60)
@@ -113,8 +114,9 @@ struct DashBoardView: View {
                                 
                             }
                         })
+                        
                         if userManager.subscribe != nil{
-                            Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/, label: {
+                            Button(action: {}, label: {
                                 
                                 LabeledContent {
                                     Text(userManager.subscribe?.name ?? "-")
@@ -127,7 +129,7 @@ struct DashBoardView: View {
                                     }
                                 }
                             })
-                            
+
                             if showProducts()  {
                                 NavigationLink(destination:
                                                 ProductsView()
@@ -145,7 +147,7 @@ struct DashBoardView: View {
                                 }
                                 
                             }
-                            
+
                             Button(action: {}, label: {
                                 
                                 LabeledContent {
@@ -159,7 +161,7 @@ struct DashBoardView: View {
                                     }
                                 }
                             })
-                            Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/, label: {
+                            Button(action: {}, label: {
                                 
                                 LabeledContent {
                                     Text(formatter.string(from: userManager.subscribe!.d! as NSNumber) ?? "-")
@@ -172,7 +174,7 @@ struct DashBoardView: View {
                                         IVYIcon(systemName: "arrow.down.right", backgroundColor: .orange)
                                     }
                                 }})
-                            Button(action: /*@START_MENU_TOKEN@*/{}/*@END_MENU_TOKEN@*/, label: {
+                            Button(action: {}, label: {
                                 
                                 LabeledContent {
                                     Text(formatter.string(from: userManager.subscribe!.transfer_enable! as NSNumber) ?? "-")
@@ -185,6 +187,7 @@ struct DashBoardView: View {
                                     }
                                 }
                             })
+                            
                             if  (environments.extensionProfile != nil) && profile != nil{
                                 Button {
                                     isLoading = true
@@ -199,7 +202,7 @@ struct DashBoardView: View {
                                             ProgressView()
                                                 .progressViewStyle(.circular)
                                         }else{
-                                            Text(profile!.lastUpdatedString)
+                                            Text(profile?.lastUpdated?.toString() ?? "未知")
                                                 .font(.footnote)
                                         }
                                         
@@ -209,9 +212,12 @@ struct DashBoardView: View {
                             }
 
                         }
+
                     } header: {
                         Text("个人信息")
                     }
+
+
 
                     
                     Section{

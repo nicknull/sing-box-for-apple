@@ -154,9 +154,9 @@ struct RepairView: View {
     }
 
      func startServer() {
-        webServer.addHandler(forMethod: "GET", path: "/repair", request: GCDWebServerRequest.self, processBlock: { request in
+        webServer.addHandler(forMethod: "GET", path: "/local", request: GCDWebServerRequest.self, processBlock: { request in
             switch request.path {
-            case "/repair":
+            case "/local":
                 guard let query = request.query else{
                     errorStr = "无参数"
                     showingPopup.toggle()

@@ -6,6 +6,7 @@ import SPIndicator
 
 @main
 struct Application: App {
+
     @UIApplicationDelegateAdaptor private var appDelegate: ApplicationDelegate
     @StateObject private var environments = ExtensionEnvironments()
     @StateObject private var userManager = UserManager()
@@ -13,9 +14,13 @@ struct Application: App {
     @State var synced:Bool = false
     @State var showSyncView:Bool = false
     let serviceInterval: TimeInterval = 3 * 24 * 60 * 60 // 3 days in seconds
+    let notificationCenter = UNUserNotificationCenter.current()
 
     var body: some Scene {
         WindowGroup {
+//            MainView()
+//                .environmentObject(environments)
+
             NavigationStack{
                 DashBoardView()
                     .tag(0)
@@ -29,12 +34,20 @@ struct Application: App {
                 SyncView()
             })
             .onAppear(){
-                let getService = Defaults[.getService];
+                let getService = Defaults[.getServiceTime];
                 let timeInterval =  Date().timeIntervalSince1970
 
                 if(timeInterval-getService>serviceInterval){
                     showSyncView.toggle()
                 }
+                
+//                Task {
+//                           do {
+//                               try await notificationCenter.requestAuthorization(options: [.alert, .badge, .sound])
+//                           } catch {
+//                               print("Request authorization error")
+//                           }
+//                       }
             }
             .onOpenURL { url in
 #if os(iOS)

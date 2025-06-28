@@ -33,15 +33,17 @@ struct SyncView: View {
                         getService()
                     }
                 })
-                .popup(isPresented: $showingPopup) { 
-                    HStack{
-                        Text(errorStr)
-                            .padding(40)
-                    }
-                    .background(.gray)
-                    .cornerRadius(30.0)
-                    
-                }
+//                .popup(isPresented: $showingPopup) { 
+//                    HStack{
+//                        Text(errorStr)
+//                            .padding(40)
+//                    }
+//                    .background(.gray)
+//                    .cornerRadius(30.0)
+//                    
+//                }customize: {
+//                    $0.autohideIn(2)
+//                }
             Spacer()
             Text("正在更新配置信息...")
                 .padding()
@@ -64,7 +66,7 @@ struct SyncView: View {
                         {
                             if (URL(string: urlStr) != nil) && ((URL(string: urlStr)?.scheme) != nil) {
                                 Defaults[.host] = urlStr
-                                Defaults[.getService] = Date().timeIntervalSince1970
+                                Defaults[.getServiceTime] = Date().timeIntervalSince1970
                                 errorStr = "服务地址已更新"
                                 showingPopup.toggle()
                             }

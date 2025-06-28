@@ -6,16 +6,17 @@ import Library
 import Network
 import UIKit
 import FirebaseCore
+import FirebaseMessaging
 
-import FirebaseCore
 import UserNotifications
 
-class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+class ApplicationDelegate: NSObject, UIApplicationDelegate {
     private var profileServer: ProfileServer?
+    let gcmMessageIDKey = "gcm.message_id"
 
-    func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        NSLog("Here I stand")
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         FirebaseApp.configure()
+        Messaging.messaging().delegate = self
 
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
@@ -24,39 +25,35 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
         var error: NSError?
         LibboxSetup(options, &error)
         LibboxSetLocale(Locale.current.identifier)
-        let notificationCenter = UNUserNotificationCenter.current()
-        notificationCenter.setNotificationCategories([
-            UNNotificationCategory(
-                identifier: "OPEN_URL",
-                actions: [
-                    UNNotificationAction(identifier: "COPY_URL", title: "Copy URL", options: .foreground, icon: UNNotificationActionIcon(systemImageName: "clipboard.fill")),
-                    UNNotificationAction(identifier: "OPEN_URL", title: "Open", options: .foreground, icon: UNNotificationActionIcon(systemImageName: "safari.fill")),
-                ],
-                intentIdentifiers: []
-            ),
-        ]
-        )
-        notificationCenter.delegate = self
-        setup()
-        return true
-    }
 
-    func userNotificationCenter(_: UNUserNotificationCenter, willPresent _: UNNotification) async -> UNNotificationPresentationOptions {
-        .banner
-    }
+        UNUserNotificationCenter.current().delegate = self
 
-    func userNotificationCenter(_: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
-        if let url = response.notification.request.content.userInfo["OPEN_URL"] as? String {
-            switch response.actionIdentifier {
-            case "COPY_URL":
-                UIPasteboard.general.string = url
-            case "OPEN_URL":
-                fallthrough
-            default:
-                await UIApplication.shared.open(URL(string: url)!)
+        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if granted {
+                DispatchQueue.main.async {
+                    application.registerForRemoteNotifications()
+                }
             }
         }
+//        application.registerForRemoteNotifications()
+        setup()
+        print("✅ AppDelegate didFinishLaunchingWithOptions called")
+
+        return true
     }
+    
+    func application(_: UIApplication,
+                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+      Messaging.messaging().apnsToken = deviceToken
+        NSLog("didRegisterForRemoteNotificationsWithDeviceToken")
+
+    }
+    func application(_:UIApplication, didFailToRegisterForRemoteNotificationsWithError error:Error){
+        
+        NSLog("didFailToRegisterForRemoteNotificationsWithError")
+    }
+
     private func setup() {
         do {
             try UIProfileUpdateTask.configure()
@@ -105,4 +102,49 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCe
             }
         }.resume()
     }
+    
+    
+
+}
+
+extension ApplicationDelegate: MessagingDelegate {
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+
+      let deviceToken:[String: String] = ["token": fcmToken ?? ""]
+        print("Device token: ", deviceToken) // This token can be used for testing notifications on FCM
+    }
+}
+@available(iOS 10, *)
+extension ApplicationDelegate : UNUserNotificationCenterDelegate {
+
+  // Receive displayed notifications for iOS 10 devices.
+  func userNotificationCenter(_ center: UNUserNotificationCenter,
+                              willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+    let userInfo = notification.request.content.userInfo
+
+    if let messageID = userInfo[gcmMessageIDKey] {
+        print("Message ID: \(messageID)")
+    }
+
+    print(userInfo)
+
+    // Change this to your preferred presentation option
+    completionHandler([[.banner, .badge, .sound]])
+  }
+
+
+  func userNotificationCenter(_ center: UNUserNotificationCenter,
+                              didReceive response: UNNotificationResponse,
+                              withCompletionHandler completionHandler: @escaping () -> Void) {
+    let userInfo = response.notification.request.content.userInfo
+
+    if let messageID = userInfo[gcmMessageIDKey] {
+      print("Message ID from userNotificationCenter didReceive: \(messageID)")
+    }
+
+    print(userInfo)
+
+    completionHandler()
+  }
 }

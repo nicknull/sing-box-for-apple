@@ -10,6 +10,7 @@ import NetworkExtension
 import Libbox
 import Library
 import ApplicationLibrary
+import SwiftDate
 
 struct SettingsView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
@@ -79,7 +80,7 @@ struct SettingsView: View {
                             ProgressView()
                                 .progressViewStyle(.circular)
                         }else{
-                            Text(profile!.lastUpdatedString)
+                            Text(profile!.lastUpdated?.toString() ?? "未知")
                                 .font(.footnote)
                         }
 

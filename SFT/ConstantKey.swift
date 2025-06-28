@@ -37,6 +37,7 @@ struct VersionComparator {
     public static let subscribeInfojson = "subscribeInfojson"
     public static let suiteName = "group.\(Bundle.appID)"
     public static let host = "host"
+    public static let local = "local"
     public static let repair = "repair"
 
     public static let apiHost = "apiHost"
@@ -45,7 +46,7 @@ struct VersionComparator {
     public static let confVersion = "confVersion"
     public static let releaseVersion = "releaseVersion"
     
-    public static let getService = "getService"//上次更新主服务域名时间
+    public static let getServiceTime = "getServiceTime"//上次更新主服务域名时间
 
     
     

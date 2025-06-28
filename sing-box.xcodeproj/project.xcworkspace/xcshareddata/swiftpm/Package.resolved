@@ -1,5 +1,5 @@
 {
-  "originHash" : "8d2253b24e80e77aef33925277088f5e7ec5fc4557d30c83ba0fe45344a3c617",
+  "originHash" : "7a4a72f54e6f6e2586fb44ef561eebbe21227957e21bfe511cfdcfea1ad7d940",
   "pins" : [
     {
       "identity" : "bettersafariview",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "33643e2343f591368647935d14a94e35dc2d3bf0",
         "version" : "2.0.3"
+      }
+    },
+    {
+      "identity" : "codescanner",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/twostraws/CodeScanner.git",
+      "state" : {
+        "revision" : "5e886430238944c7200fc9e10dbf2d9550dba865",
+        "version" : "2.5.2"
       }
     },
     {
@@ -60,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/qrcode.git",
       "state" : {
-        "revision" : "350573762a43ac6e381ad915fb2ce6a3fb5a650d",
-        "version" : "20.3.0"
+        "revision" : "e7bcd89a987cf43bc64e414f3e26cb8eded8ae1e",
+        "version" : "20.5.0"
       }
     },
     {
@@ -78,8 +87,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/SwiftImageReadWrite",
       "state" : {
-        "revision" : "016a9cb842038e4078a91e506e35cef4f4ff76ff",
-        "version" : "1.7.2"
+        "revision" : "42ace2412279f18bc264bc306e96b51c36e12a33",
+        "version" : "1.9.2"
       }
     },
     {

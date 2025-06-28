@@ -7,7 +7,14 @@ public extension Profile {
         if type != .remote {
             return
         }
+//        guard let filePath = Bundle.main.path(forResource: "subscribe", ofType: "json") else {
+//            print("文件未找到")
+//            exit(1)
+//        }
+
         let remoteContent = try HTTPClient().getString(remoteURL)
+//        let remoteContent = try String(contentsOfFile: filePath, encoding: .utf8)
+
         var error: NSError?
         LibboxCheckConfig(remoteContent, &error)
         if let error {

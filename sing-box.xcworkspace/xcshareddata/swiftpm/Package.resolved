@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/christophhagen/BinaryCodable",
       "state" : {
-        "revision" : "33643e2343f591368647935d14a94e35dc2d3bf0",
-        "version" : "2.0.3"
+        "revision" : "f4bdd82c5da4a825634bd32c3b2ef70faa773143",
+        "version" : "3.0.3"
       }
     },
     {
@@ -24,8 +24,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/twostraws/CodeScanner.git",
       "state" : {
-        "revision" : "34da57fb63b47add20de8a85da58191523ccce57",
-        "version" : "2.5.0"
+        "revision" : "5e886430238944c7200fc9e10dbf2d9550dba865",
+        "version" : "2.5.2"
       }
     },
     {
@@ -33,8 +33,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDB.swift",
       "state" : {
-        "revision" : "dd6b98ce04eda39aa22f066cd421c24d7236ea8a",
-        "version" : "6.29.1"
+        "branch" : "master",
+        "revision" : "a5a1be26b4513dc7ec360eb56bc08a345bac6649"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MacControlCenterUI",
       "state" : {
-        "revision" : "6565bcb33bfdb446a4fd81f3c78dce27b0ab7e09",
-        "version" : "2.0.8"
+        "revision" : "ee2003b6508de0997cbe6ebb238801f297a450ab",
+        "version" : "2.4.1"
       }
     },
     {
@@ -60,17 +60,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MenuBarExtraAccess",
       "state" : {
-        "revision" : "f5896b47e15e114975897354c7e1082c51a2bffd",
-        "version" : "1.0.5"
+        "revision" : "e911e6454f8cbfe34a52136fc48e1ceb989a60e7",
+        "version" : "1.2.1"
       }
     },
     {
       "identity" : "qrcode",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/dagronf/qrcode",
+      "location" : "https://github.com/dagronf/QRCode.git",
       "state" : {
-        "revision" : "e7bcd89a987cf43bc64e414f3e26cb8eded8ae1e",
-        "version" : "20.5.0"
+        "revision" : "94fa5c053837eb2b367316590ceaa480b0689902",
+        "version" : "26.1.0"
       }
     },
     {

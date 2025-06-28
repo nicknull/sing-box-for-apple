@@ -86,7 +86,7 @@ struct DashBoardView: View {
                 showLogIn.toggle()
             }
             else{
-                userManager.reload()
+//                userManager.reload()
             }
             
         }

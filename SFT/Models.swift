@@ -91,3 +91,55 @@ class Plan:Codable,Equatable{
     var updated_at:TimeInterval
 
 }
+
+struct TicketModel: Codable, Identifiable {
+    let id: Int
+    let createdAt: TimeInterval
+    let updatedAt: TimeInterval
+    let subject: String
+    let level: Int
+    let replyStatus: Int
+    let status: Int
+    let userId: Int
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case subject
+        case level
+        case replyStatus = "reply_status"
+        case status
+        case userId = "user_id"
+    }
+}
+
+struct TicketResponse: Codable {
+    let data: MessageData  // 需要重命名结构体
+}
+
+struct MessageData: Codable {
+    let message: [Message] // 直接包含消息数组
+    let subject: String
+
+}
+
+struct Message: Codable, Identifiable {
+    let id: Int
+    let user_id: Int
+    let ticket_id: Int
+    let message: String
+    let pic: String?
+    let created_at: Int
+    let updated_at: Int
+    var is_me: Bool
+    
+    var formattedTime: String {
+        let date = Date(timeIntervalSince1970: TimeInterval(created_at))
+        return DateFormatter.localizedString(from: date, dateStyle: .short, timeStyle: .short)
+    }
+}
+struct CreateTicketResponse: Codable {
+    let data: Bool?
+    let message:String?
+}
