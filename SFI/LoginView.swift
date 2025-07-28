@@ -219,6 +219,8 @@ struct LoginView: View {
             userManager.password = password
             userManager.auth_data = authModel!.auth_data
             userManager.token = authModel!.token
+            userManager.is_admin = authModel!.is_admin
+
             Task {
                 userManager.reload()
                 isLoading = false

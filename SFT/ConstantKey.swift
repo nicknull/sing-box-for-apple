@@ -32,6 +32,8 @@ struct VersionComparator {
     public static let token = "token"
     public static let auth_data = "auth_data"
     public static let email = "emailKey"
+    public static let is_admin = "is_admin"
+
     public static let password = "passwordKey"
     public static let userInfojson = "userInfojson"
     public static let subscribeInfojson = "subscribeInfojson"
@@ -47,11 +49,7 @@ struct VersionComparator {
     public static let releaseVersion = "releaseVersion"
     
     public static let getServiceTime = "getServiceTime"//上次更新主服务域名时间
-
-    
-    
-    
-
+    public static let secure_path = "secure_path"//后台管理路径，修改后将会改变原有的admin路径
 }
 extension Bundle {
     

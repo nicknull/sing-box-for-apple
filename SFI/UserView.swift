@@ -93,41 +93,28 @@ struct UserView: View {
 
           Section {
 
-            Section {
-              Button {
-                isNavigatingToTickets = true
-              } label: {
-                LabeledContent {
-                  Image(systemName: "chevron.forward")
-                } label: {
-                  Text("我的工单")
-                }
+              if(userManager.is_admin){
+                  NavigationLink(destination: TicketListView_admin()) {
+                      HStack {
+                          IVYIcon(systemName: "questionmark.circle.fill", backgroundColor: Color(hexString: "#F78770"))
+
+                          Text("工单管理")
+                      }
+                  }
+                  .padding(.vertical,4)
+
+              }else{
+                  NavigationLink(destination: TicketListView()) {
+                      HStack {
+                          IVYIcon(systemName: "questionmark.circle.fill", backgroundColor: Color(hexString: "#F78770"))
+
+                          Text("我的工单")
+                      }
+                  }
+                  .padding(.vertical,4)
+
               }
-            }
-
-            NavigationLink(
-              destination: TicketListView(),
-              isActive: $isNavigatingToTickets,
-              label: { EmptyView() }
-            )
-
-            Button {
-
-            } label: {
-              LabeledContent {
-                Image(systemName: "chevron.forward")
-                  .foregroundColor(.secondary)
-                  .opacity(0.7)
-
-              } label: {
-                Label {
-                  Text("我的工单")
-                } icon: {
-                  IVYIcon(systemName: "command", backgroundColor: .brown)
-                }
-              }
-            }
-
+              
           } header: {
             Text("工单")
           }
@@ -249,6 +236,8 @@ struct UserView: View {
                 IVYIcon(systemName: "info", backgroundColor: .indigo)
               }
             }
+            .padding(.vertical,4)
+
             LabeledContent {
               Text(formatter.string(from: self.subscribe!.u! as NSNumber) ?? "-")
             } label: {
@@ -258,6 +247,8 @@ struct UserView: View {
                 IVYIcon(systemName: "arrow.up.right", backgroundColor: .purple)
               }
             }
+            .padding(.vertical,4)
+
 
             LabeledContent {
               Text(formatter.string(from: self.subscribe!.d! as NSNumber) ?? "-")
@@ -268,6 +259,8 @@ struct UserView: View {
                 IVYIcon(systemName: "arrow.down.right", backgroundColor: .orange)
               }
             }
+            .padding(.vertical,4)
+
 
             LabeledContent {
               Text(formatter.string(from: self.subscribe!.transfer_enable! as NSNumber) ?? "-")
@@ -279,6 +272,8 @@ struct UserView: View {
                   systemName: "arrow.triangle.branch", backgroundColor: Color(hexString: "#01E905"))
               }
             }
+            .padding(.vertical,4)
+
 
           } header: {
             Text("套餐信息")

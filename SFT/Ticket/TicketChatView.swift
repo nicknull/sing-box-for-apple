@@ -1,9 +1,12 @@
 import SwiftUI
 import AlertToast
+import Defaults
 
 struct TicketChatView: View {
     @State private var newMessage = ""
     @State private var subject = ""
+    @State private var status = 1
+    @State private var reply_status = 1
 
     
     @State private var selectedImage: UIImage? = nil
@@ -12,7 +15,7 @@ struct TicketChatView: View {
     @State private var errorMessage: String?
     @State private var showingPopup = false
     
-    
+    @Environment(\.dismiss) var dismiss
     let ticketId: Int
     
     var body: some View {
@@ -34,36 +37,52 @@ struct TicketChatView: View {
                     }
                 }
             }
-            
-            HStack {
-                Button(action: selectImage) {
-                    Image(systemName: "photo")
-                        .padding(8)
+                HStack {
+                    Button(action: selectImage) {
+                        if let selectedImage = selectedImage {
+                            Image(uiImage: selectedImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxWidth: 100, maxHeight: 100)
+                                .cornerRadius(8)
+                        } else {
+                            Image(systemName: "photo")
+                                .padding(8)
+                        }
+                    }
+                    .padding(.leading, 8)
+                    
+                    TextField("输入消息...", text: $newMessage)
+                        .padding(.vertical, 5)
+                        .padding(.horizontal, 8)
+                    
+                    Button("发送") {
+                        sendMessage()
+                    }
+                    .padding(.trailing, 8)
                 }
-                .padding(.leading, 8)
-                
-                TextField("输入消息...", text: $newMessage)
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 8)
-                
-                Button("发送") {
-                    sendMessage()
-                }
-                .padding(.trailing, 8)
-            }
-            .padding(.vertical, 4)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.gray.opacity(0.5), lineWidth: 1)
-            )
-            .padding(.horizontal, 8)
-            .padding(.bottom)
-            
+                .padding(.vertical, 4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.5), lineWidth: 1)
+                )
+                .padding(.horizontal, 8)
+                .padding(.bottom)
+                .disabled(status == 1 || reply_status == 0)            
         }
         .navigationTitle(subject)
         .onAppear {
             loadMessages()
         }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                    Button(action: closeTicket) {
+                        Text("关闭工单")
+                    }
+                    .disabled(status == 1)
+            }
+        }
+
         .toast(isPresenting: $showingPopup) {
             AlertToast(
                 displayMode: .hud,
@@ -71,16 +90,20 @@ struct TicketChatView: View {
                 title: errorMessage
             )
         }
-        
+        .loadingHUD(isPresented: $isLoading, message: "加载中...")
     }
     
     private func loadMessages() {
         isLoading = true
         NewNetWorkRequest(AQAPIService.ticketFetch(id: ticketId), modelType: MessageData.self) {
             response, _ in
+            isLoading = false
             if let messages = response?.message {  // 直接访问data.message
                 self.messages = messages
                 subject = response?.subject ?? ""
+                status = response?.status ?? 1
+
+                reply_status = response?.reply_status ?? 1
             }
         }
     }
@@ -90,19 +113,35 @@ struct TicketChatView: View {
         isLoading = true
         
         NewNetWorkRequest(
-            AQAPIService.ticketReply(id: ticketId, message: newMessage),
-            modelType: MessageData.self
+            AQAPIService.ticketReply(id: ticketId, message: newMessage, imageData: selectedImage?.jpegData(compressionQuality: 0.8)),
+            modelType: CreateTicketResponse.self
         ) { [self] response, error in
             isLoading = false
-            if let newMsg = response?.message.last {
-                messages.append(newMsg)
-                newMessage = ""
-                selectedImage = nil
-            } else {
-                errorMessage = error.messageStr
+            if(response?.data == true){
+                loadMessages()
+            }else{
+                errorMessage = response?.message
                 showingPopup = true
             }
         }
+    }
+    
+    
+    private func closeTicket() {
+        isLoading = true
+        NewNetWorkRequest(
+            AQAPIService.ticketClose(id: ticketId),
+            modelType: CreateTicketResponse.self
+        ) { [self] response, error in
+            isLoading = false
+            if(response?.data == true){
+                dismiss()
+            }else{
+                errorMessage = response?.message
+                showingPopup = true
+            }
+        }
+
     }
 }
 
@@ -187,7 +226,7 @@ struct MessageBubble: View {
                     if let picURLString = message.pic,
                        let picURL = validImageURL(from: picURLString){
                         VStack(alignment: .leading, spacing: 8) {
-                            AsyncImage(url: URL(string: "https://pics0.baidu.com/feed/42166d224f4a20a49f4d1b0bd00b9732730ed010.jpeg@f_auto?token=b5ada3a4a3eaccf9cea4a074b849a2ef")) { phase in
+                            AsyncImage(url: picURL) { phase in
                                 phase.image?
                                     .resizable()
                                     .scaledToFit()
@@ -202,9 +241,10 @@ struct MessageBubble: View {
                                     .foregroundColor(message.is_me ? .white:.gray)
                             }
                         }
-                        .sheet(isPresented: $showFullImage) {
-                            //                        FullScreenImageView(imageURL: picURL)
-                        }
+                        .fullScreenCover(isPresented: $showFullImage, content: {
+                            FullScreenImageView(imageURL: picURL)
+
+                        })
                     } else {
                         
                         Text(message.message)
@@ -232,19 +272,15 @@ struct MessageBubble: View {
                 }
             }
         }
-        //        .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: message.is_me ? .trailing : .leading)
-        //        .padding(.horizontal, 10)
-        //        .padding(.vertical, 10)
     }
     
     private func validImageURL(from string: String?) -> URL? {
-        guard let str = string,
-              let url = URL(string: str),
-              let scheme = url.scheme?.lowercased(),
-              ["http", "https"].contains(scheme) else {
+        guard let path = string,
+              let baseURL = URL(string: Defaults[.host])
+        else {
             return nil
         }
-        return url
+        return baseURL.appendingPathComponent(path)
     }
 }
 

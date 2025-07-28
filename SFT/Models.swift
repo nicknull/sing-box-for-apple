@@ -121,6 +121,8 @@ struct TicketResponse: Codable {
 struct MessageData: Codable {
     let message: [Message] // 直接包含消息数组
     let subject: String
+    let status:Int
+    let reply_status:Int
 
 }
 

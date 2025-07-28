@@ -190,6 +190,7 @@ struct LoginView: View {
                 }
                 return
             }
+            userManager.is_admin = authModel!.is_admin
             userManager.email = email
             userManager.password = password
             userManager.auth_data = authModel!.auth_data

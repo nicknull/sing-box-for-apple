@@ -20,6 +20,7 @@ class UserManager: ObservableObject {
     @AppStorage(ConstantKey.password) var password: String = ""
     @AppStorage(ConstantKey.auth_data) var auth_data  = ""
     @AppStorage(ConstantKey.token) var token  = ""
+    @AppStorage(ConstantKey.is_admin) var is_admin: Bool = false
     @AppStorage(ConstantKey.userInfojson) private var userInfoJsonStr  = ""
     @AppStorage(ConstantKey.subscribeInfojson) private var subscribeInfoJsonStr  = ""
     @AppStorage(ConstantKey.fileContentHash) private var fileContentHash  = ""

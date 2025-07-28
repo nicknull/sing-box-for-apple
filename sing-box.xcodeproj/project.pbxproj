@@ -213,6 +213,12 @@
 		B6739A832E0A7C06004EDF14 /* CreateTicketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A812E0A7C04004EDF14 /* CreateTicketView.swift */; };
 		B6739A862E0D80D0004EDF14 /* FullScreenImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A852E0D80D0004EDF14 /* FullScreenImageView.swift */; };
 		B6739A872E0D80D0004EDF14 /* FullScreenImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A852E0D80D0004EDF14 /* FullScreenImageView.swift */; };
+		B6739A892E0FD840004EDF14 /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A882E0FD840004EDF14 /* ToastModifier.swift */; };
+		B6739A8A2E0FD840004EDF14 /* ToastModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A882E0FD840004EDF14 /* ToastModifier.swift */; };
+		B6739A9A2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */; };
+		B6739A9B2E10170A004EDF14 /* TicketListView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A992E10170A004EDF14 /* TicketListView_admin.swift */; };
+		B6739A9C2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */; };
+		B6739A9D2E10170A004EDF14 /* TicketListView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A992E10170A004EDF14 /* TicketListView_admin.swift */; };
 		B67B200B2C54CA3B00310430 /* FormItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67B200A2C54CA3B00310430 /* FormItem.swift */; };
 		B69895222D6A01CC00F841A8 /* subscribe.json in Resources */ = {isa = PBXBuildFile; fileRef = B69895212D6A01CC00F841A8 /* subscribe.json */; };
 		B6C9F0DD2C889DAC009B0F70 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */; };
@@ -718,6 +724,9 @@
 		B6739A7E2E079C9D004EDF14 /* TicketChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketChatView.swift; sourceTree = "<group>"; };
 		B6739A812E0A7C04004EDF14 /* CreateTicketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateTicketView.swift; sourceTree = "<group>"; };
 		B6739A852E0D80D0004EDF14 /* FullScreenImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullScreenImageView.swift; sourceTree = "<group>"; };
+		B6739A882E0FD840004EDF14 /* ToastModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastModifier.swift; sourceTree = "<group>"; };
+		B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketChatView_admin.swift; sourceTree = "<group>"; };
+		B6739A992E10170A004EDF14 /* TicketListView_admin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketListView_admin.swift; sourceTree = "<group>"; };
 		B67B200A2C54CA3B00310430 /* FormItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormItem.swift; sourceTree = "<group>"; };
 		B69895212D6A01CC00F841A8 /* subscribe.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = subscribe.json; sourceTree = "<group>"; };
 		B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncView.swift; sourceTree = "<group>"; };
@@ -948,6 +957,7 @@
 		3AC03B972A72BF3300B7946F /* SFT */ = {
 			isa = PBXGroup;
 			children = (
+				B6739A8F2E101508004EDF14 /* Ticket_admin */,
 				B6739A842E0A7C49004EDF14 /* Ticket */,
 				B6F5C7722BA07BF20038016B /* GoogleService-Info.plist */,
 				3AC03B982A72BF3300B7946F /* Application.swift */,
@@ -977,6 +987,7 @@
 				B63553492AC311CD00BE8873 /* StatusView.swift */,
 				B635534B2AC311CE00BE8873 /* UserManager.swift */,
 				B6432F882BC9683700CB86B1 /* PrivacyInfo.xcprivacy */,
+				B6739A882E0FD840004EDF14 /* ToastModifier.swift */,
 			);
 			path = SFT;
 			sourceTree = "<group>";
@@ -1307,6 +1318,15 @@
 				B6739A852E0D80D0004EDF14 /* FullScreenImageView.swift */,
 			);
 			path = Ticket;
+			sourceTree = "<group>";
+		};
+		B6739A8F2E101508004EDF14 /* Ticket_admin */ = {
+			isa = PBXGroup;
+			children = (
+				B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */,
+				B6739A992E10170A004EDF14 /* TicketListView_admin.swift */,
+			);
+			path = Ticket_admin;
 			sourceTree = "<group>";
 		};
 		B698951F2D68CCAE00F841A8 /* Recovered References */ = {
@@ -1972,6 +1992,7 @@
 				B63553602AC311D000BE8873 /* JWTPlugin.swift in Sources */,
 				B6363CF92B39BF8D008B8DF2 /* PurchaseXException.swift in Sources */,
 				B6363CFB2B39BF94008B8DF2 /* PurchaseXManager.swift in Sources */,
+				B6739A8A2E0FD840004EDF14 /* ToastModifier.swift in Sources */,
 				B6739A872E0D80D0004EDF14 /* FullScreenImageView.swift in Sources */,
 				B6739A822E0A7C06004EDF14 /* CreateTicketView.swift in Sources */,
 				B6C9F0DE2C889DAC009B0F70 /* SyncView.swift in Sources */,
@@ -1979,6 +2000,8 @@
 				B6363CF72B39BF85008B8DF2 /* PXLog.swift in Sources */,
 				B635536A2AC311D000BE8873 /* LoginView.swift in Sources */,
 				B63553632AC311D000BE8873 /* AQAPIService.swift in Sources */,
+				B6739A9C2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */,
+				B6739A9D2E10170A004EDF14 /* TicketListView_admin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2001,6 +2024,9 @@
 				B6F0A2322B23533200885AE8 /* DashBoardView.swift in Sources */,
 				B6CAB4942C820F6C00289B91 /* PopupMiddle.swift in Sources */,
 				3AEC20F62A459AB400A63465 /* Application.swift in Sources */,
+				B6739A892E0FD840004EDF14 /* ToastModifier.swift in Sources */,
+				B6739A9A2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */,
+				B6739A9B2E10170A004EDF14 /* TicketListView_admin.swift in Sources */,
 				B66FA94A2B711EF3002C6387 /* ButtonWithSafari.swift in Sources */,
 				B6165A962B25DAB2008DE6D3 /* ProfileListView.swift in Sources */,
 				B6F0A2372B23543A00885AE8 /* JWTPlugin.swift in Sources */,
@@ -2235,7 +2261,7 @@
 				CODE_SIGN_ENTITLEMENTS = Extension/Extension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2250,7 +2276,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.extensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2275,7 +2301,7 @@
 				CODE_SIGN_ENTITLEMENTS = Extension/Extension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2290,7 +2316,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.extensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2398,7 +2424,7 @@
 				CODE_SIGN_ENTITLEMENTS = IntentsExtension/IntentsExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
@@ -2413,7 +2439,7 @@
 				);
 				LINK_WITH_STANDARD_LIBRARIES = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.intents;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2437,7 +2463,7 @@
 				CODE_SIGN_ENTITLEMENTS = IntentsExtension/IntentsExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
@@ -2452,7 +2478,7 @@
 				);
 				LINK_WITH_STANDARD_LIBRARIES = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.intents;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2479,7 +2505,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SFT/SFT.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -2496,7 +2522,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2516,7 +2542,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SFT/SFT.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -2533,7 +2559,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2552,7 +2578,7 @@
 				CODE_SIGN_ENTITLEMENTS = TVExtension/TVExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TVExtension/Info.plist;
@@ -2565,7 +2591,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.extensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2588,7 +2614,7 @@
 				CODE_SIGN_ENTITLEMENTS = TVExtension/TVExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TVExtension/Info.plist;
@@ -2601,7 +2627,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.extensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2759,7 +2785,7 @@
 				CODE_SIGN_ENTITLEMENTS = SFI/SFI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_PREVIEWS = YES;
@@ -2782,7 +2808,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -2887,7 +2913,7 @@
 				CODE_SIGN_ENTITLEMENTS = SFI/SFI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_PREVIEWS = YES;
@@ -2910,7 +2936,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -3015,7 +3041,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -3033,7 +3059,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = "sing-box";
@@ -3054,7 +3080,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -3072,7 +3098,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = "sing-box";
@@ -3185,7 +3211,7 @@
 				CODE_SIGN_ENTITLEMENTS = SystemExtension/SystemExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -3200,7 +3226,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3218,7 +3244,7 @@
 				CODE_SIGN_ENTITLEMENTS = SystemExtension/SystemExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -3233,7 +3259,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3255,7 +3281,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -3272,7 +3298,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3293,7 +3319,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.5.0;
+				CURRENT_PROJECT_VERSION = 3.6.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -3310,7 +3336,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.5;
+				MARKETING_VERSION = 3.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
