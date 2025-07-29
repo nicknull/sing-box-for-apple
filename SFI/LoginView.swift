@@ -23,13 +23,14 @@ import BetterSafariView
 import ExytePopupView
 struct LoginView: View {
     
-    @State var errorStr:String = ""
+    @EnvironmentObject var appStateManager: AppStateManager
+    @EnvironmentObject var userManager: UserManager
+    
+    @State var errorStr: String = ""
     @State var showingPopup: Bool = false
     
-    @State var emailInput:String = ""
-    @State var passwordInput:String = ""
-    @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var userManager: UserManager
+    @State var emailInput: String = ""
+    @State var passwordInput: String = ""
     @State var isLoading: Bool = false
     @State var popUp: Bool = false
     var style = LoadingButtonStyle(width: 312,
@@ -121,34 +122,34 @@ struct LoginView: View {
                                     .tracking(3.0)
                                     .fontWeight(.medium)
                             }
-                            Rectangle()
-                                .fill(Color.blue)
-                                .opacity(0.6)
-                                .frame(width: 2,height: 12)
-                                .padding(.horizontal,5)
-                            
-                            Button {
-                                popUp.toggle()
-                            } label: {
-                                Text("无法注册")
-                                    .tracking(3.0)
-                                    .fontWeight(.medium)
-                            }
-                            
-                            Rectangle()
-                                .fill(Color.blue)
-                                .opacity(0.6)
-                                .frame(width: 2,height: 12)
-                                .padding(.horizontal,5)
-                            
-                            Button {
-                                popUp.toggle()
-                            } label: {
-                                Text("无法登录")
-                                    .tracking(3.0)
-                                    .fontWeight(.medium)
-                            }
-                            
+//                            Rectangle()
+//                                .fill(Color.blue)
+//                                .opacity(0.6)
+//                                .frame(width: 2,height: 12)
+//                                .padding(.horizontal,5)
+//                            
+//                            Button {
+//                                popUp.toggle()
+//                            } label: {
+//                                Text("无法注册")
+//                                    .tracking(3.0)
+//                                    .fontWeight(.medium)
+//                            }
+//                            
+//                            Rectangle()
+//                                .fill(Color.blue)
+//                                .opacity(0.6)
+//                                .frame(width: 2,height: 12)
+//                                .padding(.horizontal,5)
+//                            
+//                            Button {
+//                                popUp.toggle()
+//                            } label: {
+//                                Text("无法登录")
+//                                    .tracking(3.0)
+//                                    .fontWeight(.medium)
+//                            }
+//                            
                             Spacer()
                         }
                         Spacer()
@@ -197,46 +198,61 @@ struct LoginView: View {
         }
         
     }
-    func loginBtnPressed(){
+    func loginBtnPressed() {
         wzz_hideKeyboard()
         let email = emailInput
         let password = passwordInput
         
-        NewNetWorkRequest(AQAPIService.signIn(email: email, password: password), modelType: AuthModel.self) { authModel, responseModel in
-            guard (authModel?.auth_data) != nil else {
-                isLoading = false
-                if (responseModel.messageStr != nil){
-                    errorStr = responseModel.messageStr!
-                    showingPopup.toggle()
-                }else{
-                    errorStr = "未知错误"
-                    showingPopup.toggle()
-                }
-                
-                return
-            }
-            userManager.email = email
-            userManager.password = password
-            userManager.auth_data = authModel!.auth_data
-            userManager.token = authModel!.token
-            userManager.is_admin = authModel!.is_admin
-
-            Task {
-                userManager.reload()
-                isLoading = false
-                dismiss()
-            }
+        // 输入验证
+        guard !email.isEmpty, !password.isEmpty else {
+            errorStr = "请输入用户名和密码"
+            showingPopup = true
+            return
         }
         
-    failureCallback: { responseModel in
-        isLoading.toggle()
-    }
+        isLoading = true
+        
+        NewNetWorkRequest(AQAPIService.signIn(email: email, password: password), modelType: AuthModel.self) { authModel, responseModel in
+            DispatchQueue.main.async {
+                guard let authModel = authModel, !authModel.auth_data.isEmpty else {
+                    isLoading = false
+                    errorStr = responseModel.messageStr ?? "登录失败，请检查用户名和密码"
+                    showingPopup = true
+                    return
+                }
+                
+                // 保存用户信息
+                userManager.email = email
+                userManager.password = password
+                userManager.auth_data = authModel.auth_data
+                userManager.token = authModel.token
+                userManager.is_admin = authModel.is_admin
+
+                Task {
+                    userManager.reload()
+                    
+                    DispatchQueue.main.async {
+                        isLoading = false
+                        // 登录成功后通知 AppStateManager 进入主界面
+                        appStateManager.loginCompleted()
+                    }
+                }
+            }
+        } failureCallback: { responseModel in
+            DispatchQueue.main.async {
+                isLoading = false
+                errorStr = responseModel.messageStr ?? "网络请求失败，请检查网络连接"
+                showingPopup = true
+            }
+        }
     }
 }
 
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView()
+            .environmentObject(AppStateManager())
+            .environmentObject(UserManager())
     }
 }
 

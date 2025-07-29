@@ -33,12 +33,12 @@ struct DashBoardView: View {
     @AppStorage(ConstantKey.auth_data) private var auth_data  = ""
     @EnvironmentObject var userManager: UserManager
     @EnvironmentObject private var environments: ExtensionEnvironments
+    @EnvironmentObject var appStateManager: AppStateManager
     @Environment(\.trafficFormatter) private var formatter: NumberFormatter
     @State private var alert: Alert?
     @State private var selectedItemIndex = 0
     @StateObject private var commandClient = CommandClient(.clashMode)
     @State private var clashMode = ""
-    @State var showLogIn :Bool = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -82,19 +82,14 @@ struct DashBoardView: View {
         .ignoresSafeArea()
         .onAppear {
             environments.postReload()
-            if(!userManager.isLoggedIn){
-                showLogIn.toggle()
-            }
-            else{
-//                userManager.reload()
-            }
-            
+            // 登录状态检查已经移到 Application 层处理，这里不再需要
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarItems(leading:authStatusView(auth_data: auth_data,iconName: "person", destination: {
             UserView()
                 .environmentObject(userManager)
                 .environmentObject(environments)
+                .environmentObject(appStateManager)
         }))
         
         .navigationBarItems(trailing:authStatusView(auth_data: auth_data,iconName: "square.3.layers.3d", destination: {
@@ -103,12 +98,6 @@ struct DashBoardView: View {
         }))
         
         .alertBinding($alert)
-        .fullScreenCover(isPresented: $showLogIn, content: {
-            LoginView()
-                .onDisappear {
-                    userManager.reload()
-                }
-        })
         
     }
     @ViewBuilder

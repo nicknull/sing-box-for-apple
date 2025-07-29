@@ -15,10 +15,12 @@ import Library
 import CodeScanner
 struct UserView: View {
   @EnvironmentObject private var environments: ExtensionEnvironments
+  @EnvironmentObject var userManager: UserManager
+  @EnvironmentObject var appStateManager: AppStateManager
+  
   @State var signOut = false
   @State private var copyToast: Bool = false
   @Environment(\.scenePhase) private var scenePhase
-  @EnvironmentObject var userManager: UserManager
 
   @ObservedObject var purchaseXManager: PurchaseXManager = PurchaseXManager()
   @State public var products: [Product]?
@@ -30,6 +32,8 @@ struct UserView: View {
   @State var errorAlert: Bool = false
   @State var errorTitle: String = ""
   @State var errorSubTitle: String = ""
+  @State var successAlert: Bool = false
+  @State var successMessage: String = ""
 
   @State var logOff = false
   @State var showScan = false
@@ -145,16 +149,36 @@ struct UserView: View {
           .fullScreenCover(
             isPresented: $showScan,
             content: {
-              CodeScannerView(codeTypes: [.qr]) { response in
-                if case let .success(result) = response {
-                  showScan = false
-                  Defaults[.local] = result.string;
-                  NewNetWorkRequest(
-                    AQAPIService.local(address: Defaults[.host]),
-                    successCallback: { responseModel in
-                      print(responseModel)
-                    })
+              NavigationView {
+                CodeScannerView(
+                  codeTypes: [.qr],
+                  scanMode: .once,
+                  showViewfinder: true,
+                  completion: { result in
+                    handleScanResult(result)
+                  }
+                )
+                .navigationTitle("扫描二维码")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                  ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") {
+                      showScan = false
+                    }
+                  }
                 }
+                .overlay(
+                  VStack {
+                    Spacer()
+                    Text("将二维码对准扫描框")
+                      .font(.headline)
+                      .foregroundColor(.white)
+                      .padding()
+                      .background(Color.black.opacity(0.7))
+                      .cornerRadius(10)
+                      .padding(.bottom, 50)
+                  }
+                )
               }
             })
 
@@ -484,18 +508,66 @@ struct UserView: View {
           title: Text("确定登出吗?"),
           message: Text("登出后需要重新登录以继续使用"),
           primaryButton: .destructive(Text("确定")) {
-            dismiss()
+            // 登出用户
             userManager.logout()
-            //                    auth_data = ""
-            //                    userInfoJsonStr = ""
-            //                    subscribeInfoJsonStr = ""
-            //                    print("Deleting...")
+            
+            // 通知 AppStateManager 用户已登出
+            appStateManager.userLoggedOut()
           },
           secondaryButton: .cancel()
         )
       })
+    .alert("错误", isPresented: $errorAlert) {
+      Button("确定", role: .cancel) {}
+    } message: {
+      Text(errorSubTitle)
+    }
+    .alert("成功", isPresented: $successAlert) {
+      Button("确定", role: .cancel) {}
+    } message: {
+      Text(successMessage)
+    }
 
   }
+  
+  // MARK: - 二维码扫描结果处理
+  private func handleScanResult(_ result: Result<ScanResult, ScanError>) {
+    showScan = false
+    
+    switch result {
+    case .success(let scanResult):
+      // 扫描成功
+      let scannedString = scanResult.string
+      Defaults[.local] = scannedString
+      
+      // 发送网络请求
+      NewNetWorkRequest(
+        AQAPIService.local(address: Defaults[.host]),
+        successCallback: { responseModel in
+          DispatchQueue.main.async {
+            successMessage = "扫码修复成功"
+            successAlert = true
+          }
+        },
+        failureCallback: { responseModel in
+          DispatchQueue.main.async {
+            errorTitle = "扫码修复失败"
+            errorSubTitle = responseModel.messageStr ?? "网络请求失败，请稍后重试"
+            errorAlert = true
+          }
+        }
+      )
+      
+    case .failure(let error):
+      // 扫描失败
+      DispatchQueue.main.async {
+        errorTitle = "扫描失败"
+        errorSubTitle = "无法识别二维码，请重试"
+        errorAlert = true
+      }
+    }
+  }
+  
   func makeOrder(product: Product) async {
     let uuid = Product.PurchaseOption.appAccountToken(UUID())
     do {
