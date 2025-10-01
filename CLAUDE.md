@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **重要**: 与用户沟通时必须使用中文。请始终用中文回复用户的问题和提供帮助，除非用户明确要求使用其他语言。
 
+## Developer Expertise
+
+作为协助此项目的 AI 助手，需要具备以下专业知识：
+- **VPN 和加密协议专家**：深入理解各种代理协议（sing-box、Shadowsocks、VMess、Trojan 等）
+- **iOS 开发专家**：精通 Swift、SwiftUI、Network Extension 框架
+- **macOS/tvOS 开发**：了解跨平台开发和系统扩展
+
 ## Project Overview
 
 This is an experimental iOS/macOS/tvOS client for sing-box, the universal proxy platform. The project consists of multiple targets:
@@ -41,7 +48,13 @@ pod install
 open sing-box.xcworkspace
 ```
 
-Build from Xcode using the workspace file. No additional build scripts or automation detected.
+Build from Xcode using the workspace file. Select the appropriate target (SFI for iOS, SFM for macOS) and build.
+
+### Development Workflow
+1. 修改代码后，在 Xcode 中选择对应的 target (SFI/SFT/SFM)
+2. 连接真机或选择模拟器
+3. 点击 Run (Cmd+R) 进行构建和运行
+4. 对于 Network Extension 的修改，需要重新安装 VPN 配置
 
 ## Known Issues and Solutions
 
@@ -191,6 +204,28 @@ No automated test suite configuration found. Testing should be done manually thr
 - iOS includes Control Center integration (iOS 18+) and widget support
 - tvOS has dedicated packet tunnel extension
 - Location services integration on macOS for WiFi state detection
+
+## Important Notes
+
+### VPN 协议和 sing-box 核心
+- sing-box 是一个通用的代理平台，支持多种协议（Shadowsocks、VMess、Trojan、Hysteria 等）
+- Libbox.xcframework 是 sing-box 的核心库，通过 C bindings 与 Swift 交互
+- Network Extension 通过 ExtensionProvider 类与 sing-box 核心通信
+- VPN 配置文件以 JSON 格式存储在 SQLite 数据库中
+
+### State Management Pattern
+项目使用 AppStateManager 进行全局状态管理：
+- **AppState 枚举**：sync（同步）、login（登录）、main（主界面）
+- **状态流转**：sync → login → main
+- **环境对象传递链**：Application → DashBoardView → UserView/SettingsView
+- 避免使用多个 fullScreenCover，改用状态驱动的视图切换
+
+### Network Extension 开发注意事项
+1. Extension target 与主 app 运行在不同的进程中
+2. 通过 App Group 共享数据（SQLite 数据库、UserDefaults）
+3. ExtensionProvider 是 NEPacketTunnelProvider 的子类
+4. CommandClient 用于主 app 与 extension 之间的通信
+5. 修改 extension 代码后需要重新安装 VPN 配置才能生效
 
 ## File Organization
 - Target-specific code in individual directories (SFI/, SFM/, etc.)
