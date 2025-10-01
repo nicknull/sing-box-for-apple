@@ -9,16 +9,19 @@ import Foundation
 import StoreKit
 
 public class PurchaseXManager: NSObject, ObservableObject {
-    
+
     // MARK: Public Property
     /// Array of products retrieved from AppleStore
     @Published public var products: [Product]?
-    
+
     /// Handle for App Store transactions
     private var transactionListener: Task<Void, Error>? = nil
-    
+
     /// Purchase state
     private var purchaseState: PurchaseXState = .notStarted
+
+    /// 购买成功回调，用于通知后端
+    public var onPurchaseSuccess: ((Transaction) -> Void)?
     
     /// Array of consumable products
     public var consumableProducts: [Product]? {
@@ -86,16 +89,27 @@ public class PurchaseXManager: NSObject, ObservableObject {
     
     // MARK: - purchase
     /// Start the process to purchase a product.
-    /// - Parameter product: Product object
-    public func purchase(product: Product,options: Set<Product.PurchaseOption> = []) async throws -> (transaction: Transaction?, purchaseState: PurchaseXState){
+    /// - Parameters:
+    ///   - product: Product object
+    ///   - options: Purchase options
+    ///   - userID: 用户 ID，用于绑定订单到用户账号
+    public func purchase(product: Product, options: Set<Product.PurchaseOption> = [], userID: String? = nil) async throws -> (transaction: Transaction?, purchaseState: PurchaseXState){
         guard purchaseState != .inProgress else {
             throw PurchaseXException.purchaseInProgressException
         }
-        
+
         purchaseState = .inProgress
-        
+
+        // 创建购买选项，包含用户 ID
+        var purchaseOptions = options
+
+        // 如果提供了用户 ID，使用 appAccountToken 绑定用户
+        if let userID = userID, let uuid = createAppAccountToken(from: userID) {
+            purchaseOptions.insert(.appAccountToken(uuid))
+        }
+
         // Start a purchase transaction
-        guard let result = try? await product.purchase(options: options) else {
+        guard let result = try? await product.purchase(options: purchaseOptions) else {
             purchaseState = .failed
             throw PurchaseXException.purchaseException
         }
@@ -109,7 +123,10 @@ public class PurchaseXManager: NSObject, ObservableObject {
             }
             
             let validatedTransaction = checkResult.transaction
-            
+
+            // 触发购买成功回调，用于上报后端
+            onPurchaseSuccess?(validatedTransaction)
+
             await validatedTransaction.finish()
             
             // Because consumable's transaction are not stored in the receipt, So treat it differently.
@@ -314,6 +331,22 @@ public class PurchaseXManager: NSObject, ObservableObject {
                 return (transaction: transaction, verified: true)
             }
         }
+
+    /// 创建 appAccountToken
+    /// - Parameter userID: 用户 ID 字符串
+    /// - Returns: UUID 对象，如果转换失败则返回 nil
+    private func createAppAccountToken(from userID: String) -> UUID? {
+        // 尝试直接将 userID 转换为 UUID
+        if let uuid = UUID(uuidString: userID) {
+            return uuid
+        }
+
+        // 如果 userID 不是标准 UUID 格式，使用哈希生成确定性 UUID
+        // 使用 userID 的 hash 值生成 UUID（确保同一用户每次生成相同的 UUID）
+        let hash = userID.hash
+        let uuidString = String(format: "%08x-0000-0000-0000-000000000000", UInt32(bitPattern: Int32(truncatingIfNeeded: hash)))
+        return UUID(uuidString: uuidString)
+    }
 }
 
 extension PurchaseXManager {

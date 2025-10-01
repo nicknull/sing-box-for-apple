@@ -23,7 +23,10 @@ enum AQAPIService{
     case ticketReply(id:Int,message:String,imageData:Data?) //回复工单
     case ticketSave(subject:String,level:Int,message:String)//新建工单
     case ticketClose(id:Int) //关闭工单
-    
+
+    // IAP 订单相关
+    case reportIAPOrder(transactionID:String, originalTransactionID:String, productID:String) //上报 IAP 订单
+
     case getTickets_admin(pageSize:Int,current:Int,status:Int) //管理员 工单列表
     case ticketFetch_admin(id:Int) //管理员 获取工单回复列表
     case ticketReply_admin(id:Int,message:String,imageData:Data?) //管理员 回复工单
@@ -120,7 +123,10 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return "user/ticket/save"
         case .ticketClose(_):
             return "user/ticket/close"
-            
+
+        case .reportIAPOrder(_,_,_):
+            return "/user/order/iap"
+
         case .getTickets_admin(_,_,_):
             return "/\(Defaults[.secure_path])/ticket/fetch"
         case .ticketFetch_admin(_):
@@ -148,7 +154,10 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return .post
         case .ticketClose(_):
             return .post
-            
+
+        case .reportIAPOrder(_,_,_):
+            return .post
+
         case .ticketReply_admin(_,_,_):
             return .post
         case .ticketClose_admin(_):
@@ -195,6 +204,13 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             
         case let .ticketClose(id):
             return .requestParameters(parameters: ["id":id], encoding: URLEncoding.default)
+
+        case let .reportIAPOrder(transactionID, originalTransactionID, productID):
+            return .requestParameters(parameters: [
+                "transaction_id": transactionID,
+                "original_transaction_id": originalTransactionID,
+                "product_id": productID
+            ], encoding: JSONEncoding.default)
 
         //管理员工单相关
             
