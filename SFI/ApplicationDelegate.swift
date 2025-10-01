@@ -112,6 +112,18 @@ extension ApplicationDelegate: MessagingDelegate {
 
       let deviceToken:[String: String] = ["token": fcmToken ?? ""]
         print("Device token: ", deviceToken) // This token can be used for testing notifications on FCM
+
+        // 自动上传 FCM Token 到后端（如果用户已登录）
+        if let token = fcmToken {
+            // 延迟上传，确保应用完全启动
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                // 检查用户是否已登录
+                // 注意：这里使用 UserManager 或 UserDefaults 检查登录状态
+                // 实际上传逻辑在 FCMTokenManager 中实现（需要在登录成功后调用）
+                NSLog("📱 FCM Token 已获取: \(token.prefix(20))...")
+                NSLog("💡 提示：请在用户登录成功后调用 FCMTokenManager.shared.uploadToken()")
+            }
+        }
     }
 }
 @available(iOS 10, *)

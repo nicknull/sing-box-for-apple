@@ -43,6 +43,11 @@ enum AQAPIService{
     case ticketReply_admin(id:Int,message:String,imageData:Data?) //管理员 回复工单
     case ticketClose_admin(id:Int) //管理员 关闭工单
 
+    // 设备推送 Token 相关
+    case registerFcmToken(fcmToken:String) //注册 FCM Token
+    case unregisterFcmToken //注销 FCM Token
+    case testPush(title:String, body:String) //测试推送
+
 }
 extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
     func responsePrase(_ response:Response) -> NewResponseModel {
@@ -162,6 +167,13 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return "/\(Defaults[.secure_path])/ticket/reply"
         case .ticketClose_admin(_):
             return "\(Defaults[.secure_path])/ticket/close"
+
+        case .registerFcmToken(_):
+            return "/user/device/register"
+        case .unregisterFcmToken:
+            return "/user/device/unregister"
+        case .testPush(_,_):
+            return "/user/device/test-push"
         }
         
         
@@ -204,6 +216,13 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .ticketReply_admin(_,_,_):
             return .post
         case .ticketClose_admin(_):
+            return .post
+
+        case .registerFcmToken(_):
+            return .post
+        case .unregisterFcmToken:
+            return .post
+        case .testPush(_,_):
             return .post
 
         default:
@@ -326,6 +345,19 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             }
         case let .ticketClose_admin(id):
             return .requestParameters(parameters: ["id":id], encoding: URLEncoding.default)
+
+        case let .registerFcmToken(fcmToken):
+            return .requestParameters(parameters: ["fcm_token": fcmToken], encoding: JSONEncoding.default)
+
+        case .unregisterFcmToken:
+            return .requestPlain
+
+        case let .testPush(title, body):
+            return .requestParameters(parameters: [
+                "title": title,
+                "body": body
+            ], encoding: JSONEncoding.default)
+
         default:
             return .requestPlain
         }

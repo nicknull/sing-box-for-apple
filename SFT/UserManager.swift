@@ -65,6 +65,9 @@ class UserManager: ObservableObject {
     @State private var gettingSubscribe :Bool = false
     
     func logout() {
+        // 移除 FCM Token
+        FCMTokenManager.shared.removeToken()
+
         self.email = ""
         self.password = ""
         self.auth_data = ""
@@ -114,7 +117,7 @@ class UserManager: ObservableObject {
 //            print("FCM registration token: \(token)")
 //          }
 //        }
-        
+
         var apnsToken = ""
         if (Messaging.messaging().apnsToken != nil) {
             apnsToken = apnsTokenString(from: (Messaging.messaging().apnsToken! as Data))
@@ -126,12 +129,21 @@ class UserManager: ObservableObject {
             refreshingUserInfo = false
             if(( userInfo) != nil){
                 userInfoJsonStr = responseModel.dataString!
+
+                // 登录成功后，上传 FCM Token
+                Messaging.messaging().token { token, error in
+                    if let fcmToken = token {
+                        FCMTokenManager.shared.uploadTokenIfNeeded(fcmToken)
+                    } else if let error = error {
+                        NSLog("获取 FCM Token 失败: \(error.localizedDescription)")
+                    }
+                }
             }else{
                 if responseModel.code == 403 {
                     logout()
                 }
             }
-            
+
         }
     }
     func apnsTokenString(from deviceToken: Data) -> String {
