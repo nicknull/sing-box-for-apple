@@ -22,17 +22,21 @@ import SafariServices
 import BetterSafariView
 import ExytePopupView
 struct LoginView: View {
-    
+
     @EnvironmentObject var appStateManager: AppStateManager
     @EnvironmentObject var userManager: UserManager
-    
+
     @State var errorStr: String = ""
     @State var showingPopup: Bool = false
-    
+
     @State var emailInput: String = ""
     @State var passwordInput: String = ""
     @State var isLoading: Bool = false
     @State var popUp: Bool = false
+    @StateObject private var oauthManager = OAuthManager(
+        googleClientID: "YOUR_GOOGLE_CLIENT_ID",
+        githubClientID: "YOUR_GITHUB_CLIENT_ID"
+    )
     var style = LoadingButtonStyle(width: 312,
                                    height: 40,
                                    cornerRadius: 27,
@@ -111,9 +115,79 @@ struct LoginView: View {
                         }, isLoading: $isLoading, style: style) {
                             Text("马上登录").foregroundColor(Color.white)
                         }
-                        
+
                         .padding(40)
-                        
+
+                        // 三方登录分隔线
+                        HStack {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(height: 1)
+                            Text("或使用以下方式登录")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(height: 1)
+                        }
+                        .padding(.horizontal, 40)
+                        .padding(.bottom, 20)
+
+                        // 三方登录按钮
+                        VStack(spacing: 15) {
+                            // Apple 登录
+                            Button(action: {
+                                handleAppleSignIn()
+                            }) {
+                                HStack {
+                                    Image(systemName: "applelogo")
+                                        .font(.system(size: 20))
+                                    Text("使用 Apple 登录")
+                                        .fontWeight(.medium)
+                                }
+                                .frame(width: 312, height: 44)
+                                .foregroundColor(.white)
+                                .background(Color.black)
+                                .cornerRadius(27)
+                            }
+                            .disabled(isLoading || oauthManager.isLoading)
+
+                            // Google 登录
+                            Button(action: {
+                                handleGoogleSignIn()
+                            }) {
+                                HStack {
+                                    Image(systemName: "globe")
+                                        .font(.system(size: 20))
+                                    Text("使用 Google 登录")
+                                        .fontWeight(.medium)
+                                }
+                                .frame(width: 312, height: 44)
+                                .foregroundColor(.white)
+                                .background(Color(red: 0.26, green: 0.52, blue: 0.96))
+                                .cornerRadius(27)
+                            }
+                            .disabled(isLoading || oauthManager.isLoading)
+
+                            // GitHub 登录
+                            Button(action: {
+                                handleGitHubSignIn()
+                            }) {
+                                HStack {
+                                    Image(systemName: "terminal")
+                                        .font(.system(size: 20))
+                                    Text("使用 GitHub 登录")
+                                        .fontWeight(.medium)
+                                }
+                                .frame(width: 312, height: 44)
+                                .foregroundColor(.white)
+                                .background(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                .cornerRadius(27)
+                            }
+                            .disabled(isLoading || oauthManager.isLoading)
+                        }
+                        .padding(.bottom, 20)
+
                         HStack{
                             Spacer()
                             
@@ -195,9 +269,60 @@ struct LoginView: View {
         .onAppear(){
             self.emailInput = (self.email.count > 0 && self.emailInput.count == 0) ? self.email:""
             self.passwordInput = (self.password.count > 0 && self.passwordInput.count == 0) ? self.password:""
+
+            // 设置 OAuth 回调
+            setupOAuthCallbacks()
         }
-        
+
     }
+
+    // MARK: - 设置 OAuth 回调
+    func setupOAuthCallbacks() {
+        oauthManager.onSuccess = { [self] authModel in
+            DispatchQueue.main.async {
+                // 保存用户信息
+                userManager.auth_data = authModel.auth_data
+                userManager.token = authModel.token
+                userManager.is_admin = authModel.is_admin
+
+                Task {
+                    userManager.reload()
+
+                    DispatchQueue.main.async {
+                        // 登录成功后通知 AppStateManager 进入主界面
+                        appStateManager.loginCompleted()
+                    }
+                }
+            }
+        }
+
+        oauthManager.onFailure = { error in
+            DispatchQueue.main.async {
+                errorStr = error
+                showingPopup = true
+            }
+        }
+    }
+
+    // MARK: - Apple 登录处理
+    func handleAppleSignIn() {
+        wzz_hideKeyboard()
+        oauthManager.signInWithApple()
+    }
+
+    // MARK: - Google 登录处理
+    func handleGoogleSignIn() {
+        wzz_hideKeyboard()
+        oauthManager.signInWithGoogle()
+    }
+
+    // MARK: - GitHub 登录处理
+    func handleGitHubSignIn() {
+        wzz_hideKeyboard()
+        oauthManager.signInWithGitHub()
+    }
+
+    // MARK: - 传统登录处理
     func loginBtnPressed() {
         wzz_hideKeyboard()
         let email = emailInput

@@ -27,6 +27,11 @@ enum AQAPIService{
     // IAP 订单相关
     case reportIAPOrder(transactionID:String, originalTransactionID:String, productID:String) //上报 IAP 订单
 
+    // OAuth 登录相关
+    case oauthAppleLogin(identityToken:String, userIdentifier:String, email:String?, fullName:String?) //Apple 登录
+    case oauthGoogleLogin(authorizationCode:String) //Google 登录
+    case oauthGitHubLogin(authorizationCode:String) //GitHub 登录
+
     case getTickets_admin(pageSize:Int,current:Int,status:Int) //管理员 工单列表
     case ticketFetch_admin(id:Int) //管理员 获取工单回复列表
     case ticketReply_admin(id:Int,message:String,imageData:Data?) //管理员 回复工单
@@ -127,6 +132,13 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .reportIAPOrder(_,_,_):
             return "/user/order/iap"
 
+        case .oauthAppleLogin(_,_,_,_):
+            return "/passport/auth/apple"
+        case .oauthGoogleLogin(_):
+            return "/passport/auth/google"
+        case .oauthGitHubLogin(_):
+            return "/passport/auth/github"
+
         case .getTickets_admin(_,_,_):
             return "/\(Defaults[.secure_path])/ticket/fetch"
         case .ticketFetch_admin(_):
@@ -156,6 +168,13 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return .post
 
         case .reportIAPOrder(_,_,_):
+            return .post
+
+        case .oauthAppleLogin(_,_,_,_):
+            return .post
+        case .oauthGoogleLogin(_):
+            return .post
+        case .oauthGitHubLogin(_):
             return .post
 
         case .ticketReply_admin(_,_,_):
@@ -210,6 +229,29 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
                 "transaction_id": transactionID,
                 "original_transaction_id": originalTransactionID,
                 "product_id": productID
+            ], encoding: JSONEncoding.default)
+
+        case let .oauthAppleLogin(identityToken, userIdentifier, email, fullName):
+            var params: [String: Any] = [
+                "identity_token": identityToken,
+                "user_identifier": userIdentifier
+            ]
+            if let email = email {
+                params["email"] = email
+            }
+            if let fullName = fullName {
+                params["full_name"] = fullName
+            }
+            return .requestParameters(parameters: params, encoding: JSONEncoding.default)
+
+        case let .oauthGoogleLogin(authorizationCode):
+            return .requestParameters(parameters: [
+                "authorization_code": authorizationCode
+            ], encoding: JSONEncoding.default)
+
+        case let .oauthGitHubLogin(authorizationCode):
+            return .requestParameters(parameters: [
+                "authorization_code": authorizationCode
             ], encoding: JSONEncoding.default)
 
         //管理员工单相关
