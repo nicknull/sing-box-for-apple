@@ -8,7 +8,9 @@
       "Read(//Users/xiaokangchen/Documents/GitHub/v2board/**)",
       "Bash(cat:*)",
       "Bash(php artisan db:table:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
