@@ -6,7 +6,9 @@
       "Bash(git commit -m \"$(cat <<''EOF''\nfeat: 实现 IAP 用户订单绑定功能\n\n- 修改 PurchaseXManager 支持 appAccountToken\n  - 添加 userID 参数，自动生成 appAccountToken\n  - 添加 onPurchaseSuccess 回调机制\n  - 实现 createAppAccountToken 方法\n\n- 添加后端 API 接口\n  - 新增 reportIAPOrder 接口用于上报订单\n  - 路径: /user/order/iap\n  - 支持 transaction_id, original_transaction_id, product_id\n\n- 创建 IAPOrderManager 订单管理器\n  - 封装订单上报逻辑\n  - 完善错误处理和日志\n\n- 添加 PurchaseView 购买界面示例\n  - 完整的购买流程实现\n  - 用户登录检查\n  - 自动上报订单到后端\n\n- 添加详细的技术文档 IAP_README.md\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git commit:*)",
       "Read(//Users/xiaokangchen/Documents/GitHub/v2board/**)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(php artisan db:table:*)",
+      "Bash(mysql:*)"
     ],
     "deny": [],
     "ask": []

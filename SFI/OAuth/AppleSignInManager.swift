@@ -34,7 +34,17 @@ class AppleSignInManager: NSObject, ObservableObject {
 
         let authorizationController = ASAuthorizationController(authorizationRequests: [request])
         authorizationController.delegate = self
+
+        #if os(tvOS)
+        // tvOS 需要特殊处理 presentationContextProvider
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first {
+            authorizationController.presentationContextProvider = PresentationContextProvider(window: window)
+        }
+        #else
         authorizationController.presentationContextProvider = self
+        #endif
+
         authorizationController.performRequests()
     }
 
@@ -154,6 +164,7 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
 }
 
 // MARK: - ASAuthorizationControllerPresentationContextProviding
+#if !os(tvOS)
 extension AppleSignInManager: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
         guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -163,6 +174,23 @@ extension AppleSignInManager: ASAuthorizationControllerPresentationContextProvid
         return window
     }
 }
+#endif
+
+#if os(tvOS)
+// tvOS 专用 PresentationContextProvider
+class PresentationContextProvider: NSObject, ASAuthorizationControllerPresentationContextProviding {
+    private let window: UIWindow
+
+    init(window: UIWindow) {
+        self.window = window
+        super.init()
+    }
+
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        return window
+    }
+}
+#endif
 
 // MARK: - Apple 登录凭证
 struct AppleLoginCredential {
