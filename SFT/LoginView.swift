@@ -1,6 +1,6 @@
 //
 //  LoginView.swift
-//  AQplayer
+//  SFT (tvOS)
 //
 //  Created by WO on 2023/6/26.
 //
@@ -16,16 +16,19 @@ import ApplicationLibrary
 import QRCode
 import Defaults
 import ExytePopupView
+import AuthenticationServices
+
 enum Focusable: Hashable {
     case none
     case row(id: String)
 }
+
 struct LoginView: View {
     @State var errorStr:String = ""
     @State var showingPopup: Bool = false
-    
+
     @EnvironmentObject var userManager: UserManager
-    
+
     //    @State var host: String = ""
     @State var email: String = ""
     @State var password: String = ""
@@ -33,6 +36,12 @@ struct LoginView: View {
     @FocusState var focusedSettings: Focusable?
     @State var logining:Bool = false
     @State var showRepair:Bool = false
+
+    // OAuth 管理器
+    @StateObject private var oauthManager = OAuthManager(
+        googleClientID: "YOUR_GOOGLE_CLIENT_ID",
+        githubClientID: "YOUR_GITHUB_CLIENT_ID"
+    )
     
     //    @State var host  = ""
     var body: some View {
@@ -82,9 +91,9 @@ struct LoginView: View {
                             Text("登录中...")
                         }
                         .frame(width: 850, height: 80)
-                        
+
                     }else{
-                        // 登录按钮
+                        // 传统邮箱登录按钮
                         Button(action: {
                             // 在此处添加登录按钮的点击操作
                             login()
@@ -97,6 +106,84 @@ struct LoginView: View {
                         .id(Focusable.row(id: "10004"))
                         .focused($focusedSettings, equals: .row(id: "10004"))
                         .disabled(!isValidEmail(email) || password.count<6)
+
+                        // 三方登录分隔线
+                        HStack {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(height: 2)
+                            Text("或使用以下方式登录")
+                                .font(.system(size: 24))
+                                .foregroundColor(.gray)
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(height: 2)
+                        }
+                        .frame(width: 850)
+                        .padding(.top, 20)
+
+                        // 三方登录按钮（tvOS 样式）
+                        VStack(spacing: 20) {
+                            // Apple 登录
+                            Button(action: {
+                                handleAppleSignIn()
+                            }) {
+                                HStack {
+                                    Image(systemName: "applelogo")
+                                        .font(.system(size: 30))
+                                    Text("使用 Apple 登录")
+                                        .font(.system(size: 32))
+                                        .fontWeight(.medium)
+                                }
+                                .frame(width: 850, height: 80)
+                                .foregroundColor(.white)
+                                .background(Color.black)
+                                .cornerRadius(40)
+                            }
+                            .id(Focusable.row(id: "10005"))
+                            .focused($focusedSettings, equals: .row(id: "10005"))
+                            .disabled(logining || oauthManager.isLoading)
+
+                            // Google 登录
+                            Button(action: {
+                                handleGoogleSignIn()
+                            }) {
+                                HStack {
+                                    Image(systemName: "globe")
+                                        .font(.system(size: 30))
+                                    Text("使用 Google 登录")
+                                        .font(.system(size: 32))
+                                        .fontWeight(.medium)
+                                }
+                                .frame(width: 850, height: 80)
+                                .foregroundColor(.white)
+                                .background(Color(red: 0.26, green: 0.52, blue: 0.96))
+                                .cornerRadius(40)
+                            }
+                            .id(Focusable.row(id: "10006"))
+                            .focused($focusedSettings, equals: .row(id: "10006"))
+                            .disabled(logining || oauthManager.isLoading)
+
+                            // GitHub 登录
+                            Button(action: {
+                                handleGitHubSignIn()
+                            }) {
+                                HStack {
+                                    Image(systemName: "terminal")
+                                        .font(.system(size: 30))
+                                    Text("使用 GitHub 登录")
+                                        .font(.system(size: 32))
+                                        .fontWeight(.medium)
+                                }
+                                .frame(width: 850, height: 80)
+                                .foregroundColor(.white)
+                                .background(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                .cornerRadius(40)
+                            }
+                            .id(Focusable.row(id: "10007"))
+                            .focused($focusedSettings, equals: .row(id: "10007"))
+                            .disabled(logining || oauthManager.isLoading)
+                        }
                     }
                     Spacer()
                 }
@@ -133,6 +220,9 @@ struct LoginView: View {
         .onAppear(){
             email = userManager.email
             password = userManager.password
+
+            // 设置 OAuth 回调
+            setupOAuthCallbacks()
         }
         .popup(isPresented: $showingPopup) {
             HStack{
@@ -206,5 +296,49 @@ struct LoginView: View {
         // 正则表达式来验证邮箱地址
         let emailRegex = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
         return NSPredicate(format: "SELF MATCHES %@", emailRegex).evaluate(with: email)
+    }
+
+    // MARK: - 设置 OAuth 回调
+    func setupOAuthCallbacks() {
+        oauthManager.onSuccess = { [self] authModel in
+            DispatchQueue.main.async {
+                // 保存用户信息
+                userManager.auth_data = authModel.auth_data
+                userManager.token = authModel.token
+                userManager.is_admin = authModel.is_admin
+
+                Task {
+                    userManager.reload()
+                    logining = false
+                    dismiss()
+                }
+            }
+        }
+
+        oauthManager.onFailure = { error in
+            DispatchQueue.main.async {
+                errorStr = error
+                showingPopup = true
+                logining = false
+            }
+        }
+    }
+
+    // MARK: - Apple 登录处理
+    func handleAppleSignIn() {
+        logining = true
+        oauthManager.signInWithApple()
+    }
+
+    // MARK: - Google 登录处理
+    func handleGoogleSignIn() {
+        logining = true
+        oauthManager.signInWithGoogle()
+    }
+
+    // MARK: - GitHub 登录处理
+    func handleGitHubSignIn() {
+        logining = true
+        oauthManager.signInWithGitHub()
     }
 }

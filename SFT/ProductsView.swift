@@ -110,14 +110,32 @@ struct ProductsView: View {
 
     }
     func makeOrder(product:Product) async{
-        let uuid = Product.PurchaseOption.appAccountToken(UUID())
+        // 使用用户 ID 创建 appAccountToken
+        let userID = userManager.auth_data
+
         do{
-            
-            let (transaction,purchaseState) = try await purchaseXManager.purchase(product: product,options: [uuid])
-            if(transaction != nil && purchaseState == .complete){
-                
+            let (transaction, purchaseState) = try await purchaseXManager.purchase(
+                product: product,
+                options: [],
+                userID: userID.isEmpty ? nil : userID
+            )
+
+            if let transaction = transaction, purchaseState == .complete {
+                // 购买成功，自动上报订单到后端
+                IAPOrderManager.reportOrder(transaction: transaction) { success, error in
+                    if success {
+                        NSLog("✅ IAP 订单上报成功")
+                    } else {
+                        NSLog("❌ IAP 订单上报失败: \(error ?? "未知错误")")
+                    }
+                }
             }
-        }catch{}
+        } catch {
+            NSLog("❌ 购买失败: \(error.localizedDescription)")
+            errorTitle = "购买失败"
+            errorSubTitle = error.localizedDescription
+            errorAlert = true
+        }
     }
 
 }
