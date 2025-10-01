@@ -32,6 +32,10 @@ class AuthModel: Codable{
     var is_admin :Bool
     var token : String
     var auth_data :String
+
+    // OAuth 登录相关字段（可选，后端返回）
+    var login_methods: [String]?  // 已绑定的登录方式列表，如 ["email", "apple", "google"]
+    var is_new_user: Bool?  // 是否是新注册用户
 }
 
 class UserInfoModel:Codable{
@@ -51,6 +55,10 @@ class UserInfoModel:Codable{
     var commission_rate : String?
     var telegram_id : String?
     var avatar_url : String?
+
+    // OAuth 登录相关字段（可选）
+    var login_methods: [String]?  // 已绑定的登录方式
+    var has_password: Bool?  // 是否设置了密码（三方登录用户可能没有）
 }
 
 
