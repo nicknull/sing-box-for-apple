@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		35AA252C5437494AE9FAA76A /* GitHubSignInManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D27A92EA94F196B9706784AA /* GitHubSignInManager.swift */; };
 		3A096F8F2A4ED3DE00D4A2ED /* Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3A096F862A4ED3DE00D4A2ED /* Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3A0C6D3C2A79D46500A4DF2B /* OverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0C6D3B2A79D46500A4DF2B /* OverviewView.swift */; };
 		3A0C6D3E2A79D6A600A4DF2B /* DashboardPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0C6D3D2A79D6A600A4DF2B /* DashboardPage.swift */; };
@@ -149,8 +150,17 @@
 		3AF342A02A4A9916002B34AC /* ExtensionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF3429F2A4A9916002B34AC /* ExtensionProfile.swift */; };
 		3AF3A3D22B2207F3001FD7C1 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */; };
 		3AF5E3E72B6F90640058B9E8 /* ProfileOverrideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF5E3E62B6F90640058B9E8 /* ProfileOverrideView.swift */; };
+		3E22040F286670D88B0C6F1F /* PXDataPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2585B806A157B7031179DFE /* PXDataPersistence.swift */; };
+		408FE56CF0219B179873BD43 /* AppleSignInManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62BAE20657348DC8F4029565 /* AppleSignInManager.swift */; };
 		73E3F276B018793766793EFE /* Pods_SFT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 77BB7DEEA52EC2982210F327 /* Pods_SFT.framework */; };
+		779B744859A5C96869A9F402 /* PurchaseXNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BE99320BA344357B702470F /* PurchaseXNotification.swift */; };
+		7AC754478979D7F707CA7E7F /* GoogleSignInManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1117FAFF05D8DF91F14DE850 /* GoogleSignInManager.swift */; };
+		82BF0C949362D15CE92657E0 /* IAPOrderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9913EB0C0AC496C547B11C0 /* IAPOrderManager.swift */; };
 		8B1FD840C012527391975357 /* Pods_SFI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB47344978C61E3D47219FE /* Pods_SFI.framework */; };
+		8EFB270610B5F4AA99F4E4C5 /* PXLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5D9AAF5A72ED6AB07DEBBDA /* PXLog.swift */; };
+		9A22CC0190403D785C8AE123 /* PurchaseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBF4510545CCC12AAB95C1DA /* PurchaseView.swift */; };
+		A4D15F67244122E946647114 /* AccountBindingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54AA3C379E9DAA9EB2CBF10B /* AccountBindingView.swift */; };
+		A4DE1320E8C0B7A3B261ACDF /* OAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4878D57275A4E2FF741C2BE /* OAuthManager.swift */; };
 		B6165A962B25DAB2008DE6D3 /* ProfileListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6165A952B25DAB1008DE6D3 /* ProfileListView.swift */; };
 		B6165AA22B25E8F1008DE6D3 /* PXLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6165A992B25E8F1008DE6D3 /* PXLog.swift */; };
 		B6165AA32B25E8F1008DE6D3 /* PXDataPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6165A9B2B25E8F1008DE6D3 /* PXDataPersistence.swift */; };
@@ -252,6 +262,11 @@
 		B6F5C7742BA07BF20038016B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B6F5C7722BA07BF20038016B /* GoogleService-Info.plist */; };
 		B6F5C7892BA32D160038016B /* Sync.json in Resources */ = {isa = PBXBuildFile; fileRef = B6F5C7882BA32D150038016B /* Sync.json */; };
 		B6F5C78A2BA32D160038016B /* Sync.json in Resources */ = {isa = PBXBuildFile; fileRef = B6F5C7882BA32D150038016B /* Sync.json */; };
+		BDE759F2A0CF29EA4F083FBB /* DeviceTokenManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 989D4B85A45792C42CF56A28 /* DeviceTokenManager.swift */; };
+		C5E3CF208D468465B903C94D /* PurchaseXState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A06A305A4490488736D935BC /* PurchaseXState.swift */; };
+		C87617B92E6433B045B29D12 /* OAuthBindingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3E076BA1A9F5B7CB59D291C /* OAuthBindingManager.swift */; };
+		CF4D7A488CD0B32527D30FA7 /* PurchaseXException.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04476ACB4DF19B86E438755 /* PurchaseXException.swift */; };
+		F8A06D77F25816B3405A34D1 /* PurchaseXManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 428748A4EB4A7E691A8834AB /* PurchaseXManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -536,6 +551,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1117FAFF05D8DF91F14DE850 /* GoogleSignInManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GoogleSignInManager.swift; path = ApplicationLibrary/OAuth/GoogleSignInManager.swift; sourceTree = "<group>"; };
 		3A096F862A4ED3DE00D4A2ED /* Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Extension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A096F892A4ED3DE00D4A2ED /* ExtensionProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionProvider.swift; sourceTree = "<group>"; };
 		3A096F8B2A4ED3DE00D4A2ED /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -680,10 +696,17 @@
 		3AF342D02A4AACC4002B34AC /* ExtensionStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionStatusView.swift; sourceTree = "<group>"; };
 		3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS17.0.sdk/usr/lib/libresolv.tbd; sourceTree = DEVELOPER_DIR; };
 		3AF5E3E62B6F90640058B9E8 /* ProfileOverrideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileOverrideView.swift; sourceTree = "<group>"; };
+		428748A4EB4A7E691A8834AB /* PurchaseXManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PurchaseXManager.swift; path = ApplicationLibrary/PurchaseX/PurchaseXHelper/PurchaseXManager.swift; sourceTree = "<group>"; };
+		54AA3C379E9DAA9EB2CBF10B /* AccountBindingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AccountBindingView.swift; path = ApplicationLibrary/Views/AccountBindingView.swift; sourceTree = "<group>"; };
+		62BAE20657348DC8F4029565 /* AppleSignInManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppleSignInManager.swift; path = ApplicationLibrary/OAuth/AppleSignInManager.swift; sourceTree = "<group>"; };
 		6F1815BAE65271F47869430F /* Pods-SFI.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SFI.release.xcconfig"; path = "Target Support Files/Pods-SFI/Pods-SFI.release.xcconfig"; sourceTree = "<group>"; };
 		77BB7DEEA52EC2982210F327 /* Pods_SFT.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SFT.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BB47344978C61E3D47219FE /* Pods_SFI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SFI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		97361C725FB2ADFB6787F9FD /* Pods-SFT.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SFT.release.xcconfig"; path = "Target Support Files/Pods-SFT/Pods-SFT.release.xcconfig"; sourceTree = "<group>"; };
+		989D4B85A45792C42CF56A28 /* DeviceTokenManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DeviceTokenManager.swift; path = ApplicationLibrary/Service/DeviceTokenManager.swift; sourceTree = "<group>"; };
+		9BE99320BA344357B702470F /* PurchaseXNotification.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PurchaseXNotification.swift; path = ApplicationLibrary/PurchaseX/PurchaseXHelper/PurchaseXNotification.swift; sourceTree = "<group>"; };
+		A06A305A4490488736D935BC /* PurchaseXState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PurchaseXState.swift; path = ApplicationLibrary/PurchaseX/PurchaseXHelper/PurchaseXState.swift; sourceTree = "<group>"; };
+		A3E076BA1A9F5B7CB59D291C /* OAuthBindingManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OAuthBindingManager.swift; path = ApplicationLibrary/OAuth/OAuthBindingManager.swift; sourceTree = "<group>"; };
 		B6165A952B25DAB1008DE6D3 /* ProfileListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileListView.swift; sourceTree = "<group>"; };
 		B6165A992B25E8F1008DE6D3 /* PXLog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PXLog.swift; sourceTree = "<group>"; };
 		B6165A9B2B25E8F1008DE6D3 /* PXDataPersistence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PXDataPersistence.swift; sourceTree = "<group>"; };
@@ -739,8 +762,15 @@
 		B6F0A24D2B235D1600885AE8 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B6F5C7722BA07BF20038016B /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B6F5C7882BA32D150038016B /* Sync.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Sync.json; sourceTree = "<group>"; };
+		C04476ACB4DF19B86E438755 /* PurchaseXException.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PurchaseXException.swift; path = ApplicationLibrary/PurchaseX/PurchaseXHelper/PurchaseXException.swift; sourceTree = "<group>"; };
 		CA54B5CB4B7DA0F77949DB85 /* Pods-SFT.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SFT.debug.xcconfig"; path = "Target Support Files/Pods-SFT/Pods-SFT.debug.xcconfig"; sourceTree = "<group>"; };
+		CBF4510545CCC12AAB95C1DA /* PurchaseView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PurchaseView.swift; path = ApplicationLibrary/Views/PurchaseView.swift; sourceTree = "<group>"; };
+		D2585B806A157B7031179DFE /* PXDataPersistence.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PXDataPersistence.swift; path = ApplicationLibrary/PurchaseX/PurchaseXHelper/PXDataPersistence.swift; sourceTree = "<group>"; };
+		D27A92EA94F196B9706784AA /* GitHubSignInManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GitHubSignInManager.swift; path = ApplicationLibrary/OAuth/GitHubSignInManager.swift; sourceTree = "<group>"; };
 		E4B1464FA5581F8C8E7D1BA6 /* Pods-SFI.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SFI.debug.xcconfig"; path = "Target Support Files/Pods-SFI/Pods-SFI.debug.xcconfig"; sourceTree = "<group>"; };
+		F4878D57275A4E2FF741C2BE /* OAuthManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OAuthManager.swift; path = ApplicationLibrary/OAuth/OAuthManager.swift; sourceTree = "<group>"; };
+		F5D9AAF5A72ED6AB07DEBBDA /* PXLog.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PXLog.swift; path = ApplicationLibrary/PurchaseX/Util/PXLog.swift; sourceTree = "<group>"; };
+		F9913EB0C0AC496C547B11C0 /* IAPOrderManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = IAPOrderManager.swift; path = ApplicationLibrary/PurchaseX/IAPOrderManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -858,6 +888,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		38D4477E4211EF612AD39318 /* OAuth */ = {
+			isa = PBXGroup;
+			children = (
+				62BAE20657348DC8F4029565 /* AppleSignInManager.swift */,
+				1117FAFF05D8DF91F14DE850 /* GoogleSignInManager.swift */,
+				D27A92EA94F196B9706784AA /* GitHubSignInManager.swift */,
+				F4878D57275A4E2FF741C2BE /* OAuthManager.swift */,
+				A3E076BA1A9F5B7CB59D291C /* OAuthBindingManager.swift */,
+			);
+			name = OAuth;
+			path = ApplicationLibrary/OAuth;
+			sourceTree = "<group>";
+		};
 		3A096F882A4ED3DE00D4A2ED /* Extension */ = {
 			isa = PBXGroup;
 			children = (
@@ -887,6 +930,8 @@
 				3A55F9562A4D1366003C4EF4 /* Service */,
 				3AEC21732A45B0AC00A63465 /* Views */,
 				3A4EAD202A4FEB3C005435B3 /* ApplicationLibrary.swift */,
+				38D4477E4211EF612AD39318 /* OAuth */,
+				8F0A5D535E1673C32FE7ACB5 /* PurchaseX */,
 			);
 			path = ApplicationLibrary;
 			sourceTree = "<group>";
@@ -896,6 +941,7 @@
 			children = (
 				3A55F9572A4D137E003C4EF4 /* UIProfileUpdateTask.swift */,
 				3A55F9592A4D1554003C4EF4 /* ProfileUpdateTask.swift */,
+				989D4B85A45792C42CF56A28 /* DeviceTokenManager.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -1088,7 +1134,6 @@
 				B6F0A24D2B235D1600885AE8 /* SettingsView.swift */,
 				B6165A952B25DAB1008DE6D3 /* ProfileListView.swift */,
 				B6396FA12B6637C7002FE378 /* IndicatorPresetModel.swift */,
-				B6165A972B25E8F1008DE6D3 /* PurchaseX */,
 				B6432F862BC6D05C00CB86B1 /* PrivacyInfo.xcprivacy */,
 				B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */,
 			);
@@ -1190,6 +1235,8 @@
 				3AAB5E702A4BF6EA009757F1 /* Setting */,
 				3AEC21742A45B0B800A63465 /* NavigationPage.swift */,
 				3AEC21782A45BA5300A63465 /* EnvironmentValues.swift */,
+				54AA3C379E9DAA9EB2CBF10B /* AccountBindingView.swift */,
+				CBF4510545CCC12AAB95C1DA /* PurchaseView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1270,33 +1317,24 @@
 			path = Abstract;
 			sourceTree = "<group>";
 		};
-		B6165A972B25E8F1008DE6D3 /* PurchaseX */ = {
+		7885AFA294954E9813AECC44 /* Util */ = {
 			isa = PBXGroup;
 			children = (
-				B6165A982B25E8F1008DE6D3 /* Util */,
-				B6165A9A2B25E8F1008DE6D3 /* PurchaseXHelper */,
+				F5D9AAF5A72ED6AB07DEBBDA /* PXLog.swift */,
 			);
-			path = PurchaseX;
+			name = Util;
+			path = ApplicationLibrary/PurchaseX/Util;
 			sourceTree = "<group>";
 		};
-		B6165A982B25E8F1008DE6D3 /* Util */ = {
+		8F0A5D535E1673C32FE7ACB5 /* PurchaseX */ = {
 			isa = PBXGroup;
 			children = (
-				B6165A992B25E8F1008DE6D3 /* PXLog.swift */,
+				F9913EB0C0AC496C547B11C0 /* IAPOrderManager.swift */,
+				CE3A2D054404FA5F0C5FB5F2 /* PurchaseXHelper */,
+				7885AFA294954E9813AECC44 /* Util */,
 			);
-			path = Util;
-			sourceTree = "<group>";
-		};
-		B6165A9A2B25E8F1008DE6D3 /* PurchaseXHelper */ = {
-			isa = PBXGroup;
-			children = (
-				B6165A9B2B25E8F1008DE6D3 /* PXDataPersistence.swift */,
-				B6165A9C2B25E8F1008DE6D3 /* PurchaseXException.swift */,
-				B6165A9D2B25E8F1008DE6D3 /* PurchaseXNotification.swift */,
-				B6165A9E2B25E8F1008DE6D3 /* PurchaseXManager.swift */,
-				B6165A9F2B25E8F1008DE6D3 /* PurchaseXState.swift */,
-			);
-			path = PurchaseXHelper;
+			name = PurchaseX;
+			path = ApplicationLibrary/PurchaseX;
 			sourceTree = "<group>";
 		};
 		B63553422AC311B000BE8873 /* LottieFile */ = {
@@ -1336,6 +1374,19 @@
 				3AE395F32C21A5CA00647718 /* WidgetKit.framework */,
 			);
 			name = "Recovered References";
+			sourceTree = "<group>";
+		};
+		CE3A2D054404FA5F0C5FB5F2 /* PurchaseXHelper */ = {
+			isa = PBXGroup;
+			children = (
+				428748A4EB4A7E691A8834AB /* PurchaseXManager.swift */,
+				D2585B806A157B7031179DFE /* PXDataPersistence.swift */,
+				C04476ACB4DF19B86E438755 /* PurchaseXException.swift */,
+				9BE99320BA344357B702470F /* PurchaseXNotification.swift */,
+				A06A305A4490488736D935BC /* PurchaseXState.swift */,
+			);
+			name = PurchaseXHelper;
+			path = ApplicationLibrary/PurchaseX/PurchaseXHelper;
 			sourceTree = "<group>";
 		};
 		E3C84E327887EB3FA07A9F59 /* Pods */ = {
@@ -1680,7 +1731,7 @@
 				B65F59302D6B53B200F1F695 /* XCRemoteSwiftPackageReference "BetterSafariView" */,
 				B65F59332D6B53DC00F1F695 /* XCRemoteSwiftPackageReference "BinaryCodable" */,
 				B65F59362D6B53F200F1F695 /* XCRemoteSwiftPackageReference "CodeScanner" */,
-				B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB" */,
+				B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				B65F593C2D6B543A00F1F695 /* XCRemoteSwiftPackageReference "LoadingButton" */,
 				B65F593F2D6B545300F1F695 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */,
 				B65F59452D6B549800F1F695 /* XCRemoteSwiftPackageReference "SwiftyPing" */,
@@ -1948,6 +1999,21 @@
 				3AC5EC082A6417470077AF34 /* DeviceCensorship.swift in Sources */,
 				3A0C6D3E2A79D6A600A4DF2B /* DashboardPage.swift in Sources */,
 				3A3AB2A92B70C5F1001815AE /* RequestReviewButton.swift in Sources */,
+				408FE56CF0219B179873BD43 /* AppleSignInManager.swift in Sources */,
+				7AC754478979D7F707CA7E7F /* GoogleSignInManager.swift in Sources */,
+				35AA252C5437494AE9FAA76A /* GitHubSignInManager.swift in Sources */,
+				A4DE1320E8C0B7A3B261ACDF /* OAuthManager.swift in Sources */,
+				C87617B92E6433B045B29D12 /* OAuthBindingManager.swift in Sources */,
+				82BF0C949362D15CE92657E0 /* IAPOrderManager.swift in Sources */,
+				F8A06D77F25816B3405A34D1 /* PurchaseXManager.swift in Sources */,
+				3E22040F286670D88B0C6F1F /* PXDataPersistence.swift in Sources */,
+				CF4D7A488CD0B32527D30FA7 /* PurchaseXException.swift in Sources */,
+				779B744859A5C96869A9F402 /* PurchaseXNotification.swift in Sources */,
+				C5E3CF208D468465B903C94D /* PurchaseXState.swift in Sources */,
+				8EFB270610B5F4AA99F4E4C5 /* PXLog.swift in Sources */,
+				BDE759F2A0CF29EA4F083FBB /* DeviceTokenManager.swift in Sources */,
+				A4D15F67244122E946647114 /* AccountBindingView.swift in Sources */,
+				9A22CC0190403D785C8AE123 /* PurchaseView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3564,7 +3630,7 @@
 				minimumVersion = 2.5.2;
 			};
 		};
-		B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB" */ = {
+		B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/groue/GRDB.swift";
 			requirement = {
@@ -3624,7 +3690,7 @@
 		};
 		B65F593A2D6B542200F1F695 /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB" */;
+			package = B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
 		};
 		B65F593D2D6B543A00F1F695 /* LoadingButton */ = {
@@ -3644,7 +3710,7 @@
 		};
 		B65F59482D6B568900F1F695 /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB" */;
+			package = B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
 		};
 		B65F594A2D6B56BD00F1F695 /* BinaryCodable */ = {
