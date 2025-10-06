@@ -48,7 +48,7 @@ struct LoginView: View {
     @AppStorage(ConstantKey.password, store: .standard) private var password  = ""
     @State var showLink:Bool = false
     @State var link:URL?
-    @AppStorage(ConstantKey.consentAgreed) private var agreed: Bool = false
+    @AppStorage(ConstantKey.consentAgreed) private var agreed: Bool = true
     
     // 不随键盘移动页面；通过可滚动表单避免遮挡
 
