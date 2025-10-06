@@ -49,8 +49,7 @@ struct LoginView: View {
     @State var showLink:Bool = false
     @State var link:URL?
     
-    // 本地键盘观察者，避免目标编译未包含全局工具导致找不到符号
-    @StateObject private var keyboard = LocalKeyboardObserver()
+    // 不随键盘移动页面；通过可滚动表单避免遮挡
 
     var body: some View {
         ZStack{
@@ -76,11 +75,10 @@ struct LoginView: View {
                     }
                 }
                 
-                
-                //登录方式
-                VStack(alignment: .center, spacing: 12) {
-                    
-                    VStack(){
+                // 登录方式（仅表单区域可滚动，页面不整体位移）
+                ScrollView {
+                    VStack(alignment: .center, spacing: 12) {
+                        VStack(){
                         Spacer(minLength: 20)
                         HStack{
                             Text("用户名:")
@@ -228,9 +226,11 @@ struct LoginView: View {
 //                            
                             Spacer()
                         }
-                        Spacer()
-                        
+                            Spacer()
+                        }
                     }
+                    .padding(.bottom, 12)
+                    .scrollIndicators(.never)
                 }
                 Spacer(minLength: 0)
                 
@@ -263,7 +263,8 @@ struct LoginView: View {
             })
             
         }
-        .modifier(LocalKeyboardAvoiding(keyboard: keyboard))
+        // 页面不随键盘移动
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .onTapGesture { self.wzz_hideKeyboard() }
         .preferredColorScheme(.light)
         .navigationBarTitleDisplayMode(.inline)
