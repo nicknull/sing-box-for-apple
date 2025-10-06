@@ -24,13 +24,13 @@ class DeviceTokenManager {
         NewNetWorkRequest(
             AQAPIService.registerFcmToken(fcmToken: fcmToken),
             modelType: SimpleResponse.self
-        ) { response, error in
+        ) { response, responseModel in
             if let response = response, response.code == 200 {
                 NSLog("✅ FCM Token 上传成功")
                 UserDefaults.standard.set(Date(), forKey: "fcm_token_upload_date")
                 UserDefaults.standard.set(fcmToken, forKey: "last_uploaded_fcm_token")
             } else {
-                NSLog("❌ FCM Token 上传失败: \(error ?? "未知错误")")
+                NSLog("❌ FCM Token 上传失败: \(responseModel.messageStr ?? "未知错误")")
             }
         }
     }
@@ -44,13 +44,13 @@ class DeviceTokenManager {
         NewNetWorkRequest(
             AQAPIService.registerDeviceToken(token: apnsToken, platform: "tvos"),
             modelType: SimpleResponse.self
-        ) { response, error in
+        ) { response, responseModel in
             if let response = response, response.code == 200 {
                 NSLog("✅ APNS Token 上传成功 (tvOS)")
                 UserDefaults.standard.set(Date(), forKey: "apns_token_upload_date")
                 UserDefaults.standard.set(apnsToken, forKey: "last_uploaded_apns_token")
             } else {
-                NSLog("❌ APNS Token 上传失败: \(error ?? "未知错误")")
+                NSLog("❌ APNS Token 上传失败: \(responseModel.messageStr ?? "未知错误")")
             }
         }
     }
@@ -67,7 +67,7 @@ class DeviceTokenManager {
         NewNetWorkRequest(
             AQAPIService.unregisterFcmToken,
             modelType: SimpleResponse.self
-        ) { response, error in
+        ) { response, responseModel in
             if let response = response, response.code == 200 {
                 NSLog("✅ 设备 Token 移除成功")
                 #if os(iOS)
@@ -78,7 +78,7 @@ class DeviceTokenManager {
                 UserDefaults.standard.removeObject(forKey: "last_uploaded_apns_token")
                 #endif
             } else {
-                NSLog("❌ 设备 Token 移除失败: \(error ?? "未知错误")")
+                NSLog("❌ 设备 Token 移除失败: \(responseModel.messageStr ?? "未知错误")")
             }
         }
     }
@@ -120,13 +120,14 @@ class DeviceTokenManager {
         NewNetWorkRequest(
             AQAPIService.testPush(title: title, body: body),
             modelType: SimpleResponse.self
-        ) { response, error in
+        ) { response, responseModel in
             if let response = response, response.code == 200 {
                 NSLog("✅ 测试推送发送成功")
                 completion?(true, nil)
             } else {
-                NSLog("❌ 测试推送发送失败: \(error ?? "未知错误")")
-                completion?(false, error)
+                let message = responseModel.messageStr ?? "未知错误"
+                NSLog("❌ 测试推送发送失败: \(message)")
+                completion?(false, message)
             }
         }
     }

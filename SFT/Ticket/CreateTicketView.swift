@@ -5,7 +5,7 @@
 //  Created by xiaokang chen on 2025/6/24.
 //
 import SwiftUI
-import AlertToast
+import ApplicationLibrary
 struct CreateTicketView: View {
     @State private var subject = ""
     @State private var level = 0
@@ -45,13 +45,13 @@ struct CreateTicketView: View {
         .navigationTitle("新建工单")
         // 在视图修饰符
         .toast(isPresenting: $showingSuccess) {
-            AlertToast(
+            ToastNotification(
                 type: .complete(.green),
                 title: "提交成功"
             )
         }
         .toast(isPresenting: $showingPopup) {
-            AlertToast(
+            ToastNotification(
                 type: .systemImage("exclamationmark.triangle", .red),
                 title: errorMessage
             )

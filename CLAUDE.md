@@ -25,9 +25,13 @@ This is an experimental iOS/macOS/tvOS client for sing-box, the universal proxy 
 - **SystemExtension**: Network system extension for macOS
 - **TVExtension**: Network packet tunnel extension for tvOS
 - **IntentsExtension**: Siri Shortcuts support
+- **WidgetExtension**: iOS widget support
 - **ApplicationLibrary**: Shared SwiftUI views and components
 - **Library**: Core networking and database functionality
 - **MacLibrary**: macOS-specific UI components
+- **SharedUserKit**: 用户认证、OAuth、与用户中心界面相关的共享实现
+- **SharedPaymentKit**: 抽离的支付/内购逻辑和示例视图，方便多终端共用
+- **SharedNotificationKit**: 封装设备 Token 管理等通知相关工具，统一 iOS/tvOS 推送逻辑
 
 ## Build System and Commands
 
@@ -49,6 +53,21 @@ open sing-box.xcworkspace
 ```
 
 Build from Xcode using the workspace file. Select the appropriate target (SFI for iOS, SFM for macOS) and build.
+
+### Command Line Building
+```bash
+# Build iOS app for simulator
+xcodebuild -workspace sing-box.xcworkspace -scheme SFI -configuration Debug build
+
+# Build tvOS app for Apple TV simulator
+xcodebuild -workspace sing-box.xcworkspace -scheme SFT -destination 'platform=tvOS Simulator,name=Apple TV' build
+
+# Run iOS tests
+xcodebuild -workspace sing-box.xcworkspace -scheme SFI test
+
+# Update Xcode project references after file reorganization
+ruby update_xcode_project.rb
+```
 
 ### Development Workflow
 1. 修改代码后，在 Xcode 中选择对应的 target (SFI/SFT/SFM)
@@ -154,7 +173,21 @@ UserView 中的登出逻辑也已适应新的状态管理架构：
 - 扫描模式：单次扫描后自动关闭
 
 ### Testing
-No automated test suite configuration found. Testing should be done manually through Xcode's built-in testing infrastructure.
+Testing is performed through Xcode's XCTest framework:
+
+```bash
+# Run iOS tests
+xcodebuild -workspace sing-box.xcworkspace -scheme SFI test
+
+# Run tests for specific target
+xcodebuild -workspace sing-box.xcworkspace -scheme SFT test
+```
+
+**Test Organization**:
+- Add XCTest bundles per scheme (e.g., `SFI Tests`)
+- Name test files `<Feature>Tests.swift` and methods `test_<condition>_<result>()`
+- Capture fixtures under `ApplicationLibrary/Service` for networked features
+- Document manual smoke test scenarios in PR notes when automation is not feasible
 
 ## Architecture
 

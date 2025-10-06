@@ -9,3 +9,4 @@ Podfile.lock
 SFT/.DS_Store
 SFT/Assets.xcassets/.DS_Store
 */.DS_Store
+/DerivedData

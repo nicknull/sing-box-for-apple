@@ -1,32 +1,11 @@
 //
 //  ConstantKey.swift
-//  Pomelo
+//  ApplicationLibrary
 //
-//  Created by xiaokang chen on 2023/3/30.
+//  Created by xiaokang chen on 2025/10/5.
 //
 
 import Foundation
-struct VersionComparator {
-    static func compare(_ version1: String, _ version2: String) -> Int {
-        let components1 = version1.components(separatedBy: ".")
-        let components2 = version2.components(separatedBy: ".")
-
-        let maxLength = max(components1.count, components2.count)
-
-        for index in 0..<maxLength {
-            let value1 = index < components1.count ? Int(components1[index]) ?? 0 : 0
-            let value2 = index < components2.count ? Int(components2[index]) ?? 0 : 0
-
-            if value1 < value2 {
-                return -1
-            } else if value1 > value2 {
-                return 1
-            }
-        }
-
-        return 0
-    }
-}
 
 @frozen public enum ConstantKey {
     public static let token = "token"
@@ -51,6 +30,29 @@ struct VersionComparator {
     public static let getServiceTime = "getServiceTime"//上次更新主服务域名时间
     public static let secure_path = "secure_path"//后台管理路径，修改后将会改变原有的admin路径
 }
+
+struct VersionComparator {
+    static func compare(_ version1: String, _ version2: String) -> Int {
+        let components1 = version1.components(separatedBy: ".")
+        let components2 = version2.components(separatedBy: ".")
+
+        let maxLength = max(components1.count, components2.count)
+
+        for index in 0..<maxLength {
+            let value1 = index < components1.count ? Int(components1[index]) ?? 0 : 0
+            let value2 = index < components2.count ? Int(components2[index]) ?? 0 : 0
+
+            if value1 < value2 {
+                return -1
+            } else if value1 > value2 {
+                return 1
+            }
+        }
+
+        return 0
+    }
+}
+
 extension Bundle {
     
     public static var appID: String {
@@ -68,7 +70,3 @@ extension Bundle {
         Bundle.main.infoDictionary?["TUNNEL_BUNDLE_SUFFIX"] as! String
     }
 }
-
-//extension UserDefaults {
-//    public static let shared: UserDefaults = UserDefaults(suiteName: ConstantKey.suiteName)!
-//}

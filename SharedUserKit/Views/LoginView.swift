@@ -9,12 +9,10 @@ import SwiftUI
 import Combine
 
 import AuthenticationServices
-import AlertToast
 import LoadingButton
 //import MarkdownUI
 import NetworkExtension
 import DynamicColor
-import ApplicationLibrary
 import Libbox
 import Library
 import Defaults
@@ -246,7 +244,7 @@ struct LoginView: View {
                 
             }
             .toast(isPresenting: $showingPopup){
-                AlertToast(type: .error(.green), title:errorStr)
+                ToastNotification(type: .error(.green), title:errorStr)
             }
             .popup(isPresented: $popUp, view: {
                 PopupMiddle {

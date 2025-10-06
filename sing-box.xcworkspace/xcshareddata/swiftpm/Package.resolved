@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/christophhagen/BinaryCodable",
       "state" : {
-        "revision" : "f4bdd82c5da4a825634bd32c3b2ef70faa773143",
-        "version" : "3.0.3"
+        "revision" : "53f057050f3c78a1997ed0218337fd92d2eba2b5",
+        "version" : "3.1.1"
       }
     },
     {
@@ -34,7 +34,7 @@
       "location" : "https://github.com/groue/GRDB.swift",
       "state" : {
         "branch" : "master",
-        "revision" : "a5a1be26b4513dc7ec360eb56bc08a345bac6649"
+        "revision" : "18497b68fdbb3a09528d260a0a0e1e7e61c8c53d"
       }
     },
     {
@@ -51,8 +51,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MacControlCenterUI",
       "state" : {
-        "revision" : "ee2003b6508de0997cbe6ebb238801f297a450ab",
-        "version" : "2.4.1"
+        "revision" : "a98dc47a61116b126092839cf1617274f5c603dc",
+        "version" : "2.4.2"
       }
     },
     {
@@ -60,8 +60,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/orchetect/MenuBarExtraAccess",
       "state" : {
-        "revision" : "e911e6454f8cbfe34a52136fc48e1ceb989a60e7",
-        "version" : "1.2.1"
+        "revision" : "707dff6f55217b3ef5b6be84ced3e83511d4df5c",
+        "version" : "1.2.2"
       }
     },
     {
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/QRCode.git",
       "state" : {
-        "revision" : "94fa5c053837eb2b367316590ceaa480b0689902",
-        "version" : "26.1.0"
+        "revision" : "177d4091f7fcce1efc22de2a5fcdb671bd103101",
+        "version" : "26.10.0"
       }
     },
     {

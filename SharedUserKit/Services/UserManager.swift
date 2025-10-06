@@ -9,11 +9,11 @@ import Foundation
 import SwiftUI
 import Library
 import Libbox
-import ApplicationLibrary
 import CryptoSwift
 import Defaults
 import FirebaseCore
 import FirebaseMessaging
+import ApplicationLibrary
 
 class UserManager: ObservableObject {
     @AppStorage(ConstantKey.email) var email: String = ""

@@ -1,5 +1,5 @@
 import SwiftUI
-import AlertToast
+import ApplicationLibrary
 import Defaults
 
 struct TicketChatView_admin: View {
@@ -96,7 +96,7 @@ struct TicketChatView_admin: View {
         }
         
         .toast(isPresenting: $showingPopup) {
-            AlertToast(
+            ToastNotification(
                 displayMode: .hud,
                 type: .systemImage("exclamationmark.triangle", .red),
                 title: errorMessage

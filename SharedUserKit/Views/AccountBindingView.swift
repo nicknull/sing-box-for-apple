@@ -7,7 +7,6 @@
 //
 
 import SwiftUI
-import AlertToast
 
 struct AccountBindingView: View {
 
@@ -19,7 +18,7 @@ struct AccountBindingView: View {
 
     @State private var showingAlert = false
     @State private var alertMessage = ""
-    @State private var alertType: AlertToast.AlertType = .complete(.green)
+    @State private var alertType: ToastNotification.AlertType = .complete(.green)
     @State private var showingUnbindConfirm = false
     @State private var unbindProvider = ""
 
@@ -105,7 +104,7 @@ struct AccountBindingView: View {
         .navigationTitle("登录方式管理")
         .navigationBarTitleDisplayMode(.inline)
         .toast(isPresenting: $showingAlert) {
-            AlertToast(type: alertType, title: alertMessage)
+            ToastNotification(type: alertType, title: alertMessage)
         }
         .alert(isPresented: $showingUnbindConfirm) {
             Alert(

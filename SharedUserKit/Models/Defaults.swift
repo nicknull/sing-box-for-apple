@@ -6,7 +6,7 @@
 //
 import Defaults
 import Foundation
-extension Defaults.Keys {
+public extension Defaults.Keys {
     
     
     

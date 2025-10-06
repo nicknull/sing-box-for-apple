@@ -8,7 +8,6 @@
 import SwiftUI
 import Kingfisher
 import DynamicColor
-import AlertToast
 import Defaults
 import StoreKit
 import Library
@@ -483,7 +482,7 @@ struct UserView: View {
     .navigationBarTitle("个人中心")
 
     .toast(isPresenting: $copyToast, duration: 1.5, tapToDismiss: false) {
-      AlertToast(type: .complete(.green), title: "复制成功!", subTitle: nil)
+      ToastNotification(type: .complete(.green), title: "复制成功!", subTitle: nil)
     }
 
     .onChange(

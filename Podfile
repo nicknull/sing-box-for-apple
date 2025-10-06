@@ -68,7 +68,6 @@ def lib
   use_frameworks!
   pod 'FirebaseRemoteConfig'
   pod 'FirebaseAnalytics'
-  pod 'FirebaseMessaging'
   pod 'SwiftyJSON'
   pod 'Moya'
   pod 'Alamofire'
@@ -78,8 +77,6 @@ def lib
   pod 'DynamicColor'
   pod 'Siren'
 #  pod 'PingManager'#ping请求造成大量的请求 把自己的真实地址塞在中间
-  pod 'Defaults'
-  pod 'CryptoSwift'
   pod 'ExytePopupView'
   pod 'SwiftDate'
 
@@ -88,7 +85,6 @@ end
 
 target 'SFI' do
   lib
-  pod 'AlertToast'
   pod 'Kingfisher'
   
 
@@ -118,10 +114,14 @@ end
 #  end
 #end
 
-#target 'ApplicationLibrary' do
-#  use_frameworks!
-#
-#end
+target 'ApplicationLibrary' do
+  use_frameworks!
+  pod 'FirebaseMessaging'
+  pod 'CryptoSwift'
+  pod 'Defaults'
+  pod 'CodableWrappers'
+
+end
 
 
 #target 'SystemExtension' do
