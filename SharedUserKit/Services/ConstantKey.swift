@@ -26,6 +26,7 @@ import Foundation
     public static let fileContentHash = "fileContentHash"
     public static let confVersion = "confVersion"
     public static let releaseVersion = "releaseVersion"
+    public static let consentAgreed = "consentAgreed"
     
     public static let getServiceTime = "getServiceTime"//上次更新主服务域名时间
     public static let secure_path = "secure_path"//后台管理路径，修改后将会改变原有的admin路径
