@@ -19,33 +19,41 @@ struct PurchaseView: View {
     let productIDs = ["com.gy.iflash.7","com.gy.iflash.30","com.gy.iflash.365"]
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("选择套餐").font(.title).bold()
-
+        Group {
             if isLoading {
-                ProgressView("加载中...")
-            } else if let products = purchaseManager.products {
-                ForEach(products, id: \.id) { product in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(product.displayName).font(.headline)
-                            Text(product.description).font(.subheadline).foregroundColor(.gray)
-                        }
-                        Spacer()
-                        Button("购买") { Task { await purchaseProduct(product) } }
-                            .buttonStyle(.borderedProminent)
-                    }
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                }
+                VStack { Spacer(); ProgressView("加载中..."); Spacer() }
             } else {
-                Text("暂无可用商品").foregroundColor(.gray)
-            }
+                List {
+                    if let products = purchaseManager.products, !products.isEmpty {
+                        Section {
+                            ForEach(products, id: \.id) { product in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(product.displayName).font(.body)
+                                        Text(product.description).font(.caption).foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    Text(product.displayPrice).font(.subheadline).foregroundColor(.secondary)
+                                    Button("购买") { Task { await purchaseProduct(product) } }
+                                        .buttonStyle(.borderedProminent)
+                                }
+                                .padding(.vertical, 6)
+                            }
+                        }
+                    } else {
+                        Section {
+                            Text("暂无可用商品").foregroundColor(.gray)
+                        }
+                    }
 
-            Button("恢复购买") { Task { await restorePurchases() } }
+                    Section(footer: Text("若已在其它设备购买，可在此恢复购买")) {
+                        Button("恢复购买") { Task { await restorePurchases() } }
+                    }
+                }
+                .listStyle(.insetGrouped)
+            }
         }
-        .padding()
+        .navigationTitle("选择套餐")
         .onAppear {
             // 购买成功回调仅记录日志；真正上报在购买流程里（可带 tradeNo 与 appToken）
             purchaseManager.onPurchaseSuccess = { tx in
