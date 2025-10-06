@@ -110,8 +110,8 @@ struct ProductsView: View {
 
     }
     func makeOrder(product:Product) async{
-        // 使用用户 ID 创建 appAccountToken
-        let userID = userManager.auth_data
+        // 使用稳定的 app_account_token 创建 appAccountToken
+        let userID = userManager.userInfo?.app_account_token ?? userManager.auth_data
 
         do{
             let (transaction, purchaseState) = try await purchaseXManager.purchase(

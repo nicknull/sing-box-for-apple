@@ -115,10 +115,10 @@ struct PurchaseView: View {
             }
             _ = semaphore.wait(timeout: .now() + 10)
 
-            // 获取用户 ID（可以使用 userInfo.id 或其他唯一标识）
-            let userID = userManager.userInfo?.id?.description ?? userManager.auth_data
+            // 使用稳定的 app_account_token 作为 appAccountToken 来源
+            let userID = userManager.userInfo?.app_account_token ?? userManager.auth_data
 
-            // 2) 发起购买
+            // 2) 发起购买（将 userID 作为 appAccountToken 注入）
             let (transaction, state) = try await purchaseManager.purchase(
                 product: product,
                 userID: userID
