@@ -130,22 +130,6 @@ struct DashBoardView: View {
                                 }
                             })
 
-                            if showProducts()  {
-                                NavigationLink(destination:
-                                                PurchaseView()
-                                    .environmentObject(userManager)
-                                    .navigationTitle("购买套餐")
-                                ) {
-                                    Label {
-                                        Text("购买套餐")
-                                            .padding(.horizontal,20)
-                                    } icon: {
-                                        IVYIcon(systemName: "arrow.down.right", backgroundColor: .orange)
-                                    }
-                                }
-                                
-                            }
-
                             Button(action: {}, label: {
                                 
                                 LabeledContent {
@@ -215,7 +199,19 @@ struct DashBoardView: View {
                         Text("个人信息")
                     }
 
+                  Section {
+                    NavigationLink(destination: PurchaseView().environmentObject(userManager)) {
+                      Text("购买套餐")
 
+          //            LabeledContent {
+          //              Image(systemName: "chevron.forward").foregroundColor(.secondary).opacity(0.7)
+          //            } label: {
+          //              Text("购买套餐")
+          //            }
+                    }
+                  } header: {
+                    Text("购买套餐")
+                  }
 
                     
                     Section{
@@ -366,58 +362,6 @@ struct DashBoardView: View {
         
         
     }
-    func showProducts()->Bool{
-        return true
-        //        return appStoreVersion == nil || compareVersions(version1:Bundle.main.infoDictionary?["CFBundleVersion"] as! String, version2:  appStoreVersion!) == .orderedAscending
-    }
-    func compareVersions(version1: String, version2: String) -> ComparisonResult {
-        let components1 = version1.split(separator: ".").compactMap { Int($0) }
-        let components2 = version2.split(separator: ".").compactMap { Int($0) }
-        
-        for (component1, component2) in zip(components1, components2) {
-            if component1 < component2 {
-                return .orderedAscending
-            } else if component1 > component2 {
-                return .orderedDescending
-            }
-        }
-        
-        if components1.count < components2.count {
-            return .orderedAscending
-        } else if components1.count > components2.count {
-            return .orderedDescending
-        } else {
-            return .orderedSame
-        }
-    }
-    
-    
-//    func fetchAppStoreVersion() {
-//        guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
-//            return
-//        }
-//        
-//        let urlString = "https://itunes.apple.com/lookup?bundleId=\(bundleIdentifier)"
-//        if let url = URL(string: urlString) {
-//            let task = URLSession.shared.dataTask(with: url) { data, _, error in
-//                if let data = data {
-//                    do {
-//                        let result = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any]
-//                        if let resultsArray = result?["results"] as? [[String: Any]],
-//                           let appStoreVersion = resultsArray.first?["version"] as? String {
-//                            DispatchQueue.main.async {
-//                                self.appStoreVersion = appStoreVersion
-//                            }
-//                        }
-//                    } catch {
-//                        print(error.localizedDescription)
-//                    }
-//                }
-//            }
-//            
-//            task.resume()
-//        }
-//    }
     
     private func installProfile() async {
         do {

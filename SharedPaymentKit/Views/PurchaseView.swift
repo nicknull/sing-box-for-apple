@@ -75,7 +75,10 @@ struct PurchaseView: View {
         }
         isLoading = true
         do {
-            let appToken = userManager.userInfo?.app_account_token ?? userManager.auth_data
+            guard let appToken = userManager.userInfo?.app_account_token, !appToken.isEmpty else {
+                DispatchQueue.main.async { errorMessage = "账户标识缺失，请重新登录后再试"; showAlert = true; isLoading = false }
+                return
+            }
             // 1) 预下单，获取 trade_no
             var tradeNo: String? = nil
             let sem = DispatchSemaphore(value: 0)
@@ -86,8 +89,7 @@ struct PurchaseView: View {
             _ = sem.wait(timeout: .now() + 10)
 
             // 2) 发起购买（注入 appAccountToken）
-            let userID = userManager.userInfo?.app_account_token ?? userManager.auth_data
-            let (transaction, state) = try await purchaseManager.purchase(product: product, userID: userID)
+            let (transaction, state) = try await purchaseManager.purchase(product: product, userID: appToken)
 
             DispatchQueue.main.async {
                 isLoading = false
@@ -121,7 +123,10 @@ struct PurchaseView: View {
             DispatchQueue.main.async { errorMessage = "请先登录"; showAlert = true }
             return
         }
-        let appToken = userManager.userInfo?.app_account_token ?? userManager.auth_data
+        guard let appToken = userManager.userInfo?.app_account_token, !appToken.isEmpty else {
+            DispatchQueue.main.async { errorMessage = "账户标识缺失，请重新登录后再试"; showAlert = true }
+            return
+        }
         let snapshot = await purchaseManager.transactionsSnapshot()
         IAPOrderManager.restorePurchases(appAccountToken: appToken, transactions: snapshot) { success, error in
             DispatchQueue.main.async {
