@@ -147,52 +147,49 @@ struct LoginView: View {
                         .padding(.horizontal, 40)
                         .padding(.bottom, 20)
 
-                        // 三方登录按钮（横排平分）
-                        HStack(spacing: 12) {
-                            // Apple 登录
-                            Button(action: { handleAppleSignIn() }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "applelogo").font(.system(size: 16))
-                                    Text("Apple").font(.footnote).lineLimit(1).minimumScaleFactor(0.8)
+                        // 三方登录按钮（紧凑图标风格，固定宽度，不再拉伸）
+                        HStack(spacing: 24) {
+                            VStack(spacing: 6) {
+                                Button(action: { handleAppleSignIn() }) {
+                                    Image(systemName: "applelogo")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .frame(width: 44, height: 44)
+                                        .background(Color.black)
+                                        .clipShape(Circle())
                                 }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                                .foregroundColor(.white)
-                                .background(Color.black)
-                                .cornerRadius(12)
+                                .disabled(isLoading || oauthManager.isLoading || !agreed)
+                                .opacity(agreed ? 1.0 : 0.5)
+                                Text("Apple").font(.caption2).foregroundColor(.secondary)
                             }
-                            .disabled(isLoading || oauthManager.isLoading || !agreed)
-                            .opacity(agreed ? 1.0 : 0.5)
 
-                            // Google 登录
-                            Button(action: { handleGoogleSignIn() }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "globe").font(.system(size: 16))
-                                    Text("Google").font(.footnote).lineLimit(1).minimumScaleFactor(0.8)
+                            VStack(spacing: 6) {
+                                Button(action: { handleGoogleSignIn() }) {
+                                    Image(systemName: "globe")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .frame(width: 44, height: 44)
+                                        .background(Color(red: 0.26, green: 0.52, blue: 0.96))
+                                        .clipShape(Circle())
                                 }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                                .foregroundColor(.white)
-                                .background(Color(red: 0.26, green: 0.52, blue: 0.96))
-                                .cornerRadius(12)
+                                .disabled(isLoading || oauthManager.isLoading || !agreed)
+                                .opacity(agreed ? 1.0 : 0.5)
+                                Text("Google").font(.caption2).foregroundColor(.secondary)
                             }
-                            .disabled(isLoading || oauthManager.isLoading || !agreed)
-                            .opacity(agreed ? 1.0 : 0.5)
 
-                            // GitHub 登录
-                            Button(action: { handleGitHubSignIn() }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "terminal").font(.system(size: 16))
-                                    Text("GitHub").font(.footnote).lineLimit(1).minimumScaleFactor(0.8)
+                            VStack(spacing: 6) {
+                                Button(action: { handleGitHubSignIn() }) {
+                                    Image(systemName: "terminal")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .frame(width: 44, height: 44)
+                                        .background(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                        .clipShape(Circle())
                                 }
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 44)
-                                .foregroundColor(.white)
-                                .background(Color(red: 0.13, green: 0.13, blue: 0.13))
-                                .cornerRadius(12)
+                                .disabled(isLoading || oauthManager.isLoading || !agreed)
+                                .opacity(agreed ? 1.0 : 0.5)
+                                Text("GitHub").font(.caption2).foregroundColor(.secondary)
                             }
-                            .disabled(isLoading || oauthManager.isLoading || !agreed)
-                            .opacity(agreed ? 1.0 : 0.5)
                         }
                         .padding(.bottom, 20)
 
