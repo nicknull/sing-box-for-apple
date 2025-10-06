@@ -25,7 +25,8 @@ enum AQAPIService{
     case ticketClose(id:Int) //关闭工单
 
     // IAP 订单相关
-    case reportIAPOrder(transactionID:String, originalTransactionID:String, productID:String) //上报 IAP 订单
+    case reportIAPOrder(transactionID:String, originalTransactionID:String, productID:String, tradeNo:String?, appAccountToken:String?) //上报 IAP 订单
+    case prepareIAPOrder(productID:String, appAccountToken:String) // 预下单，获取 trade_no
 
     // OAuth 登录相关
     case oauthAppleLogin(identityToken:String, userIdentifier:String, email:String?, fullName:String?) //Apple 登录
@@ -141,8 +142,10 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .ticketClose(_):
             return "user/ticket/close"
 
-        case .reportIAPOrder(_,_,_):
+        case .reportIAPOrder(_,_,_,_,_), .prepareIAPOrder(_,_):
             return "/user/order/iap"
+        case .prepareIAPOrder(_,_):
+            return "/user/order/iap/prepare"
 
         case .oauthAppleLogin(_,_,_,_):
             return "/passport/auth/apple"
@@ -197,7 +200,7 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .ticketClose(_):
             return .post
 
-        case .reportIAPOrder(_,_,_):
+        case .reportIAPOrder(_,_,_,_,_), .prepareIAPOrder(_,_):
             return .post
 
         case .oauthAppleLogin(_,_,_,_):
@@ -272,11 +275,19 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case let .ticketClose(id):
             return .requestParameters(parameters: ["id":id], encoding: URLEncoding.default)
 
-        case let .reportIAPOrder(transactionID, originalTransactionID, productID):
-            return .requestParameters(parameters: [
+        case let .reportIAPOrder(transactionID, originalTransactionID, productID, tradeNo, appToken):
+            var params: [String: Any] = [
                 "transaction_id": transactionID,
                 "original_transaction_id": originalTransactionID,
                 "product_id": productID
+            ]
+            if let t = tradeNo { params["trade_no"] = t }
+            if let a = appToken { params["app_account_token"] = a }
+            return .requestParameters(parameters: params, encoding: JSONEncoding.default)
+        case let .prepareIAPOrder(productID, appToken):
+            return .requestParameters(parameters: [
+                "product_id": productID,
+                "app_account_token": appToken
             ], encoding: JSONEncoding.default)
 
         case let .oauthAppleLogin(identityToken, userIdentifier, email, fullName):

@@ -102,10 +102,23 @@ struct PurchaseView: View {
         isLoading = true
 
         do {
+            // 1) 预下单，获取 trade_no
+            let appToken = userManager.userInfo?.app_account_token ?? ""
+            var tradeNo: String? = nil
+            let semaphore = DispatchSemaphore(value: 0)
+            NewNetWorkRequest(
+                AQAPIService.prepareIAPOrder(productID: product.id, appAccountToken: appToken),
+                modelType: PrepareIAPOrderResponse.self
+            ) { model, resp in
+                tradeNo = model?.trade_no
+                semaphore.signal()
+            }
+            _ = semaphore.wait(timeout: .now() + 10)
+
             // 获取用户 ID（可以使用 userInfo.id 或其他唯一标识）
             let userID = userManager.userInfo?.id?.description ?? userManager.auth_data
 
-            // 发起购买，传入用户 ID
+            // 2) 发起购买
             let (transaction, state) = try await purchaseManager.purchase(
                 product: product,
                 userID: userID
@@ -117,7 +130,18 @@ struct PurchaseView: View {
                 switch state {
                 case .complete:
                     print("✅ 购买完成")
-                    // onPurchaseSuccess 回调会自动处理订单上报
+                    // 3) 上报订单，携带 trade_no 与 app_account_token
+                    IAPOrderManager.reportOrder(transaction: transaction, tradeNo: tradeNo, appAccountToken: appToken) { success, error in
+                        DispatchQueue.main.async {
+                            if success {
+                                userManager.reload()
+                                errorMessage = "购买成功！"
+                            } else {
+                                errorMessage = "购买成功，但订单同步失败: \(error ?? "未知错误")"
+                            }
+                            showAlert = true
+                        }
+                    }
                 case .cancelled:
                     errorMessage = "购买已取消"
                     showAlert = true

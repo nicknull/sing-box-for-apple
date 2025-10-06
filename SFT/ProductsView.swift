@@ -121,8 +121,9 @@ struct ProductsView: View {
             )
 
             if let transaction = transaction, purchaseState == .complete {
-                // 购买成功，自动上报订单到后端
-                IAPOrderManager.reportOrder(transaction: transaction) { success, error in
+                // 购买成功，自动上报订单到后端（携带 app_account_token）
+                let appToken = userManager.userInfo?.app_account_token ?? ""
+                IAPOrderManager.reportOrder(transaction: transaction, tradeNo: nil, appAccountToken: appToken) { success, error in
                     if success {
                         NSLog("✅ IAP 订单上报成功")
                     } else {

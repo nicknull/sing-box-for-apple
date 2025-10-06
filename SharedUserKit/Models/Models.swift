@@ -40,6 +40,7 @@ class AuthModel: Codable{
 
 class UserInfoModel:Codable{
     var email : String?
+    var app_account_token: String?
     var transfer_enable : Int64?
     var last_login_at : TimeInterval?
     var created_at : TimeInterval?

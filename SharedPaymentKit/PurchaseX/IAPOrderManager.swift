@@ -15,7 +15,7 @@ class IAPOrderManager {
     /// - Parameters:
     ///   - transaction: StoreKit Transaction 对象
     ///   - completion: 完成回调
-    static func reportOrder(transaction: Transaction, completion: ((Bool, String?) -> Void)? = nil) {
+    static func reportOrder(transaction: Transaction, tradeNo: String? = nil, appAccountToken: String? = nil, completion: ((Bool, String?) -> Void)? = nil) {
         let transactionID = String(transaction.id)
         let originalTransactionID = String(transaction.originalID)
         let productID = transaction.productID
@@ -30,7 +30,9 @@ class IAPOrderManager {
             AQAPIService.reportIAPOrder(
                 transactionID: transactionID,
                 originalTransactionID: originalTransactionID,
-                productID: productID
+                productID: productID,
+                tradeNo: tradeNo,
+                appAccountToken: appAccountToken
             ),
             modelType: IAPOrderResponse.self
         ) { orderResponse, responseModel in
@@ -50,4 +52,12 @@ class IAPOrderManager {
 struct IAPOrderResponse: Codable {
     let order_id: String?
     let message: String?
+}
+
+// 预下单响应模型
+struct PrepareIAPOrderResponse: Codable {
+    let trade_no: String?
+    let plan_id: Int?
+    let period: String?
+    let order_type: Int?
 }
