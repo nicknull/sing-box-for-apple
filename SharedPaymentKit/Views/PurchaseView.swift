@@ -51,7 +51,7 @@ struct PurchaseView: View {
             purchaseManager.onPurchaseSuccess = { tx in
                 print("购买成功：\(tx.productID)")
             }
-            loadProducts()
+            Task { await precheckAndLoad() }
         }
         .alert(isPresented: $showAlert) {
             Alert(title: Text("提示"), message: Text(errorMessage ?? ""), dismissButton: .default(Text("确定")))
@@ -76,45 +76,82 @@ struct PurchaseView: View {
         isLoading = true
         do {
             guard let appToken = userManager.userInfo?.app_account_token, !appToken.isEmpty else {
-                DispatchQueue.main.async { errorMessage = "账户标识缺失，请重新登录后再试"; showAlert = true; isLoading = false }
+                // 尝试预刷新一次
+                let ok = await ensureAppToken()
+                guard ok, let appToken2 = userManager.userInfo?.app_account_token, !appToken2.isEmpty else {
+                    DispatchQueue.main.async { errorMessage = "账户标识缺失，请重新登录后再试"; showAlert = true; isLoading = false }
+                    return
+                }
+                // 使用刷新后的 token 继续
+                await performPurchase(product: product, appToken: appToken2)
                 return
             }
-            // 1) 预下单，获取 trade_no
-            var tradeNo: String? = nil
-            let sem = DispatchSemaphore(value: 0)
-            NewNetWorkRequest(
-                AQAPIService.prepareIAPOrder(productID: product.id, appAccountToken: appToken),
-                modelType: PrepareIAPOrderResponse.self
-            ) { model, _ in tradeNo = model?.trade_no; sem.signal() }
-            _ = sem.wait(timeout: .now() + 10)
-
-            // 2) 发起购买（注入 appAccountToken）
-            let (transaction, state) = try await purchaseManager.purchase(product: product, userID: appToken)
-
-            DispatchQueue.main.async {
-                isLoading = false
-                switch state {
-                case .complete:
-                    if let tx = transaction {
-                        IAPOrderManager.reportOrder(transaction: tx, tradeNo: tradeNo, appAccountToken: appToken) { success, err in
-                            DispatchQueue.main.async {
-                                if success { userManager.reload(); errorMessage = "购买成功！" }
-                                else { errorMessage = "购买成功，但订单同步失败: \(err ?? "未知错误")" }
-                                showAlert = true
-                            }
-                        }
-                    } else {
-                        errorMessage = "购买完成，但未获取到交易信息"; showAlert = true
-                    }
-                case .cancelled: errorMessage = "购买已取消"; showAlert = true
-                case .pending: errorMessage = "购买待处理，请稍后查看"; showAlert = true
-                case .failed: errorMessage = "购买失败"; showAlert = true
-                default: errorMessage = "未知错误"; showAlert = true
-                }
-            }
+            await performPurchase(product: product, appToken: appToken)
         } catch {
             DispatchQueue.main.async { isLoading = false; errorMessage = "购买出错: \(error.localizedDescription)"; showAlert = true }
         }
+    }
+
+    // 执行实际预下单 + 购买 + 上报
+    private func performPurchase(product: Product, appToken: String) async {
+        // 1) 预下单，获取 trade_no
+        var tradeNo: String? = nil
+        let sem = DispatchSemaphore(value: 0)
+        NewNetWorkRequest(
+            AQAPIService.prepareIAPOrder(productID: product.id, appAccountToken: appToken),
+            modelType: PrepareIAPOrderResponse.self
+        ) { model, _ in tradeNo = model?.trade_no; sem.signal() }
+        _ = sem.wait(timeout: .now() + 10)
+
+        // 2) 发起购买（注入 appAccountToken）
+        let result = try? await purchaseManager.purchase(product: product, userID: appToken)
+        DispatchQueue.main.async {
+            isLoading = false
+            guard let result = result else {
+                errorMessage = "购买失败"; showAlert = true; return
+            }
+            switch result.purchaseState {
+            case .complete:
+                if let tx = result.transaction {
+                    IAPOrderManager.reportOrder(transaction: tx, tradeNo: tradeNo, appAccountToken: appToken) { success, err in
+                        DispatchQueue.main.async {
+                            if success { userManager.reload(); errorMessage = "购买成功！" }
+                            else { errorMessage = "购买成功，但订单同步失败: \(err ?? "未知错误")" }
+                            showAlert = true
+                        }
+                    }
+                } else { errorMessage = "购买完成，但未获取到交易信息"; showAlert = true }
+            case .cancelled: errorMessage = "购买已取消"; showAlert = true
+            case .pending: errorMessage = "购买待处理，请稍后查看"; showAlert = true
+            case .failed: errorMessage = "购买失败"; showAlert = true
+            default: errorMessage = "未知错误"; showAlert = true
+            }
+        }
+    }
+
+    // 预检查 app_account_token 并加载商品
+    private func precheckAndLoad() async {
+        isLoading = true
+        let _ = await ensureAppToken()
+        await loadProductsAsync()
+        DispatchQueue.main.async { isLoading = false }
+    }
+
+    private func loadProductsAsync() async {
+        _ = await purchaseManager.requestProductsFromAppstore(productIds: productIDs)
+    }
+
+    // 确保用户信息中有 app_account_token；必要时触发刷新并等待
+    private func ensureAppToken() async -> Bool {
+        if let t = userManager.userInfo?.app_account_token, !t.isEmpty { return true }
+        // 触发刷新
+        userManager.reload()
+        // 等待最多 2 秒，轮询几次
+        for _ in 0..<4 {
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s
+            if let t = userManager.userInfo?.app_account_token, !t.isEmpty { return true }
+        }
+        return false
     }
 
     // 恢复购买：采集 StoreKit2 交易快照并上报后端
