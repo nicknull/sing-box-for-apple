@@ -189,32 +189,8 @@ struct UserView: View {
             ForEach(products!, id: \.id) { product in
               Button {
                 Task {
-                  do {
-                    NewNetWorkRequest(
-                      AQAPIService.getVersion(token: userManager.token), modelType: AppVersion.self
-                    ) { appVersion, responseModel in
-
-                      if ((appVersion) != nil) {
-                        if (VersionComparator.compare(Bundle.appVersion, appVersion!.ios_version)
-                          > 0)
-                        {
-                          Task {
-                            await self.makeOrder(product: product)
-                          }
-                        } else {
-                          self.errorTitle = "当前服务不可用"
-                          self.errorSubTitle = "请从官网获取开通相关服务"
-                          self.errorAlert.toggle()
-                        }
-                      } else {
-                        self.errorTitle = "当前服务不可用"
-                        self.errorSubTitle = "请从官网获取开通相关服务"
-                        self.errorAlert.toggle()
-                      }
-                    }
-                  }
+                  await self.makeOrder(product: product)
                 }
-
               } label: {
                 LabeledContent {
                   Text("\(product.displayPrice)")
@@ -647,4 +623,3 @@ extension Date{
         return dateFormatter.string(from: self)
     }
 }
-
