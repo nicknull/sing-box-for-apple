@@ -46,6 +46,20 @@ class IAPOrderManager {
             }
         }
     }
+
+    /// 恢复购买：上传交易快照
+    static func restorePurchases(appAccountToken: String, transactions: [[String: Any]], completion: ((Bool, String?) -> Void)? = nil) {
+        NewNetWorkRequest(
+            AQAPIService.restoreIAPOrders(appAccountToken: appAccountToken, transactions: transactions),
+            modelType: IAPOrderResponse.self
+        ) { model, response in
+            if response.code == 200 {
+                completion?(true, nil)
+            } else {
+                completion?(false, response.messageStr ?? "恢复失败")
+            }
+        }
+    }
 }
 
 /// IAP 订单响应模型

@@ -27,6 +27,7 @@ enum AQAPIService{
     // IAP 订单相关
     case reportIAPOrder(transactionID:String, originalTransactionID:String, productID:String, tradeNo:String?, appAccountToken:String?) //上报 IAP 订单
     case prepareIAPOrder(productID:String, appAccountToken:String) // 预下单，获取 trade_no
+    case restoreIAPOrders(appAccountToken:String, transactions:[[String:Any]]) // 恢复购买
 
     // OAuth 登录相关
     case oauthAppleLogin(identityToken:String, userIdentifier:String, email:String?, fullName:String?) //Apple 登录
@@ -142,10 +143,12 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .ticketClose(_):
             return "user/ticket/close"
 
-        case .reportIAPOrder(_,_,_,_,_), .prepareIAPOrder(_,_):
+        case .reportIAPOrder(_,_,_,_,_), .prepareIAPOrder(_,_), .restoreIAPOrders(_, _):
             return "/user/order/iap"
         case .prepareIAPOrder(_,_):
             return "/user/order/iap/prepare"
+        case .restoreIAPOrders(_, _):
+            return "/user/order/iap/restore"
 
         case .oauthAppleLogin(_,_,_,_):
             return "/passport/auth/apple"
@@ -200,7 +203,7 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .ticketClose(_):
             return .post
 
-        case .reportIAPOrder(_,_,_,_,_), .prepareIAPOrder(_,_):
+        case .reportIAPOrder(_,_,_,_,_), .prepareIAPOrder(_,_), .restoreIAPOrders(_, _):
             return .post
 
         case .oauthAppleLogin(_,_,_,_):
@@ -288,6 +291,11 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return .requestParameters(parameters: [
                 "product_id": productID,
                 "app_account_token": appToken
+            ], encoding: JSONEncoding.default)
+        case let .restoreIAPOrders(appToken, transactions):
+            return .requestParameters(parameters: [
+                "app_account_token": appToken,
+                "transactions": transactions
             ], encoding: JSONEncoding.default)
 
         case let .oauthAppleLogin(identityToken, userIdentifier, email, fullName):

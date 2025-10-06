@@ -43,6 +43,16 @@ struct PurchaseView: View {
                 Text("暂无可用商品")
                     .foregroundColor(.gray)
             }
+
+            // 恢复购买按钮
+            Button {
+                Task {
+                    await restorePurchases()
+                }
+            } label: {
+                Text("恢复购买")
+                    .bold()
+            }
         }
         .padding()
         .onAppear {
@@ -160,6 +170,30 @@ struct PurchaseView: View {
             DispatchQueue.main.async {
                 isLoading = false
                 errorMessage = "购买出错: \(error.localizedDescription)"
+                showAlert = true
+            }
+        }
+    }
+
+    // MARK: - 恢复购买
+    private func restorePurchases() async {
+        guard userManager.isLoggedIn else {
+            DispatchQueue.main.async {
+                errorMessage = "请先登录"
+                showAlert = true
+            }
+            return
+        }
+        let appToken = userManager.userInfo?.app_account_token ?? userManager.auth_data
+        let snapshot = await purchaseManager.transactionsSnapshot()
+        IAPOrderManager.restorePurchases(appAccountToken: appToken, transactions: snapshot) { success, error in
+            DispatchQueue.main.async {
+                if success {
+                    userManager.reload()
+                    errorMessage = "恢复完成"
+                } else {
+                    errorMessage = error ?? "恢复失败"
+                }
                 showAlert = true
             }
         }

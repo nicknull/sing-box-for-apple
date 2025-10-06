@@ -161,6 +161,24 @@ public class PurchaseXManager: NSObject, ObservableObject {
         
         return entitledProductIds
     }
+
+    /// 获取用于恢复购买的交易快照（简化：当前有效的交易）
+    /// 返回每笔交易的必要字段供后端校验与补单
+    public func transactionsSnapshot() async -> [[String: Any]] {
+        var list: [[String: Any]] = []
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result {
+                let item: [String: Any] = [
+                    "transaction_id": String(transaction.id),
+                    "original_transaction_id": String(transaction.originalID),
+                    "product_id": transaction.productID,
+                    "revoked": false
+                ]
+                list.append(item)
+            }
+        }
+        return list
+    }
     
     // MARK: - extend function interface
     
