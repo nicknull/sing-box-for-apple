@@ -248,6 +248,25 @@ struct UserView: View {
           }
 
         }
+        // 恢复购买入口
+        Section {
+          Button {
+            Task {
+              await restorePurchases()
+            }
+          } label: {
+            HStack {
+              IVYIcon(systemName: "arrow.clockwise", backgroundColor: .blue)
+              Text("恢复购买")
+              Spacer()
+              Image(systemName: "chevron.forward")
+                .foregroundColor(.secondary)
+                .opacity(0.7)
+            }
+          }
+        } header: {
+          Text("订阅")
+        }
         if ((self.subscribe) != nil) {
           Section {
             LabeledContent {
@@ -578,6 +597,32 @@ struct UserView: View {
       }
     } catch {}
   }
+  // 恢复购买逻辑：采集交易快照并上报后端
+  private func restorePurchases() async {
+    guard userManager.isLoggedIn else {
+      DispatchQueue.main.async {
+        errorTitle = "请先登录"
+        errorSubTitle = "登录后可恢复购买"
+        errorAlert = true
+      }
+      return
+    }
+    let appToken = userManager.userInfo?.app_account_token ?? userManager.auth_data
+    let snapshot = await purchaseXManager.transactionsSnapshot()
+    IAPOrderManager.restorePurchases(appAccountToken: appToken, transactions: snapshot) { success, error in
+      DispatchQueue.main.async {
+        if success {
+          userManager.reload()
+          successMessage = "恢复完成"
+          successAlert = true
+        } else {
+          errorTitle = "恢复失败"
+          errorSubTitle = error ?? "请稍后重试"
+          errorAlert = true
+        }
+      }
+    }
+  }
   func refresh() {
     guard auth_data.count > 0 else {
       return
@@ -602,5 +647,4 @@ extension Date{
         return dateFormatter.string(from: self)
     }
 }
-
 
