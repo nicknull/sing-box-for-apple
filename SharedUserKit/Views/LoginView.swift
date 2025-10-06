@@ -49,7 +49,8 @@ struct LoginView: View {
     @State var showLink:Bool = false
     @State var link:URL?
     
-    @StateObject private var keyboard = KeyboardObserver()
+    // 本地键盘观察者，避免目标编译未包含全局工具导致找不到符号
+    @StateObject private var keyboard = LocalKeyboardObserver()
 
     var body: some View {
         ZStack{
@@ -263,7 +264,7 @@ struct LoginView: View {
             })
             
         }
-        .keyboardAvoiding(keyboard)
+        .modifier(LocalKeyboardAvoiding(keyboard: keyboard))
         .onTapGesture { self.wzz_hideKeyboard() }
         .preferredColorScheme(.light)
         .navigationBarTitleDisplayMode(.inline)
@@ -377,6 +378,38 @@ struct LoginView: View {
     }
 }
 
+// 本文件内联一个键盘适配工具，防止目标未编译全局工具时报错
+final class LocalKeyboardObserver: ObservableObject {
+    @Published var keyboardHeight: CGFloat = 0
+    private var willShow: NSObjectProtocol?
+    private var willHide: NSObjectProtocol?
+
+    init() {
+        willShow = NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { note in
+            if let rect = note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                self.keyboardHeight = rect.height
+            }
+        }
+        willHide = NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+            self.keyboardHeight = 0
+        }
+    }
+
+    deinit {
+        if let w = willShow { NotificationCenter.default.removeObserver(w) }
+        if let w = willHide { NotificationCenter.default.removeObserver(w) }
+    }
+}
+
+struct LocalKeyboardAvoiding: ViewModifier {
+    @ObservedObject var keyboard: LocalKeyboardObserver
+    func body(content: Content) -> some View {
+        content
+            .padding(.bottom, max(0, keyboard.keyboardHeight - 10))
+            .animation(.easeOut(duration: 0.25), value: keyboard.keyboardHeight)
+    }
+}
+
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView()
@@ -419,4 +452,3 @@ extension View {
         )
     }
 }
-
