@@ -119,16 +119,22 @@ struct LoginView: View {
                         .padding(40)
 
                         // 三方登录分隔线
-                        HStack {
+                        HStack(alignment: .center, spacing: 8) {
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(height: 1)
+                                .frame(maxWidth: .infinity)
                             Text("或使用以下方式登录")
                                 .font(.caption)
                                 .foregroundColor(.gray)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .padding(.horizontal, 4)
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(height: 1)
+                                .frame(maxWidth: .infinity)
                         }
                         .padding(.horizontal, 40)
                         .padding(.bottom, 20)
