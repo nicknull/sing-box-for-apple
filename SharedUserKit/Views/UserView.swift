@@ -184,45 +184,17 @@ struct UserView: View {
         } header: {
           Text("修复Apple TV端")
         }
-        if (products != nil && products!.count > 0) {
-          Section {
-            ForEach(products!, id: \.id) { product in
-              Button {
-                Task {
-                  await self.makeOrder(product: product)
-                }
-              } label: {
-                LabeledContent {
-                  Text("\(product.displayPrice)")
-
-                } label: {
-                  Text("\(product.displayName)")
-                }
-
-              }
-              .alert(
-                isPresented: $errorAlert,
-                content: {
-                  Alert(
-                    title: Text(errorTitle),
-                    message: Text(errorSubTitle),
-                    primaryButton: .destructive(Text("前往")) {
-
-                      UIApplication.shared.open(webSite)
-                    },
-                    secondaryButton: .cancel(
-                      Text("取消"),
-                      action: {
-
-                      })
-                  )
-                })
-
+        // 使用专用的 PurchaseView 完整处理 IAP 购买流程
+        Section {
+          NavigationLink(destination: PurchaseView().environmentObject(userManager)) {
+            LabeledContent {
+              Image(systemName: "chevron.forward").foregroundColor(.secondary).opacity(0.7)
+            } label: {
+              Text("购买套餐")
             }
-          } header: {
-            Text("购买套餐")
           }
-
+        } header: {
+          Text("购买套餐")
         }
         // 恢复购买入口
         Section {
