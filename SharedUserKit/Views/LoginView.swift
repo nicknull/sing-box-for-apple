@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 import Combine
 
 import AuthenticationServices
@@ -165,12 +166,21 @@ struct LoginView: View {
 
                             VStack(spacing: 6) {
                                 Button(action: { handleGoogleSignIn() }) {
-                                    Image(systemName: "globe")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .frame(width: 44, height: 44)
-                                        .background(Color(red: 0.26, green: 0.52, blue: 0.96))
-                                        .clipShape(Circle())
+                                    Group {
+                                        if let img = UIImage(named: "icon_google") {
+                                            Image(uiImage: img)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 22, height: 22)
+                                        } else {
+                                            Image(systemName: "globe")
+                                                .font(.system(size: 18, weight: .semibold))
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                    .frame(width: 44, height: 44)
+                                    .background(Color(red: 0.26, green: 0.52, blue: 0.96))
+                                    .clipShape(Circle())
                                 }
                                 .disabled(isLoading || oauthManager.isLoading || !agreed)
                                 .opacity(agreed ? 1.0 : 0.5)
@@ -179,12 +189,21 @@ struct LoginView: View {
 
                             VStack(spacing: 6) {
                                 Button(action: { handleGitHubSignIn() }) {
-                                    Image(systemName: "terminal")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundColor(.white)
-                                        .frame(width: 44, height: 44)
-                                        .background(Color(red: 0.13, green: 0.13, blue: 0.13))
-                                        .clipShape(Circle())
+                                    Group {
+                                        if let img = UIImage(named: "icon_github") {
+                                            Image(uiImage: img)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 22, height: 22)
+                                        } else {
+                                            Image(systemName: "terminal")
+                                                .font(.system(size: 18, weight: .semibold))
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                    .frame(width: 44, height: 44)
+                                    .background(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                    .clipShape(Circle())
                                 }
                                 .disabled(isLoading || oauthManager.isLoading || !agreed)
                                 .opacity(agreed ? 1.0 : 0.5)
