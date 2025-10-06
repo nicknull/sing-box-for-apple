@@ -220,12 +220,15 @@ struct LoginView: View {
                                     Spacer()
                                     Text("注册账号")
                                         .fontWeight(.semibold)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(Color("blueblue"))
                                     Spacer()
                                 }
                                 .frame(height: 44)
-                                .background(Color("blueblue"))
-                                .cornerRadius(22)
+                                .background(Color.clear)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 22)
+                                        .stroke(Color("blueblue"), lineWidth: 1)
+                                )
                             }
                             .disabled(!agreed)
                             .opacity(agreed ? 1.0 : 0.5)
