@@ -179,9 +179,9 @@ struct LoginView: View {
                                         }
                                     }
                                     .frame(width: 44, height: 44)
-                                    .background(Color.white)
+                                    .background(Color(red: 0.26, green: 0.52, blue: 0.96).opacity(0.15))
                                     .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                                    .overlay(Circle().stroke(Color(red: 0.26, green: 0.52, blue: 0.96).opacity(0.25), lineWidth: 1))
                                 }
                                 .disabled(isLoading || oauthManager.isLoading || !agreed)
                                 .opacity(agreed ? 1.0 : 0.5)
@@ -203,9 +203,9 @@ struct LoginView: View {
                                         }
                                     }
                                     .frame(width: 44, height: 44)
-                                    .background(Color.white)
+                                    .background(Color.black.opacity(0.12))
                                     .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                                    .overlay(Circle().stroke(Color.black.opacity(0.2), lineWidth: 1))
                                 }
                                 .disabled(isLoading || oauthManager.isLoading || !agreed)
                                 .opacity(agreed ? 1.0 : 0.5)
