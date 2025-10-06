@@ -403,9 +403,11 @@ final class LocalKeyboardObserver: ObservableObject {
 struct LocalKeyboardAvoiding: ViewModifier {
     @ObservedObject var keyboard: LocalKeyboardObserver
     func body(content: Content) -> some View {
+        let kb = keyboard.keyboardHeight
         content
-            .padding(.bottom, max(0, keyboard.keyboardHeight - 10))
-            .animation(.easeOut(duration: 0.25), value: keyboard.keyboardHeight)
+            .padding(.bottom, max(0, kb - 10))
+            .offset(y: kb > 0 ? -min(200, kb * 0.6) : 0)
+            .animation(.easeOut(duration: 0.25), value: kb)
     }
 }
 
