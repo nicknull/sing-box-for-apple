@@ -72,21 +72,9 @@ struct PurchaseView: View {
     private func setupPurchaseManager() {
         // 设置购买成功回调
         purchaseManager.onPurchaseSuccess = { transaction in
-            print("🎉 购买成功！开始上报订单...")
-
-            // 上报订单到后端
-            IAPOrderManager.reportOrder(transaction: transaction) { success, error in
-                DispatchQueue.main.async {
-                    if success {
-                        // 订单上报成功，刷新用户信息
-                        userManager.reload()
-                        errorMessage = "购买成功！"
-                    } else {
-                        errorMessage = "购买成功，但订单同步失败: \(error ?? "未知错误")"
-                    }
-                    showAlert = true
-                }
-            }
+            print("🎉 购买成功：\(transaction.productID)")
+        }
+    }
         }
     }
 
@@ -140,97 +128,26 @@ struct PurchaseView: View {
                 switch state {
                 case .complete:
                     print("✅ 购买完成")
-                    // 3) 上报订单，携带 trade_no 与 app_account_token
-                    IAPOrderManager.reportOrder(transaction: transaction, tradeNo: tradeNo, appAccountToken: appToken) { success, error in
-                        DispatchQueue.main.async {
-                            if success {
-                                userManager.reload()
-                                errorMessage = "购买成功！"
-                            } else {
-                                errorMessage = "购买成功，但订单同步失败: \(error ?? "未知错误")"
+                    // 3) 上报订单，携带 trade_no 与 app_account_token（解包可选交易）
+                    if let tx = transaction {
+                        IAPOrderManager.reportOrder(transaction: tx, tradeNo: tradeNo, appAccountToken: appToken) { success, error in
+                            DispatchQueue.main.async {
+                                if success {
+                                    userManager.reload()
+                                    errorMessage = "购买成功！"
+                                } else {
+                                    errorMessage = "购买成功，但订单同步失败: \ (error ?? \"未知错误\")"
+                                }
+                                showAlert = true
                             }
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            errorMessage = "购买完成，但未获取到交易信息"
                             showAlert = true
                         }
                     }
-                case .cancelled:
-                    errorMessage = "购买已取消"
-                    showAlert = true
-                case .pending:
-                    errorMessage = "购买待处理，请稍后查看"
-                    showAlert = true
-                case .failed:
-                    errorMessage = "购买失败"
-                    showAlert = true
-                default:
-                    errorMessage = "未知错误"
-                    showAlert = true
                 }
-            }
-        } catch {
-            DispatchQueue.main.async {
-                isLoading = false
-                errorMessage = "购买出错: \(error.localizedDescription)"
-                showAlert = true
-            }
-        }
-    }
-
-    // MARK: - 恢复购买
-    private func restorePurchases() async {
-        guard userManager.isLoggedIn else {
-            DispatchQueue.main.async {
-                errorMessage = "请先登录"
-                showAlert = true
-            }
-            return
-        }
-        let appToken = userManager.userInfo?.app_account_token ?? userManager.auth_data
-        let snapshot = await purchaseManager.transactionsSnapshot()
-        IAPOrderManager.restorePurchases(appAccountToken: appToken, transactions: snapshot) { success, error in
-            DispatchQueue.main.async {
-                if success {
-                    userManager.reload()
-                    errorMessage = "恢复完成"
-                } else {
-                    errorMessage = error ?? "恢复失败"
-                }
-                showAlert = true
-            }
-        }
-    }
-}
-
-// MARK: - 产品卡片
-struct ProductCard: View {
-    let product: Product
-    let onPurchase: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(product.displayName)
-                .font(.headline)
-
-            Text(product.description)
-                .font(.subheadline)
-                .foregroundColor(.gray)
-
-            HStack {
-                Text(product.displayPrice)
-                    .font(.title2)
-                    .bold()
-
-                Spacer()
-
-                Button(action: onPurchase) {
-                    Text("购买")
-                        .bold()
-                        .padding(.horizontal, 30)
-                        .padding(.vertical, 10)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-            }
         }
         .padding()
         .background(Color(.systemGray6))
