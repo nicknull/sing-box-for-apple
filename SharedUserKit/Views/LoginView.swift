@@ -49,6 +49,8 @@ struct LoginView: View {
     @State var showLink:Bool = false
     @State var link:URL?
     
+    @StateObject private var keyboard = KeyboardObserver()
+
     var body: some View {
         ZStack{
             VStack() {
@@ -59,7 +61,8 @@ struct LoginView: View {
                     .edgesIgnoringSafeArea(.top)
                 Spacer()
             }
-            VStack() {
+            ScrollView {
+                VStack() {
                 Spacer(minLength: 5)
                 VStack(alignment: .trailing){
                     HStack{
@@ -74,7 +77,7 @@ struct LoginView: View {
                 
                 
                 //登录方式
-                VStack() {
+                VStack(alignment: .center, spacing: 12) {
                     
                     VStack(){
                         Spacer(minLength: 20)
@@ -228,7 +231,7 @@ struct LoginView: View {
                         
                     }
                 }
-                Spacer()
+                Spacer(minLength: 0)
                 
                 
                 HStack{
@@ -242,6 +245,8 @@ struct LoginView: View {
                 }
                 .padding(.bottom,40)
                 
+                }
+                .padding(.horizontal, 16)
             }
             .toast(isPresenting: $showingPopup){
                 ToastNotification(type: .error(.green), title:errorStr)
@@ -258,7 +263,8 @@ struct LoginView: View {
             })
             
         }
-        
+        .keyboardAvoiding(keyboard)
+        .onTapGesture { self.wzz_hideKeyboard() }
         .preferredColorScheme(.light)
         .navigationBarTitleDisplayMode(.inline)
         .safariView(isPresented: $showLink) {
@@ -413,5 +419,4 @@ extension View {
         )
     }
 }
-
 
