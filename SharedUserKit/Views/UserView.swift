@@ -187,11 +187,13 @@ struct UserView: View {
         // 使用专用的 PurchaseView 完整处理 IAP 购买流程
         Section {
           NavigationLink(destination: PurchaseView().environmentObject(userManager)) {
-            LabeledContent {
-              Image(systemName: "chevron.forward").foregroundColor(.secondary).opacity(0.7)
-            } label: {
-              Text("购买套餐")
-            }
+            Text("购买套餐")
+
+//            LabeledContent {
+//              Image(systemName: "chevron.forward").foregroundColor(.secondary).opacity(0.7)
+//            } label: {
+//              Text("购买套餐")
+//            }
           }
         } header: {
           Text("购买套餐")
