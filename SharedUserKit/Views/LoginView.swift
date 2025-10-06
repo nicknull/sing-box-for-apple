@@ -147,58 +147,49 @@ struct LoginView: View {
                         .padding(.horizontal, 40)
                         .padding(.bottom, 20)
 
-                        // 三方登录按钮
-                        VStack(spacing: 15) {
+                        // 三方登录按钮（横排平分）
+                        HStack(spacing: 12) {
                             // Apple 登录
-                            Button(action: {
-                                handleAppleSignIn()
-                            }) {
-                                HStack {
-                                    Image(systemName: "applelogo")
-                                        .font(.system(size: 20))
-                                    Text("使用 Apple 登录")
-                                        .fontWeight(.medium)
+                            Button(action: { handleAppleSignIn() }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "applelogo").font(.system(size: 16))
+                                    Text("Apple").font(.footnote).lineLimit(1).minimumScaleFactor(0.8)
                                 }
-                                .frame(width: 312, height: 44)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
                                 .foregroundColor(.white)
                                 .background(Color.black)
-                                .cornerRadius(27)
+                                .cornerRadius(12)
                             }
                             .disabled(isLoading || oauthManager.isLoading || !agreed)
                             .opacity(agreed ? 1.0 : 0.5)
-                            
+
                             // Google 登录
-                            Button(action: {
-                                handleGoogleSignIn()
-                            }) {
-                                HStack {
-                                    Image(systemName: "globe")
-                                        .font(.system(size: 20))
-                                    Text("使用 Google 登录")
-                                        .fontWeight(.medium)
+                            Button(action: { handleGoogleSignIn() }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "globe").font(.system(size: 16))
+                                    Text("Google").font(.footnote).lineLimit(1).minimumScaleFactor(0.8)
                                 }
-                                .frame(width: 312, height: 44)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
                                 .foregroundColor(.white)
                                 .background(Color(red: 0.26, green: 0.52, blue: 0.96))
-                                .cornerRadius(27)
+                                .cornerRadius(12)
                             }
                             .disabled(isLoading || oauthManager.isLoading || !agreed)
                             .opacity(agreed ? 1.0 : 0.5)
 
                             // GitHub 登录
-                            Button(action: {
-                                handleGitHubSignIn()
-                            }) {
-                                HStack {
-                                    Image(systemName: "terminal")
-                                        .font(.system(size: 20))
-                                    Text("使用 GitHub 登录")
-                                        .fontWeight(.medium)
+                            Button(action: { handleGitHubSignIn() }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "terminal").font(.system(size: 16))
+                                    Text("GitHub").font(.footnote).lineLimit(1).minimumScaleFactor(0.8)
                                 }
-                                .frame(width: 312, height: 44)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
                                 .foregroundColor(.white)
                                 .background(Color(red: 0.13, green: 0.13, blue: 0.13))
-                                .cornerRadius(27)
+                                .cornerRadius(12)
                             }
                             .disabled(isLoading || oauthManager.isLoading || !agreed)
                             .opacity(agreed ? 1.0 : 0.5)
