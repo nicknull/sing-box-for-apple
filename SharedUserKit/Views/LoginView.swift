@@ -62,7 +62,7 @@ struct LoginView: View {
                     .edgesIgnoringSafeArea(.top)
                 Spacer()
             }
-            ScrollView {
+            VStack() {
                 VStack() {
                 Spacer(minLength: 5)
                 VStack(alignment: .trailing){
@@ -247,7 +247,6 @@ struct LoginView: View {
                 .padding(.bottom,40)
                 
                 }
-                .padding(.horizontal, 16)
             }
             .toast(isPresenting: $showingPopup){
                 ToastNotification(type: .error(.green), title:errorStr)
