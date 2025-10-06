@@ -165,6 +165,7 @@ struct LoginView: View {
                                 .cornerRadius(27)
                             }
                             .disabled(isLoading || oauthManager.isLoading || !agreed)
+                            .opacity(agreed ? 1.0 : 0.5)
                             
                             // Google 登录
                             Button(action: {
@@ -182,6 +183,7 @@ struct LoginView: View {
                                 .cornerRadius(27)
                             }
                             .disabled(isLoading || oauthManager.isLoading || !agreed)
+                            .opacity(agreed ? 1.0 : 0.5)
 
                             // GitHub 登录
                             Button(action: {
@@ -199,6 +201,7 @@ struct LoginView: View {
                                 .cornerRadius(27)
                             }
                             .disabled(isLoading || oauthManager.isLoading || !agreed)
+                            .opacity(agreed ? 1.0 : 0.5)
                         }
                         .padding(.bottom, 20)
 
