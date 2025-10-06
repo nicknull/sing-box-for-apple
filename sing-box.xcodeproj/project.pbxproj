@@ -208,7 +208,6 @@
 		B63553682AC311D000BE8873 /* ResponseProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553572AC311D000BE8873 /* ResponseProvider.swift */; };
 		B63553692AC311D000BE8873 /* NewNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553582AC311D000BE8873 /* NewNetworkManager.swift */; };
 		B635536A2AC311D000BE8873 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553592AC311D000BE8873 /* LoginView.swift */; };
-		B6363CF62B39BEBB008B8DF2 /* ProductsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6363CF52B39BEBA008B8DF2 /* ProductsView.swift */; };
 		B6396FA02B662B50002FE378 /* RepairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6396F9F2B662B50002FE378 /* RepairView.swift */; };
 		B6396FA22B6637C7002FE378 /* IndicatorPresetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6396FA12B6637C7002FE378 /* IndicatorPresetModel.swift */; };
 		B6396FA32B6637C7002FE378 /* IndicatorPresetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6396FA12B6637C7002FE378 /* IndicatorPresetModel.swift */; };
@@ -745,7 +744,6 @@
 		B63553572AC311D000BE8873 /* ResponseProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResponseProvider.swift; sourceTree = "<group>"; };
 		B63553582AC311D000BE8873 /* NewNetworkManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewNetworkManager.swift; sourceTree = "<group>"; };
 		B63553592AC311D000BE8873 /* LoginView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
-		B6363CF52B39BEBA008B8DF2 /* ProductsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductsView.swift; sourceTree = "<group>"; };
 		B6396F9F2B662B50002FE378 /* RepairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepairView.swift; sourceTree = "<group>"; };
 		B6396FA12B6637C7002FE378 /* IndicatorPresetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorPresetModel.swift; sourceTree = "<group>"; };
 		B6432F862BC6D05C00CB86B1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -1025,7 +1023,6 @@
 				B63553582AC311D000BE8873 /* NewNetworkManager.swift */,
 				B63553502AC311CF00BE8873 /* NewResponseModel.swift */,
 				B63553512AC311CF00BE8873 /* PlugProvider.swift */,
-				B6363CF52B39BEBA008B8DF2 /* ProductsView.swift */,
 				B6396F9F2B662B50002FE378 /* RepairView.swift */,
 				B63553572AC311D000BE8873 /* ResponseProvider.swift */,
 				B635534A2AC311CE00BE8873 /* SettingsView.swift */,
@@ -2107,7 +2104,6 @@
 				B63553662AC311D000BE8873 /* DashBoardView.swift in Sources */,
 				B6C9F0E12C89E01B009B0F70 /* MonitoringNetworkState.swift in Sources */,
 				B63553652AC311D000BE8873 /* IVYIcon.swift in Sources */,
-				B6363CF62B39BEBB008B8DF2 /* ProductsView.swift in Sources */,
 				B635535D2AC311D000BE8873 /* LoggingPlugin.swift in Sources */,
 				B6739A7F2E079C9D004EDF14 /* TicketChatView.swift in Sources */,
 				B635535F2AC311D000BE8873 /* ModeView.swift in Sources */,

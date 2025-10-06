@@ -132,11 +132,9 @@ struct DashBoardView: View {
 
                             if showProducts()  {
                                 NavigationLink(destination:
-                                                ProductsView()
+                                                PurchaseView()
                                     .environmentObject(userManager)
-                                               
                                     .navigationTitle("购买套餐")
-                                               
                                 ) {
                                     Label {
                                         Text("购买套餐")
