@@ -200,9 +200,16 @@ struct LoginView: View {
                             Spacer()
                             
                             ButtonWithSafari(stringURL: "\(Defaults[.host])/#/register") {
-                                Text("注册账号")
-                                    .tracking(3.0)
-                                    .fontWeight(.medium)
+                                HStack {
+                                    Spacer()
+                                    Text("注册账号")
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                                .frame(height: 44)
+                                .background(Color("blueblue"))
+                                .cornerRadius(22)
                             }
                             .disabled(!agreed)
                             .opacity(agreed ? 1.0 : 0.5)
