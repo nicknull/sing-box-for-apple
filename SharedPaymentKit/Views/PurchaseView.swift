@@ -16,10 +16,7 @@ struct PurchaseView: View {
     @State private var showAlert = false
 
     // 示例产品 ID（请根据实际配置替换）
-    let productIDs = [
-        "com.yourapp.monthly.subscription",
-        "com.yourapp.yearly.subscription"
-    ]
+    let productIDs = ["com.gy.iflash.7","com.gy.iflash.30","com.gy.iflash.365"]
 
     var body: some View {
         VStack(spacing: 16) {
