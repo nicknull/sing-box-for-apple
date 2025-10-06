@@ -48,6 +48,7 @@ struct LoginView: View {
     @AppStorage(ConstantKey.password, store: .standard) private var password  = ""
     @State var showLink:Bool = false
     @State var link:URL?
+    @State private var agreed: Bool = false
     
     // 不随键盘移动页面；通过可滚动表单避免遮挡
 
@@ -110,6 +111,11 @@ struct LoginView: View {
                             .disabled(isLoading)
                         }.padding(.horizontal,20)
                         LoadingButton(action: {
+                            if !agreed {
+                                errorStr = "请先勾选同意《用户协议》和《隐私政策》"
+                                showingPopup = true
+                                return
+                            }
                             loginBtnPressed()
                             // Your Action here
                         }, isLoading: $isLoading, style: style) {
@@ -156,7 +162,7 @@ struct LoginView: View {
                                 .background(Color.black)
                                 .cornerRadius(27)
                             }
-                            .disabled(isLoading || oauthManager.isLoading)
+                            .disabled(isLoading || oauthManager.isLoading || !agreed)
 
                             // Google 登录
                             Button(action: {
@@ -173,7 +179,7 @@ struct LoginView: View {
                                 .background(Color(red: 0.26, green: 0.52, blue: 0.96))
                                 .cornerRadius(27)
                             }
-                            .disabled(isLoading || oauthManager.isLoading)
+                            .disabled(isLoading || oauthManager.isLoading || !agreed)
 
                             // GitHub 登录
                             Button(action: {
@@ -190,7 +196,7 @@ struct LoginView: View {
                                 .background(Color(red: 0.13, green: 0.13, blue: 0.13))
                                 .cornerRadius(27)
                             }
-                            .disabled(isLoading || oauthManager.isLoading)
+                            .disabled(isLoading || oauthManager.isLoading || !agreed)
                         }
                         .padding(.bottom, 20)
 
@@ -241,7 +247,11 @@ struct LoginView: View {
                 Spacer(minLength: 0)
                 
                 
-                HStack{
+                HStack(spacing: 8){
+                    Button(action: { agreed.toggle() }) {
+                        Image(systemName: agreed ? "checkmark.square.fill" : "square")
+                            .foregroundColor(agreed ? Color("blueblue") : .secondary)
+                    }
                     Text("登录即表明同意")
                     ButtonWithSafari(stringURL: Defaults[.host]+"/agreement.html") {
                         Text("[用户协议]")
