@@ -175,12 +175,13 @@ struct LoginView: View {
                                         } else {
                                             Image(systemName: "globe")
                                                 .font(.system(size: 18, weight: .semibold))
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.blue)
                                         }
                                     }
                                     .frame(width: 44, height: 44)
-                                    .background(Color(red: 0.26, green: 0.52, blue: 0.96))
+                                    .background(Color.white)
                                     .clipShape(Circle())
+                                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
                                 }
                                 .disabled(isLoading || oauthManager.isLoading || !agreed)
                                 .opacity(agreed ? 1.0 : 0.5)
@@ -198,12 +199,13 @@ struct LoginView: View {
                                         } else {
                                             Image(systemName: "terminal")
                                                 .font(.system(size: 18, weight: .semibold))
-                                                .foregroundColor(.white)
+                                                .foregroundColor(.black)
                                         }
                                     }
                                     .frame(width: 44, height: 44)
-                                    .background(Color(red: 0.13, green: 0.13, blue: 0.13))
+                                    .background(Color.white)
                                     .clipShape(Circle())
+                                    .overlay(Circle().stroke(Color.gray.opacity(0.3), lineWidth: 1))
                                 }
                                 .disabled(isLoading || oauthManager.isLoading || !agreed)
                                 .opacity(agreed ? 1.0 : 0.5)
@@ -225,41 +227,14 @@ struct LoginView: View {
                                 }
                                 .frame(height: 44)
                                 .background(Color.clear)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 22)
-                                        .stroke(Color("blueblue"), lineWidth: 1)
-                                )
+//                                .overlay(
+//                                    RoundedRectangle(cornerRadius: 22)
+//                                        .stroke(Color("blueblue"), lineWidth: 1)
+//                                )
                             }
                             .disabled(!agreed)
                             .opacity(agreed ? 1.0 : 0.5)
-//                            Rectangle()
-//                                .fill(Color.blue)
-//                                .opacity(0.6)
-//                                .frame(width: 2,height: 12)
-//                                .padding(.horizontal,5)
-//                            
-//                            Button {
-//                                popUp.toggle()
-//                            } label: {
-//                                Text("无法注册")
-//                                    .tracking(3.0)
-//                                    .fontWeight(.medium)
-//                            }
-//                            
-//                            Rectangle()
-//                                .fill(Color.blue)
-//                                .opacity(0.6)
-//                                .frame(width: 2,height: 12)
-//                                .padding(.horizontal,5)
-//                            
-//                            Button {
-//                                popUp.toggle()
-//                            } label: {
-//                                Text("无法登录")
-//                                    .tracking(3.0)
-//                                    .fontWeight(.medium)
-//                            }
-//                            
+//
                             Spacer()
                         }
                             Spacer()
