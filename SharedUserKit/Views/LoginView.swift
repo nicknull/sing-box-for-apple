@@ -121,6 +121,8 @@ struct LoginView: View {
                         }, isLoading: $isLoading, style: style) {
                             Text("马上登录").foregroundColor(Color.white)
                         }
+                        .disabled(!agreed || isLoading)
+                        .opacity((!agreed || isLoading) ? 0.5 : 1.0)
 
                         .padding(40)
 
@@ -208,6 +210,8 @@ struct LoginView: View {
                                     .tracking(3.0)
                                     .fontWeight(.medium)
                             }
+                            .disabled(!agreed)
+                            .opacity(agreed ? 1.0 : 0.5)
 //                            Rectangle()
 //                                .fill(Color.blue)
 //                                .opacity(0.6)
