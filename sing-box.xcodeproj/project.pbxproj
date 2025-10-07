@@ -240,6 +240,8 @@
 		B6739A9C2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */; };
 		B6739A9D2E10170A004EDF14 /* TicketListView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A992E10170A004EDF14 /* TicketListView_admin.swift */; };
 		B67B200B2C54CA3B00310430 /* FormItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67B200A2C54CA3B00310430 /* FormItem.swift */; };
+		B6BC324A2E9556E600DDAFC9 /* TestEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BC32492E9556E600DDAFC9 /* TestEnv.swift */; };
+		B6BC324B2E9556E600DDAFC9 /* TestEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BC32492E9556E600DDAFC9 /* TestEnv.swift */; };
 		B6C9F0DD2C889DAC009B0F70 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */; };
 		B6C9F0DE2C889DAC009B0F70 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */; };
 		B6C9F0E02C89E01B009B0F70 /* MonitoringNetworkState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C9F0DF2C89E01B009B0F70 /* MonitoringNetworkState.swift */; };
@@ -758,6 +760,7 @@
 		B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketChatView_admin.swift; sourceTree = "<group>"; };
 		B6739A992E10170A004EDF14 /* TicketListView_admin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketListView_admin.swift; sourceTree = "<group>"; };
 		B67B200A2C54CA3B00310430 /* FormItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormItem.swift; sourceTree = "<group>"; };
+		B6BC32492E9556E600DDAFC9 /* TestEnv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestEnv.swift; sourceTree = "<group>"; };
 		B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncView.swift; sourceTree = "<group>"; };
 		B6C9F0DF2C89E01B009B0F70 /* MonitoringNetworkState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringNetworkState.swift; sourceTree = "<group>"; };
 		B6CAB4932C820F6C00289B91 /* PopupMiddle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupMiddle.swift; sourceTree = "<group>"; };
@@ -1414,6 +1417,7 @@
 			isa = PBXGroup;
 			children = (
 				DAD5C876D28605FB1210A9D8 /* Models.swift */,
+				B6BC32492E9556E600DDAFC9 /* TestEnv.swift */,
 				AD887AFD1770F8AE912146AD /* Defaults.swift */,
 			);
 			path = Models;
@@ -2125,6 +2129,7 @@
 				B63553632AC311D000BE8873 /* AQAPIService.swift in Sources */,
 				B6739A9C2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */,
 				B6739A9D2E10170A004EDF14 /* TicketListView_admin.swift in Sources */,
+				B6BC324B2E9556E600DDAFC9 /* TestEnv.swift in Sources */,
 				D087EF408E10EACD9CF8A669 /* ToastNotification.swift in Sources */,
 				76F28F9C88571D58A62890DC /* Models.swift in Sources */,
 				402A547D7CFAB58700C51BAB /* AppleSignInManager.swift in Sources */,
@@ -2196,6 +2201,7 @@
 				5FA3226498BBD3A4D4CD886C /* Models.swift in Sources */,
 				28C8C6C766BE8354009FCF19 /* AppleSignInManager.swift in Sources */,
 				C680D560641BA8B70AA2BD9A /* GitHubSignInManager.swift in Sources */,
+				B6BC324A2E9556E600DDAFC9 /* TestEnv.swift in Sources */,
 				4D7B553FB75A7E610DFCD668 /* GoogleSignInManager.swift in Sources */,
 				EE463B217ACF2D5E81DBBCD5 /* OAuthBindingManager.swift in Sources */,
 				C7DF3B6ED690DA1F44B00CE0 /* OAuthManager.swift in Sources */,
