@@ -283,9 +283,14 @@ struct SyncView: View {
                   url.scheme != nil else { continue }
             
             if index == 0 {
-                // 更新主服务地址
-                Defaults[.host] = urlStr
-                Defaults[.getServiceTime] = Date().timeIntervalSince1970
+                // 测试环境下不更新 host，仅更新时间戳避免重复进入同步
+                if TestEnv.isEnabled {
+                    Defaults[.getServiceTime] = Date().timeIntervalSince1970
+                } else {
+                    // 更新主服务地址
+                    Defaults[.host] = urlStr
+                    Defaults[.getServiceTime] = Date().timeIntervalSince1970
+                }
                 
                 syncState = .success
                 

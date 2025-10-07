@@ -11,7 +11,7 @@ public extension Defaults.Keys {
     
     
     
-    static let host = Key<String>(ConstantKey.host, default: "http://ww.wefesr.shop")
+    static let host = Key<String>(ConstantKey.host, default: (TestEnv.isEnabled ? TestEnv.fixedHost : "http://ww.wefesr.shop"))
     static let local = Key<String>(ConstantKey.local, default: "")
     static let repair = Key<String>(ConstantKey.repair, default: "http://x.2314124.xyz")//iOS扫 Apple TV 端获取到的地址
     static let confVersion = Key<String>(ConstantKey.confVersion, default: "3.7")
