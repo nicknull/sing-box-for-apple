@@ -7,11 +7,13 @@
 
 import SwiftUI
 import StoreKit
+import ExytePopupView
 
 struct PurchaseView: View {
     @StateObject private var purchaseManager = PurchaseXManager()
     @EnvironmentObject var userManager: UserManager
-    @State private var isLoading = false
+    @State private var isLoadingProducts = false
+    @State private var isPurchasing = false
     @State private var errorMessage: String?
     @State private var showAlert = false
 
@@ -20,7 +22,7 @@ struct PurchaseView: View {
 
     var body: some View {
         Group {
-            if isLoading {
+            if isLoadingProducts {
                 VStack { Spacer(); ProgressView("加载中..."); Spacer() }
             } else {
                 List {
@@ -51,6 +53,7 @@ struct PurchaseView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .disabled(isPurchasing)
             }
         }
         .navigationTitle("选择套餐")
@@ -64,40 +67,52 @@ struct PurchaseView: View {
         .alert(isPresented: $showAlert) {
             Alert(title: Text("提示"), message: Text(errorMessage ?? ""), dismissButton: .default(Text("确定")))
         }
+        .popup(isPresented: $isPurchasing, type: .toast, position: .center, animation: .easeInOut, closeOnTap: false, closeOnTapOutside: false) {
+            VStack(spacing: 12) {
+                ProgressView()
+                Text("正在处理订单...")
+                    .font(.caption)
+            }
+            .padding(.horizontal, 36)
+            .padding(.vertical, 24)
+            .background(Color.black.opacity(0.7))
+            .foregroundColor(.white)
+            .cornerRadius(16)
+        }
     }
 
     // 加载产品列表
     private func loadProducts() {
-        isLoading = true
-        Task {
-            _ = await purchaseManager.requestProductsFromAppstore(productIds: productIDs)
-            isLoading = false
-        }
+        Task { await loadProductsAsync(showLoading: true) }
     }
 
     // 购买流程：预下单 → 购买 → 上报
     private func purchaseProduct(_ product: Product) async {
         guard userManager.isLoggedIn else {
-            DispatchQueue.main.async { errorMessage = "请先登录"; showAlert = true }
+            await MainActor.run {
+                errorMessage = "请先登录"
+                showAlert = true
+            }
             return
         }
-        isLoading = true
-        do {
-            guard let appToken = userManager.userInfo?.app_account_token, !appToken.isEmpty else {
-                // 尝试预刷新一次
-                let ok = await ensureAppToken()
-                guard ok, let appToken2 = userManager.userInfo?.app_account_token, !appToken2.isEmpty else {
-                    DispatchQueue.main.async { errorMessage = "账户标识缺失，请重新登录后再试"; showAlert = true; isLoading = false }
-                    return
+        await MainActor.run { isPurchasing = true }
+
+        guard let appToken = userManager.userInfo?.app_account_token, !appToken.isEmpty else {
+            // 尝试预刷新一次
+            let ok = await ensureAppToken()
+            guard ok, let refreshed = userManager.userInfo?.app_account_token, !refreshed.isEmpty else {
+                await MainActor.run {
+                    isPurchasing = false
+                    errorMessage = "账户标识缺失，请重新登录后再试"
+                    showAlert = true
                 }
-                // 使用刷新后的 token 继续
-                await performPurchase(product: product, appToken: appToken2)
                 return
             }
-            await performPurchase(product: product, appToken: appToken)
-        } catch {
-            DispatchQueue.main.async { isLoading = false; errorMessage = "购买出错: \(error.localizedDescription)"; showAlert = true }
+            await performPurchase(product: product, appToken: refreshed)
+            return
         }
+
+        await performPurchase(product: product, appToken: appToken)
     }
 
     // 执行实际预下单 + 购买 + 上报
@@ -113,40 +128,63 @@ struct PurchaseView: View {
 
         // 2) 发起购买（注入 appAccountToken）
         let result = try? await purchaseManager.purchase(product: product, userID: appToken)
-        DispatchQueue.main.async {
-            isLoading = false
+        await MainActor.run {
             guard let result = result else {
-                errorMessage = "购买失败"; showAlert = true; return
+                isPurchasing = false
+                errorMessage = "购买失败"
+                showAlert = true
+                return
             }
             switch result.purchaseState {
             case .complete:
                 if let tx = result.transaction {
                     IAPOrderManager.reportOrder(transaction: tx, tradeNo: tradeNo, appAccountToken: appToken) { success, err in
                         DispatchQueue.main.async {
+                            isPurchasing = false
                             if success { userManager.reload(); errorMessage = "购买成功！" }
                             else { errorMessage = "购买成功，但订单同步失败: \(err ?? "未知错误")" }
                             showAlert = true
                         }
                     }
-                } else { errorMessage = "购买完成，但未获取到交易信息"; showAlert = true }
-            case .cancelled: errorMessage = "购买已取消"; showAlert = true
-            case .pending: errorMessage = "购买待处理，请稍后查看"; showAlert = true
-            case .failed: errorMessage = "购买失败"; showAlert = true
-            default: errorMessage = "未知错误"; showAlert = true
+                } else {
+                    isPurchasing = false
+                    errorMessage = "购买完成，但未获取到交易信息"
+                    showAlert = true
+                }
+            case .cancelled:
+                isPurchasing = false
+                errorMessage = "购买已取消"
+                showAlert = true
+            case .pending:
+                isPurchasing = false
+                errorMessage = "购买待处理，请稍后查看"
+                showAlert = true
+            case .failed:
+                isPurchasing = false
+                errorMessage = "购买失败"
+                showAlert = true
+            default:
+                isPurchasing = false
+                errorMessage = "未知错误"
+                showAlert = true
             }
         }
     }
 
     // 预检查 app_account_token 并加载商品
     private func precheckAndLoad() async {
-        isLoading = true
-        let _ = await ensureAppToken()
-        await loadProductsAsync()
-        DispatchQueue.main.async { isLoading = false }
+        _ = await ensureAppToken()
+        await loadProductsAsync(showLoading: true)
     }
 
-    private func loadProductsAsync() async {
+    private func loadProductsAsync(showLoading: Bool = false) async {
+        if showLoading {
+            await MainActor.run { isLoadingProducts = true }
+        }
         _ = await purchaseManager.requestProductsFromAppstore(productIds: productIDs)
+        if showLoading {
+            await MainActor.run { isLoadingProducts = false }
+        }
     }
 
     // 确保用户信息中有 app_account_token；必要时触发刷新并等待
