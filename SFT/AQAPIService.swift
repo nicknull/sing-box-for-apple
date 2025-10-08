@@ -50,6 +50,7 @@ enum AQAPIService{
     case registerDeviceToken(token:String, platform:String) //注册设备 Token (iOS/tvOS通用)
     case unregisterFcmToken //注销 FCM Token
     case testPush(title:String, body:String) //测试推送
+    case getPlans // 获取可用套餐列表
 
 }
 extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
@@ -417,3 +418,7 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
     
     
 }
+        case .getPlans:
+            return "/user/plan/fetch"
+        case .getPlans:
+            return .requestPlain

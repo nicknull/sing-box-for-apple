@@ -36,6 +36,7 @@ struct PurchaseView: View {
     @State private var isPurchasing = false
     @State private var errorMessage: String?
     @State private var showAlert = false
+    @State private var plans: [Plan] = []
 
     // App Store 实际上架的商品 ID（客户端展示与购买使用）
     let productIDs = [
@@ -87,17 +88,17 @@ struct PurchaseView: View {
         Group {
             if let products = purchaseManager.products, !products.isEmpty {
                 let dict = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0) })
-                let plans: [(key: String, name: String, periods: [(code: String, label: String)])] = [
-                    ("bcup", "中杯", [("month","月付"), ("quart","季付"), ("year","年付")]),
-                    ("ccup", "大杯", [("month","月付"), ("quart","季付"), ("year","年付")]),
-                    ("dcup", "超大杯", [("month","月付"), ("quart","季付"), ("year","年付")]),
-                    ("zcup", "无限流量", [("year","年付")]),
+                let groups: [(key: String, name: String, planID: Int64, periods: [(code: String, label: String)])] = [
+                    ("bcup", "常规 中杯", 7, [("month","月付"), ("quart","季付"), ("year","年付")]),
+                    ("ccup", "常规 大杯", 2, [("month","月付"), ("quart","季付"), ("year","年付")]),
+                    ("dcup", "常规 超大杯", 8, [("month","月付"), ("quart","季付"), ("year","年付")]),
+                    ("zcup", "无限流量", 9, [("year","年付")]),
                 ]
 
-                ForEach(plans, id: \.key) { plan in
-                    Section(header: Text(plan.name)) {
-                        ForEach(plan.periods, id: \.code) { p in
-                            let pid = "com.gy.iflash.\(plan.key).\(p.code)"
+                ForEach(groups, id: \.key) { g in
+                    Section(header: sectionHeader(for: g)) {
+                        ForEach(g.periods, id: \.code) { p in
+                            let pid = "com.gy.iflash.\(g.key).\(p.code)"
                             if let prod = dict[pid] {
                                 ProductRow(product: prod, periodName: p.label) { product in
                                     Task { await purchaseProduct(product) }
@@ -114,6 +115,21 @@ struct PurchaseView: View {
             Section(footer: Text("若已在其它设备购买，可在此恢复购买")) {
                 Button("恢复购买") { Task { await restorePurchases() } }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func sectionHeader(for group: (key: String, name: String, planID: Int64, periods: [(code: String, label: String)])) -> some View {
+        if let plan = plans.first(where: { $0.id == group.planID }) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(plan.name).font(.headline)
+                HStack(spacing: 12) {
+                    Text("每月 \(plan.transfer_enable)G")
+                    if let speed = plan.speed_limit { Text("限速 \(speed)Mbps") }
+                }.font(.caption).foregroundColor(.secondary)
+            }
+        } else {
+            Text(group.name)
         }
     }
 
@@ -223,6 +239,7 @@ struct PurchaseView: View {
     // 预检查 app_account_token 并加载商品
     private func precheckAndLoad() async {
         _ = await ensureAppToken()
+        await loadPlans()
         await loadProductsAsync(showLoading: true)
     }
 
@@ -234,6 +251,21 @@ struct PurchaseView: View {
         if showLoading {
             await MainActor.run { isLoadingProducts = false }
         }
+    }
+
+    // 拉取后端套餐计划，用于展示组头信息
+    private func loadPlans() async {
+        let sem = DispatchSemaphore(value: 0)
+        NewNetWorkRequest(
+            AQAPIService.getPlans,
+            modelType: PlanListResponse.self
+        ) { model, _ in
+            if let list = model?.data {
+                DispatchQueue.main.async { self.plans = list }
+            }
+            sem.signal()
+        }
+        _ = sem.wait(timeout: .now() + 8)
     }
 
     // 确保用户信息中有 app_account_token；必要时触发刷新并等待
@@ -269,6 +301,8 @@ struct PurchaseView: View {
         }
     }
 }
+// 网络响应模型
+private struct PlanListResponse: Codable { let data: [Plan] }
 
 #Preview {
     PurchaseView().environmentObject(UserManager())
