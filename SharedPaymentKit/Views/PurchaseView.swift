@@ -17,8 +17,11 @@ struct PurchaseView: View {
     @State private var errorMessage: String?
     @State private var showAlert = false
 
-    // 示例产品 ID（请根据实际配置替换）
+    // App Store 实际上架的商品 ID（客户端展示与购买使用）
     let productIDs = ["com.gy.iflash.7","com.gy.iflash.30","com.gy.iflash.365"]
+
+    // 注意：不在 App 端做商品映射，直接将 App Store 的 product.id 传给后端，
+    // 后端通过配置（config/iap.php）完成 product.id → plan_id/months 的映射。
 
     var body: some View {
         Group {
