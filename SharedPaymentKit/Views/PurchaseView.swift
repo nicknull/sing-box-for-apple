@@ -18,7 +18,14 @@ struct PurchaseView: View {
     @State private var showAlert = false
 
     // App Store 实际上架的商品 ID（客户端展示与购买使用）
-    let productIDs = ["com.gy.iflash.7","com.gy.iflash.30","com.gy.iflash.365"]
+    let productIDs = [
+//                        "com.gy.iflash.7","com.gy.iflash.30","com.gy.iflash.365",
+                      "com.gy.iflash.bcup.month","com.gy.iflash.bcup.quart","com.gy.iflash.bcup.year",
+                      "com.gy.iflash.ccup.month","com.gy.iflash.ccup.quart","com.gy.iflash.ccup.year",
+                      "com.gy.iflash.dcup.month","com.gy.iflash.dcup.quart","com.gy.iflash.dcup.year",
+                      "com.gy.iflash.zcup.year"
+//                      "com.gy.iflash.zcup.month","com.gy.iflash.zcup.quart","com.gy.iflash.zcup.year"
+                    ]
 
     // 注意：不在 App 端做商品映射，直接将 App Store 的 product.id 传给后端，
     // 后端通过配置（config/iap.php）完成 product.id → plan_id/months 的映射。
