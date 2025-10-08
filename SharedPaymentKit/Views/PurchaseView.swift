@@ -70,18 +70,28 @@ struct PurchaseView: View {
         .alert(isPresented: $showAlert) {
             Alert(title: Text("提示"), message: Text(errorMessage ?? ""), dismissButton: .default(Text("确定")))
         }
-        .popup(isPresented: $isPurchasing, type: .toast, position: .center, animation: .easeInOut, closeOnTap: false, closeOnTapOutside: false) {
-            VStack(spacing: 12) {
-                ProgressView()
-                Text("正在处理订单...")
-                    .font(.caption)
-            }
-            .padding(.horizontal, 36)
-            .padding(.vertical, 24)
-            .background(Color.black.opacity(0.7))
-            .foregroundColor(.white)
-            .cornerRadius(16)
+        .popup(isPresented: $isPurchasing) {
+            purchasingToast
+        } customize: {
+            $0.type(.toast)
+              .position(.center)
+              .animation(.easeInOut)
+              .closeOnTap(false)
+              .closeOnTapOutside(false)
         }
+    }
+
+    private var purchasingToast: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+            Text("正在处理订单...")
+                .font(.caption)
+        }
+        .padding(.horizontal, 36)
+        .padding(.vertical, 24)
+        .background(Color.black.opacity(0.7))
+        .foregroundColor(.white)
+        .cornerRadius(16)
     }
 
     // 加载产品列表
