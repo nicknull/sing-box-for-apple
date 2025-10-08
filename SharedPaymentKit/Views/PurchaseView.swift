@@ -9,6 +9,26 @@ import SwiftUI
 import StoreKit
 import ExytePopupView
 
+private struct ProductRow: View {
+    let product: Product
+    let periodName: String
+    let onPurchase: (Product) -> Void
+
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(product.displayName).font(.body)
+                Text(periodName).font(.caption).foregroundColor(.secondary)
+            }
+            Spacer()
+            Text(product.displayPrice).font(.subheadline).foregroundColor(.secondary)
+            Button("购买") { onPurchase(product) }
+                .buttonStyle(.borderedProminent)
+        }
+        .padding(.vertical, 6)
+    }
+}
+
 struct PurchaseView: View {
     @StateObject private var purchaseManager = PurchaseXManager()
     @EnvironmentObject var userManager: UserManager
@@ -35,33 +55,7 @@ struct PurchaseView: View {
             if isLoadingProducts {
                 VStack { Spacer(); ProgressView("加载中..."); Spacer() }
             } else {
-                List {
-                    if let products = purchaseManager.products, !products.isEmpty {
-                        Section {
-                            ForEach(products, id: \.id) { product in
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(product.displayName).font(.body)
-                                        Text(product.description).font(.caption).foregroundColor(.secondary)
-                                    }
-                                    Spacer()
-                                    Text(product.displayPrice).font(.subheadline).foregroundColor(.secondary)
-                                    Button("购买") { Task { await purchaseProduct(product) } }
-                                        .buttonStyle(.borderedProminent)
-                                }
-                                .padding(.vertical, 6)
-                            }
-                        }
-                    } else {
-                        Section {
-                            Text("暂无可用商品").foregroundColor(.gray)
-                        }
-                    }
-
-                    Section(footer: Text("若已在其它设备购买，可在此恢复购买")) {
-                        Button("恢复购买") { Task { await restorePurchases() } }
-                    }
-                }
+                List { groupedProductSections }
                 .listStyle(.insetGrouped)
                 .disabled(isPurchasing)
             }
@@ -85,6 +79,41 @@ struct PurchaseView: View {
               .animation(.easeInOut)
               .closeOnTap(false)
               .closeOnTapOutside(false)
+        }
+    }
+
+    // MARK: - 分组展示（中杯/大杯/超大杯/无限 × 月/季/年）
+    private var groupedProductSections: some View {
+        Group {
+            if let products = purchaseManager.products, !products.isEmpty {
+                let dict = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0) })
+                let plans: [(key: String, name: String, periods: [(code: String, label: String)])] = [
+                    ("bcup", "中杯", [("month","月付"), ("quart","季付"), ("year","年付")]),
+                    ("ccup", "大杯", [("month","月付"), ("quart","季付"), ("year","年付")]),
+                    ("dcup", "超大杯", [("month","月付"), ("quart","季付"), ("year","年付")]),
+                    ("zcup", "无限流量", [("year","年付")]),
+                ]
+
+                ForEach(plans, id: \.key) { plan in
+                    Section(header: Text(plan.name)) {
+                        ForEach(plan.periods, id: \.code) { p in
+                            let pid = "com.gy.iflash.\(plan.key).\(p.code)"
+                            if let prod = dict[pid] {
+                                ProductRow(product: prod, periodName: p.label) { product in
+                                    Task { await purchaseProduct(product) }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Section {
+                    Text("暂无可用商品").foregroundColor(.gray)
+                }
+            }
+            Section(footer: Text("若已在其它设备购买，可在此恢复购买")) {
+                Button("恢复购买") { Task { await restorePurchases() } }
+            }
         }
     }
 
