@@ -184,9 +184,12 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return "/user/device/unregister"
         case .testPush(_,_):
             return "/user/device/test-push"
+        case .getPlans:
+            return "/user/plan/fetch"
         }
         
-        
+
+
         
     }
     
@@ -391,6 +394,8 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
                 "title": title,
                 "body": body
             ], encoding: JSONEncoding.default)
+        case .getPlans:
+            return .requestPlain
 
         default:
             return .requestPlain
@@ -418,7 +423,3 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
     
     
 }
-        case .getPlans:
-            return "/user/plan/fetch"
-        case .getPlans:
-            return .requestPlain
