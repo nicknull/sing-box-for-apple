@@ -63,20 +63,22 @@ struct UserView: View {
           Section {
             LabeledContent {
             } label: {
-              HStack {
+              HStack(spacing: 12) {
                 KFImage(URL(string: (userInfo?.avatar_url)!)!)
-                  .cornerRadius(25)
-                  .frame(width: 40, height: 40)
-                  .padding(15)
-                VStack {
+                  .resizable()
+                  .aspectRatio(contentMode: .fill)
+                  .frame(width: 56, height: 56)
+                  .clipShape(Circle())
+                  .shadow(radius: 1)
+                  .padding(.vertical, 8)
+                VStack(alignment: .leading, spacing: 6) {
                   Text(userInfo?.email ?? "火星用户")
+                    .font(.headline)
                     .foregroundColor(Color(hexString: "#EF8427"))
-                    .padding(.vertical, 5)
-                  let date = Date(
-                    timeIntervalSince1970: userInfo?.expired_at ?? 100 * 365 * 24 * 60 * 60)
-                  Text(date.date2string() + "到期")
-                    .foregroundColor(Color.secondary)
-                    .padding(.vertical, 5)
+                  let date = Date(timeIntervalSince1970: userInfo?.expired_at ?? 100 * 365 * 24 * 60 * 60)
+                  Text("到期：" + date.date2string())
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
                 }
                 Spacer()
                 Link(
@@ -86,6 +88,7 @@ struct UserView: View {
                   )!
                 ) {
                   Text("修复")
+                    .font(.subheadline)
                 }
               }
             }
@@ -198,25 +201,7 @@ struct UserView: View {
         } header: {
           Text("购买套餐")
         }
-        // 恢复购买入口
-        Section {
-          Button {
-            Task {
-              await restorePurchases()
-            }
-          } label: {
-            HStack {
-              IVYIcon(systemName: "arrow.clockwise", backgroundColor: .blue)
-              Text("恢复购买")
-              Spacer()
-              Image(systemName: "chevron.forward")
-                .foregroundColor(.secondary)
-                .opacity(0.7)
-            }
-          }
-        } header: {
-          Text("订阅")
-        }
+        // 恢复购买入口已迁移到支付页，此处移除
         if ((self.subscribe) != nil) {
           Section {
             LabeledContent {
