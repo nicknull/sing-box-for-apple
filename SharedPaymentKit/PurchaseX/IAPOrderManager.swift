@@ -15,7 +15,7 @@ class IAPOrderManager {
     /// - Parameters:
     ///   - transaction: StoreKit Transaction 对象
     ///   - completion: 完成回调
-    static func reportOrder(transaction: Transaction, tradeNo: String? = nil, appAccountToken: String? = nil, completion: ((Bool, String?) -> Void)? = nil) {
+    static func reportOrder(transaction: StoreKit.Transaction, tradeNo: String? = nil, appAccountToken: String? = nil, completion: ((Bool, String?) -> Void)? = nil) {
         let transactionID = String(transaction.id)
         let originalTransactionID = String(transaction.originalID)
         let productID = transaction.productID

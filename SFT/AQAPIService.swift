@@ -64,7 +64,13 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
 
         let code = response.statusCode
         var model = NewResponseModel(code: code)
-        model.dataString = json["data"].rawString()
+        if case .getPlans = self {
+            model.dataString = json["data"].rawString(options: [.sortedKeys])
+                ?? json["data"].rawString()
+                ?? json.rawString()
+        } else {
+            model.dataString = json["data"].rawString()
+        }
         switch self{
         case .signIn(_,_):
             if (json["errors"].dictionary != nil){
@@ -85,6 +91,8 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             model.messageStr = json ["message"].stringValue
             model.dataString = json.rawString()
 
+        case .getPlans:
+            model.messageStr = json["msg"].stringValue
         default:
             model.messageStr = json ["msg"].stringValue
         }
