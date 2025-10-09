@@ -8,6 +8,9 @@
 import SwiftUI
 import StoreKit
 import ExytePopupView
+#if canImport(UIKit)
+import UIKit
+#endif
 
 private struct ProductRow: View {
     let product: Product
@@ -127,10 +130,33 @@ struct PurchaseView: View {
                     Text("每月 \(plan.transfer_enable)G")
                     if let speed = plan.speed_limit { Text("限速 \(speed)Mbps") }
                 }.font(.caption).foregroundColor(.secondary)
+                if let rich = htmlToAttributedString(plan.content) {
+                    Text(rich)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         } else {
             Text(group.name)
         }
+    }
+
+    // 将后端返回的 HTML 文本渲染成富文本展示
+    private func htmlToAttributedString(_ html: String) -> AttributedString? {
+        #if canImport(UIKit)
+        guard let data = html.data(using: .utf8) else { return nil }
+        let options: [NSAttributedString.DocumentReadingOptionKey: Any] = [
+            .documentType: NSAttributedString.DocumentType.html,
+            .characterEncoding: String.Encoding.utf8.rawValue
+        ]
+        if let ns = try? NSAttributedString(data: data, options: options, documentAttributes: nil) {
+            return AttributedString(ns)
+        }
+        return nil
+        #else
+        return nil
+        #endif
     }
 
     private var purchasingToast: some View {
@@ -182,55 +208,58 @@ struct PurchaseView: View {
 
     // 执行实际预下单 + 购买 + 上报
     private func performPurchase(product: Product, appToken: String) async {
-        // 1) 预下单，获取 trade_no
+        // 1) 预下单，获取 trade_no（失败不阻塞购买）
         var tradeNo: String? = nil
         let sem = DispatchSemaphore(value: 0)
         NewNetWorkRequest(
             AQAPIService.prepareIAPOrder(productID: product.id, appAccountToken: appToken),
             modelType: PrepareIAPOrderResponse.self
         ) { model, _ in tradeNo = model?.trade_no; sem.signal() }
-        _ = sem.wait(timeout: .now() + 10)
+        _ = sem.wait(timeout: .now() + 8) // 最多等待 8 秒，避免长时间卡死
 
         // 2) 发起购买（注入 appAccountToken）
-        let result = try? await purchaseManager.purchase(product: product, userID: appToken)
-        await MainActor.run {
-            guard let result = result else {
-                isPurchasing = false
-                errorMessage = "购买失败"
-                showAlert = true
-                return
-            }
-            switch result.purchaseState {
-            case .complete:
-                if let tx = result.transaction {
-                    IAPOrderManager.reportOrder(transaction: tx, tradeNo: tradeNo, appAccountToken: appToken) { success, err in
-                        DispatchQueue.main.async {
-                            isPurchasing = false
-                            if success { userManager.reload(); errorMessage = "购买成功！" }
-                            else { errorMessage = "购买成功，但订单同步失败: \(err ?? "未知错误")" }
-                            showAlert = true
+        do {
+            let result = try await purchaseManager.purchase(product: product, userID: appToken)
+            await MainActor.run {
+                switch result.purchaseState {
+                case .complete:
+                    if let tx = result.transaction {
+                        // 不再等待上报完成再关闭 loading，避免网络失败时卡住
+                        isPurchasing = false
+                        IAPOrderManager.reportOrder(transaction: tx, tradeNo: tradeNo, appAccountToken: appToken) { success, err in
+                            DispatchQueue.main.async {
+                                if success { userManager.reload(); errorMessage = "购买成功！" }
+                                else { errorMessage = "购买成功，但订单同步失败: \(err ?? "未知错误")" }
+                                showAlert = true
+                            }
                         }
+                    } else {
+                        isPurchasing = false
+                        errorMessage = "购买完成，但未获取到交易信息"
+                        showAlert = true
                     }
-                } else {
+                case .cancelled:
                     isPurchasing = false
-                    errorMessage = "购买完成，但未获取到交易信息"
+                    errorMessage = "购买已取消"
+                    showAlert = true
+                case .pending:
+                    isPurchasing = false
+                    errorMessage = "购买待处理，请稍后查看"
+                    showAlert = true
+                case .failed:
+                    isPurchasing = false
+                    errorMessage = "购买失败"
+                    showAlert = true
+                default:
+                    isPurchasing = false
+                    errorMessage = "未知错误"
                     showAlert = true
                 }
-            case .cancelled:
+            }
+        } catch {
+            await MainActor.run {
                 isPurchasing = false
-                errorMessage = "购买已取消"
-                showAlert = true
-            case .pending:
-                isPurchasing = false
-                errorMessage = "购买待处理，请稍后查看"
-                showAlert = true
-            case .failed:
-                isPurchasing = false
-                errorMessage = "购买失败"
-                showAlert = true
-            default:
-                isPurchasing = false
-                errorMessage = "未知错误"
+                errorMessage = "购买失败：\(error.localizedDescription)"
                 showAlert = true
             }
         }
