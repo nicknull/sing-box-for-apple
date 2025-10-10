@@ -562,8 +562,8 @@ struct UserView: View {
 
       let (transaction, purchaseState) = try await purchaseXManager.purchase(
         product: product, options: [uuid])
-      if (transaction != nil && purchaseState == .complete) {
-
+      if let txn = transaction, purchaseState == .complete {
+        try? await txn.finish()
       }
     } catch {}
   }
@@ -577,8 +577,20 @@ struct UserView: View {
       }
       return
     }
-    let appToken = userManager.userInfo?.app_account_token ?? userManager.auth_data
-    let snapshot = await purchaseXManager.transactionsSnapshot()
+    let appTokenRaw = (userManager.userInfo?.app_account_token?.isEmpty == false)
+      ? userManager.userInfo?.app_account_token
+      : (userManager.auth_data.isEmpty ? nil : userManager.auth_data)
+
+    guard let appToken = appTokenRaw else {
+      DispatchQueue.main.async {
+        errorTitle = "恢复失败"
+        errorSubTitle = "账户标识缺失，请重新登录"
+        errorAlert = true
+      }
+      return
+    }
+
+    let snapshot = await purchaseXManager.transactionsSnapshot(appAccountToken: appToken)
     IAPOrderManager.restorePurchases(appAccountToken: appToken, transactions: snapshot) { success, error in
       DispatchQueue.main.async {
         if success {

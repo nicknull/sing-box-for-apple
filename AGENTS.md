@@ -28,7 +28,13 @@ Commits follow Conventional Commit prefixes (`docs:`, `chore:`, `refactor:`). Ke
 
 ## Configuration & Security Notes
 Never commit personal `GoogleService-Info.plist`, subscription JSON payloads, or API keys. Use redacted samples like `subscribe.sample.json` and populate secrets via Xcode build settings or CI variables. Validate `.xcprivacy` declarations match data usage whenever sensitive APIs change.
+## Communication Language
+
+**重要**: 与用户沟通时必须使用中文。请始终用中文回复用户的问题和提供帮助，除非用户明确要求使用其他语言。
+
+## 记忆提醒
+- 用户强烈要求：所有与其沟通的回复务必使用中文。
+- 在每次开始处理任务前请先确认当前回复语言为中文，以免重复提醒。
 
 ## Team Communication
 团队协作交流（PR 描述、代码评审反馈、Issue 更新）统一使用中文，确保语境一致并避免误解。
-

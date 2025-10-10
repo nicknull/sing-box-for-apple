@@ -315,12 +315,19 @@ private extension PurchaseView {
         case .complete:
             guard let transaction = result.transaction else {
                 await MainActor.run { isPurchasing = false }
-            await MainActor.run {
-                presentAlert("购买完成，但未获取到交易信息")
-            }
+                await MainActor.run {
+                    presentAlert("购买完成，但未获取到交易信息")
+                }
                 return
             }
             let (success, errorMessage) = await reportOrder(transaction: transaction, tradeNo: tradeNo, appToken: appToken)
+            if success {
+                do {
+                    try await transaction.finish()
+                } catch {
+                    NSLog("finish transaction failed: %@", error.localizedDescription)
+                }
+            }
             await MainActor.run {
                 isPurchasing = false
                 if success {
@@ -377,7 +384,7 @@ private extension PurchaseView {
             return
         }
 
-        let snapshot = await purchaseManager.transactionsSnapshot()
+        let snapshot = await purchaseManager.transactionsSnapshot(appAccountToken: appToken)
         if snapshot.isEmpty {
             await MainActor.run { presentAlert("当前没有可恢复的有效订阅") }
             return

@@ -124,10 +124,8 @@ public class PurchaseXManager: NSObject, ObservableObject {
             
             let validatedTransaction = checkResult.transaction
 
-            // 触发购买成功回调，用于上报后端
+            // 触发购买成功回调，用于上报后端（由上层负责 finish）
             onPurchaseSuccess?(validatedTransaction)
-
-            await validatedTransaction.finish()
             
             // Because consumable's transaction are not stored in the receipt, So treat it differently.
             if validatedTransaction.productType == .consumable {
@@ -164,19 +162,53 @@ public class PurchaseXManager: NSObject, ObservableObject {
 
     /// 获取用于恢复购买的交易快照（简化：当前有效的交易）
     /// 返回每笔交易的必要字段供后端校验与补单
-    public func transactionsSnapshot() async -> [[String: Any]] {
+    public func transactionsSnapshot(appAccountToken: String? = nil, limit: Int = 20) async -> [[String: Any]] {
         var list: [[String: Any]] = []
+        var seen = Set<String>()
+        let expectedToken = appAccountToken.flatMap { createAppAccountToken(from: $0)?.uuidString }
+
+        func appendTransaction(_ transaction: Transaction) {
+            let transactionID = String(transaction.id)
+            guard !seen.contains(transactionID) else { return }
+            seen.insert(transactionID)
+
+            if let expectedToken = expectedToken,
+               let actualToken = transaction.appAccountToken?.uuidString,
+               actualToken != expectedToken {
+                return
+            }
+
+            var item: [String: Any] = [
+                "transaction_id": transactionID,
+                "original_transaction_id": String(transaction.originalID),
+                "product_id": transaction.productID,
+                "revoked": transaction.revocationDate != nil
+            ]
+
+            if let token = transaction.appAccountToken?.uuidString {
+                item["app_account_token"] = token
+            }
+
+            list.append(item)
+        }
+
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result {
-                let item: [String: Any] = [
-                    "transaction_id": String(transaction.id),
-                    "original_transaction_id": String(transaction.originalID),
-                    "product_id": transaction.productID,
-                    "revoked": (transaction.revocationDate != nil)
-                ]
-                list.append(item)
+                appendTransaction(transaction)
             }
         }
+
+        if list.isEmpty {
+            for await result in Transaction.all {
+                guard list.count < limit else { break }
+                if case .verified(let transaction) = result {
+                    guard transaction.productType != .consumable else { continue }
+                    guard transaction.revocationDate == nil else { continue }
+                    appendTransaction(transaction)
+                }
+            }
+        }
+
         return list
     }
     
