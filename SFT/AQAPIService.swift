@@ -152,7 +152,7 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .ticketClose(_):
             return "user/ticket/close"
 
-        case .reportIAPOrder(_,_,_,_,_), .prepareIAPOrder(_,_), .restoreIAPOrders(_, _):
+        case .reportIAPOrder(_,_,_,_,_):
             return "/user/order/iap"
         case .prepareIAPOrder(_,_):
             return "/user/order/iap/prepare"
