@@ -212,8 +212,26 @@ struct UserView: View {
               } icon: {
                 IVYIcon(systemName: "info", backgroundColor: .indigo)
               }
+          }
+          .padding(.vertical,4)
+
+          // 测试推送
+          Button {
+            testPush()
+          } label: {
+            LabeledContent {
+              Image(systemName: "chevron.forward")
+                .foregroundColor(.secondary)
+                .opacity(0.7)
+            } label: {
+              Label {
+                Text("测试推送")
+              } icon: {
+                IVYIcon(systemName: "bell.badge.fill", backgroundColor: .teal)
+              }
             }
-            .padding(.vertical,4)
+          }
+          .padding(.vertical,4)
 
             LabeledContent {
               Text(formatter.string(from: self.subscribe!.u! as NSNumber) ?? "-")
@@ -481,6 +499,23 @@ struct UserView: View {
       Text(successMessage)
     }
 
+  }
+
+  // MARK: - Test Push
+  private func testPush() {
+    NewNetWorkRequest(
+      AQAPIService.testPush(title: "测试推送", body: "Hello from server"),
+      modelType: SimpleResponse.self
+    ) { resp, response in
+      if response.code == 200 {
+        successMessage = "测试推送已发送"
+        successAlert = true
+      } else {
+        errorTitle = "发送失败"
+        errorSubTitle = response.messageStr ?? "未知错误"
+        errorAlert = true
+      }
+    }
   }
   
   // MARK: - 二维码扫描结果处理
