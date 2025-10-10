@@ -20,6 +20,7 @@ struct PurchaseView: View {
     @State private var isPurchasing = false
     @State private var alertMessage: String?
     @State private var showAlert = false
+    @State private var showSuccess = false
     @State private var plans: [PlanSummary] = []
 
     private let productIDs: [String]
@@ -93,7 +94,14 @@ struct PurchaseView: View {
                 await loadInitialData()
             }
             .alert(isPresented: $showAlert) {
-                Alert(title: Text("提示"), message: Text(alertMessage ?? ""), dismissButton: .default(Text("确定")))
+                Alert(
+                    title: Text("提示"),
+                    message: Text(alertMessage ?? ""),
+                    dismissButton: .default(Text("确定"), action: {
+                        alertMessage = nil
+                        showAlert = false
+                    })
+                )
             }
             .popup(isPresented: $isPurchasing) {
                 hudView
@@ -104,6 +112,28 @@ struct PurchaseView: View {
                     .animation(.easeInOut)
                     .closeOnTap(false)
                     .closeOnTapOutside(false)
+            }
+            .popup(isPresented: $showSuccess) {
+                VStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.white)
+                        .font(.system(size: 28))
+                    Text("购买成功！")
+                        .font(.footnote)
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
+                .background(Color.black.opacity(0.75))
+                .cornerRadius(14)
+            } customize: {
+                $0
+                    .type(.toast)
+                    .position(.top)
+                    .animation(.easeInOut)
+                    .autohideIn(1.6)
+                    .closeOnTap(true)
+                    .closeOnTapOutside(true)
             }
     }
 }
@@ -295,11 +325,11 @@ private extension PurchaseView {
                 isPurchasing = false
                 if success {
                     userManager.reload()
-                    alertMessage = "购买成功！"
+                    showSuccess = true
                 } else {
                     alertMessage = "购买成功，但订单同步失败: \(errorMessage ?? "未知错误")"
+                    showAlert = true
                 }
-                showAlert = true
             }
         case .cancelled:
             await MainActor.run {
