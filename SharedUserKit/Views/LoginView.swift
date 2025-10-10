@@ -238,19 +238,13 @@ struct LoginView: View {
         .safariView(isPresented: $showLink) {
             SafariView(url: link!)
         }
-        .popup(
-            isPresented: Binding(get: { oauthManager.isLoading }, set: { _ in }),
-            type: .floater(),
-            position: .center,
-            animation: .easeInOut,
-            closeOnTap: false,
-            closeOnTapOutside: false,
-            view: {
+        .popup(isPresented: Binding(get: { oauthManager.isLoading }, set: { _ in }), view: {
+            ZStack {
+                Color.black.opacity(0.25).ignoresSafeArea()
                 VStack(spacing: 12) {
                     ProgressView()
                     Text("正在请求 Apple 登录...")
                         .font(.footnote)
-                        .foregroundColor(.primary)
                 }
                 .padding(.horizontal, 28)
                 .padding(.vertical, 20)
@@ -260,8 +254,13 @@ struct LoginView: View {
                 )
                 .shadow(radius: 12)
             }
-        ) { popup in
+        }) { popup in
             popup
+                .type(.floater())
+                .position(.center)
+                .animation(.easeInOut(duration: 0.25))
+                .closeOnTap(false)
+                .closeOnTapOutside(false)
                 .backgroundColor(Color.black.opacity(0.25))
                 .autohideIn(nil)
         }

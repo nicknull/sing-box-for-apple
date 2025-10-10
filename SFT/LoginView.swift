@@ -215,14 +215,9 @@ struct LoginView: View {
         } customize: {
             $0.autohideIn(2)
         }
-        .popup(
-            isPresented: Binding(get: { oauthManager.isLoading }, set: { _ in }),
-            type: .floater(),
-            position: .center,
-            animation: .easeInOut,
-            closeOnTap: false,
-            closeOnTapOutside: false,
-            view: {
+        .popup(isPresented: Binding(get: { oauthManager.isLoading }, set: { _ in }), view: {
+            ZStack {
+                Color.black.opacity(0.25).ignoresSafeArea()
                 VStack(spacing: 12) {
                     ProgressView()
                     Text("正在请求 Apple 登录...")
@@ -236,8 +231,13 @@ struct LoginView: View {
                 )
                 .shadow(radius: 12)
             }
-        ) { popup in
+        }) { popup in
             popup
+                .type(.floater())
+                .position(.center)
+                .animation(.easeInOut(duration: 0.25))
+                .closeOnTap(false)
+                .closeOnTapOutside(false)
                 .backgroundColor(Color.black.opacity(0.25))
                 .autohideIn(nil)
         }
