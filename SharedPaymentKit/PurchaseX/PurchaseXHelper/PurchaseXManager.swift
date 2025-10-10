@@ -172,7 +172,7 @@ public class PurchaseXManager: NSObject, ObservableObject {
                     "transaction_id": String(transaction.id),
                     "original_transaction_id": String(transaction.originalID),
                     "product_id": transaction.productID,
-                    "revoked": false
+                    "revoked": (transaction.revocationDate != nil)
                 ]
                 list.append(item)
             }

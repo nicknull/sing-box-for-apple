@@ -378,6 +378,10 @@ private extension PurchaseView {
         }
 
         let snapshot = await purchaseManager.transactionsSnapshot()
+        if snapshot.isEmpty {
+            await MainActor.run { presentAlert("当前没有可恢复的有效订阅") }
+            return
+        }
         let (success, errorMessage) = await restoreOrders(appToken: appToken, transactions: snapshot)
         await MainActor.run {
             if success {
