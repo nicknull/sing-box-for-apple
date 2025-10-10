@@ -112,7 +112,7 @@ struct LoginView: View {
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(height: 2)
-                            Text("或使用以下方式登录")
+                            Text("或使用第三方登录")
                                 .font(.system(size: 24))
                                 .foregroundColor(.gray)
                             Rectangle()
@@ -143,26 +143,7 @@ struct LoginView: View {
                             .id(Focusable.row(id: "10005"))
                             .focused($focusedSettings, equals: .row(id: "10005"))
                             .disabled(logining || oauthManager.isLoading)
-
-                            // Google 登录
-                            Button(action: {
-                                handleGoogleSignIn()
-                            }) {
-                                HStack {
-                                    Image(systemName: "globe")
-                                        .font(.system(size: 30))
-                                    Text("使用 Google 登录")
-                                        .font(.system(size: 32))
-                                        .fontWeight(.medium)
-                                }
-                                .frame(width: 850, height: 80)
-                                .foregroundColor(.white)
-                                .background(Color(red: 0.26, green: 0.52, blue: 0.96))
-                                .cornerRadius(40)
-                            }
-                            .id(Focusable.row(id: "10006"))
-                            .focused($focusedSettings, equals: .row(id: "10006"))
-                            .disabled(logining || oauthManager.isLoading)
+                            // Google/GitHub 登录已隐藏
 
                             // GitHub 登录
                             Button(action: {
