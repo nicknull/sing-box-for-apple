@@ -127,13 +127,13 @@ struct LoginView: View {
 
                         .padding(40)
 
-                        // 三方登录分隔线
+                        // 第三方登录分隔线（仅保留 Apple 登录）
                         HStack(alignment: .center, spacing: 8) {
                             Rectangle()
                                 .fill(Color.gray.opacity(0.3))
                                 .frame(height: 1)
                                 .frame(maxWidth: .infinity)
-                            Text("或使用以下方式登录")
+                            Text("或使用第三方登录")
                                 .font(.caption)
                                 .foregroundColor(.gray)
                                 .lineLimit(1)
@@ -148,7 +148,7 @@ struct LoginView: View {
                         .padding(.horizontal, 40)
                         .padding(.bottom, 20)
 
-                        // 三方登录按钮（紧凑图标风格，固定宽度，不再拉伸）
+                        // 第三方登录按钮（仅保留 Apple）
                         HStack(spacing: 24) {
                             VStack(spacing: 6) {
                                 Button(action: { handleAppleSignIn() }) {
@@ -162,54 +162,6 @@ struct LoginView: View {
                                 .disabled(isLoading || oauthManager.isLoading || !agreed)
                                 .opacity(agreed ? 1.0 : 0.5)
                                 Text("Apple").font(.caption2).foregroundColor(.secondary)
-                            }
-
-                            VStack(spacing: 6) {
-                                Button(action: { handleGoogleSignIn() }) {
-                                    Group {
-                                        if let img = UIImage(named: "icon_google") {
-                                            Image(uiImage: img)
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 22, height: 22)
-                                        } else {
-                                            Image(systemName: "globe")
-                                                .font(.system(size: 18, weight: .semibold))
-                                                .foregroundColor(.blue)
-                                        }
-                                    }
-                                    .frame(width: 44, height: 44)
-                                    .background(Color(red: 0.26, green: 0.52, blue: 0.96).opacity(0.15))
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color(red: 0.26, green: 0.52, blue: 0.96).opacity(0.25), lineWidth: 1))
-                                }
-                                .disabled(isLoading || oauthManager.isLoading || !agreed)
-                                .opacity(agreed ? 1.0 : 0.5)
-                                Text("Google").font(.caption2).foregroundColor(.secondary)
-                            }
-
-                            VStack(spacing: 6) {
-                                Button(action: { handleGitHubSignIn() }) {
-                                    Group {
-                                        if let img = UIImage(named: "icon_github") {
-                                            Image(uiImage: img)
-                                                .resizable()
-                                                .scaledToFit()
-                                                .frame(width: 22, height: 22)
-                                        } else {
-                                            Image(systemName: "terminal")
-                                                .font(.system(size: 18, weight: .semibold))
-                                                .foregroundColor(.black)
-                                        }
-                                    }
-                                    .frame(width: 44, height: 44)
-                                    .background(Color.black.opacity(0.12))
-                                    .clipShape(Circle())
-                                    .overlay(Circle().stroke(Color.black.opacity(0.2), lineWidth: 1))
-                                }
-                                .disabled(isLoading || oauthManager.isLoading || !agreed)
-                                .opacity(agreed ? 1.0 : 0.5)
-                                Text("GitHub").font(.caption2).foregroundColor(.secondary)
                             }
                         }
                         .padding(.bottom, 20)
