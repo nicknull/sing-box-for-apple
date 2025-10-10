@@ -15,9 +15,19 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     private var systemProxyAvailable = false
     private var systemProxyEnabled = false
     private var platformInterface: ExtensionPlatformInterface!
+    private var autoDisconnectTask: Task<Void, Never>?
+    private var authContext: AuthContext?
 
-    override open func startTunnel(options _: [String: NSObject]?) async throws {
+    private struct AuthContext {
+        let now: TimeInterval
+        let expiresAt: TimeInterval
+    }
+
+    override open func startTunnel(options: [String: NSObject]?) async throws {
         LibboxClearServiceError()
+
+        let auth = try validateAuth(options: options)
+        authContext = auth
 
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
@@ -76,6 +86,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         writeMessage(message)
         var error: NSError?
         LibboxWriteServiceError(message, &error)
+        authContext = nil
         cancelTunnelWithError(nil)
     }
 
@@ -115,6 +126,9 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         }
         commandServer.setService(service)
         boxService = service
+        if let authContext {
+            scheduleAutoDisconnect(until: authContext.expiresAt, current: Date().timeIntervalSince1970)
+        }
         #if os(macOS)
             await SharedPreferences.startedByUser.set(true)
             if service.needWIFIState() {
@@ -165,6 +179,8 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if let platformInterface {
             platformInterface.reset()
         }
+        autoDisconnectTask?.cancel()
+        autoDisconnectTask = nil
     }
 
     func reloadService() async {
@@ -185,6 +201,7 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     override open func stopTunnel(with reason: NEProviderStopReason) async {
         writeMessage("(packet-tunnel) stopping, reason: \(reason)")
         stopService()
+        authContext = nil
         if let server = commandServer {
             try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
             try? server.close()
@@ -216,5 +233,72 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         if let boxService {
             boxService.wake()
         }
+    }
+
+    private func validateAuth(options: [String: NSObject]?) throws -> AuthContext {
+        let now = Date().timeIntervalSince1970
+        guard let options else {
+            throw authError("missing connection metadata")
+        }
+        guard let nowRaw = options["nowTs"], let nowTs = extractInt(nowRaw) else {
+            throw authError("missing nowTs")
+        }
+        guard let expiresRaw = options["expiresAt"], let expiresAt = extractInt(expiresRaw) else {
+            throw authError("missing expiresAt")
+        }
+        let nowDelta = abs(now - TimeInterval(nowTs))
+        guard nowDelta <= 25 else {
+            throw authError("connection request expired")
+        }
+        let expiresAtInterval = TimeInterval(expiresAt)
+        guard expiresAtInterval > now else {
+            throw authError("subscription expired")
+        }
+        return AuthContext(now: now, expiresAt: expiresAtInterval)
+    }
+
+    private func scheduleAutoDisconnect(until expiresAt: TimeInterval, current now: TimeInterval) {
+        autoDisconnectTask?.cancel()
+        let remaining = expiresAt - now
+        guard remaining > 0 else {
+            _ = Task { await disconnectDueToExpiry() }
+            return
+        }
+        let nanos = (remaining * Double(NSEC_PER_SEC)).rounded()
+        let delay = nanos > Double(UInt64.max) ? UInt64.max : UInt64(nanos)
+        autoDisconnectTask = Task { [weak self] in
+            do {
+                try await Task.sleep(nanoseconds: delay)
+            } catch {
+                return
+            }
+            guard let strongSelf = self else {
+                return
+            }
+            await strongSelf.disconnectDueToExpiry()
+        }
+    }
+
+    @MainActor
+    private func disconnectDueToExpiry() {
+        cancelTunnelWithError(authError("subscription expired"))
+    }
+
+    private func extractInt(_ value: NSObject) -> Int? {
+        if let number = value as? NSNumber {
+            return number.intValue
+        }
+        if let string = value as? NSString {
+            return Int(string as String)
+        }
+        return nil
+    }
+
+    private func authError(_ message: String) -> NSError {
+        NSError(
+            domain: Bundle.main.bundleIdentifier ?? "ExtensionProvider",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: message]
+        )
     }
 }

@@ -4,6 +4,7 @@ public enum SharedPreferences {
     public static let language = Preference<String>("language", defaultValue: "")
 
     public static let selectedProfileID = Preference<Int64>("selected_profile_id", defaultValue: -1)
+    public static let subscriptionExpiresAt = Preference<Int64>("subscription_expires_at", defaultValue: 0)
 
     #if os(macOS)
         private static let ignoreMemoryLimitByDefault = true

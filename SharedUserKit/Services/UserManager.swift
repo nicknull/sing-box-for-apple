@@ -74,6 +74,7 @@ class UserManager: ObservableObject {
         self.token = ""
         Task{
             await deleteProfile0()
+            await SharedPreferences.subscriptionExpiresAt.set(nil)
         }
     }
     func reload(){
@@ -127,6 +128,13 @@ class UserManager: ObservableObject {
             refreshingUserInfo = false
             if userInfo != nil {
                 userInfoJsonStr = responseModel.dataString!
+                Task {
+                    if let expiresAt = userInfo?.expired_at {
+                        await SharedPreferences.subscriptionExpiresAt.set(Int64(expiresAt))
+                    } else {
+                        await SharedPreferences.subscriptionExpiresAt.set(nil)
+                    }
+                }
 
                 // 登录成功后，根据平台上传设备 Token
                 #if os(iOS)
@@ -262,4 +270,3 @@ class UserManager: ObservableObject {
     
     
 }
-

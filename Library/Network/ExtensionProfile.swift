@@ -73,15 +73,16 @@ public class ExtensionProfile: ObservableObject {
             }
         #endif
         try await manager.saveToPreferences()
+        let tunnelOptions = try await buildTunnelOptions()
         #if os(macOS)
             if Variant.useSystemExtension {
-                try manager.connection.startVPNTunnel(options: [
-                    "username": NSString(string: NSUserName()),
-                ])
+                var systemOptions = tunnelOptions
+                systemOptions["username"] = NSString(string: NSUserName())
+                try manager.connection.startVPNTunnel(options: systemOptions)
                 return
             }
         #endif
-        try manager.connection.startVPNTunnel()
+        try manager.connection.startVPNTunnel(options: tunnelOptions)
     }
 
     public func fetchProfile() async {
@@ -127,5 +128,30 @@ public class ExtensionProfile: ObservableObject {
         manager.protocolConfiguration = tunnelProtocol
         manager.isEnabled = true
         try await manager.saveToPreferences()
+    }
+}
+
+extension ExtensionProfile {
+    private func buildTunnelOptions() async throws -> [String: NSObject] {
+        let nowTs = Int(Date().timeIntervalSince1970)
+        let expiresAt = Int(await SharedPreferences.subscriptionExpiresAt.get())
+        guard expiresAt > 0 else {
+            throw NSError(
+                domain: "ExtensionProfile",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "订阅信息缺失，请重新登录后再试"]
+            )
+        }
+        guard expiresAt > nowTs else {
+            throw NSError(
+                domain: "ExtensionProfile",
+                code: 2,
+                userInfo: [NSLocalizedDescriptionKey: "订阅已到期，请续费后再连接"]
+            )
+        }
+        return [
+            "nowTs": NSNumber(value: nowTs),
+            "expiresAt": NSNumber(value: expiresAt),
+        ]
     }
 }
