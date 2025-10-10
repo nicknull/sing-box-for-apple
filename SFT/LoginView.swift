@@ -215,7 +215,22 @@ struct LoginView: View {
         } customize: {
             $0.autohideIn(2)
         }
-        
+        .overlay(alignment: .center) {
+            if oauthManager.isLoading {
+                ZStack {
+                    Color.black.opacity(0.25).ignoresSafeArea()
+                    VStack(spacing: 12) {
+                        ProgressView()
+                        Text("正在请求 Apple 登录...")
+                            .font(.footnote)
+                    }
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 20)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+            }
+        }
+
         .onChange(of: userManager.subscribe, perform: { newValue in
             print("------userManager.subscribe-------")
             print(newValue)

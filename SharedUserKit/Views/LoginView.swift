@@ -238,6 +238,22 @@ struct LoginView: View {
         .safariView(isPresented: $showLink) {
             SafariView(url: link!)
         }
+        .overlay(alignment: .center) {
+            if oauthManager.isLoading {
+                ZStack {
+                    Color.black.opacity(0.25).ignoresSafeArea()
+                    VStack(spacing: 12) {
+                        ProgressView()
+                        Text("正在请求 Apple 登录...")
+                            .font(.footnote)
+                            .foregroundColor(.primary)
+                    }
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 20)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+            }
+        }
         .onAppear(){
             self.emailInput = (self.email.count > 0 && self.emailInput.count == 0) ? self.email:""
             self.passwordInput = (self.password.count > 0 && self.passwordInput.count == 0) ? self.password:""
