@@ -238,21 +238,32 @@ struct LoginView: View {
         .safariView(isPresented: $showLink) {
             SafariView(url: link!)
         }
-        .overlay(alignment: .center) {
-            if oauthManager.isLoading {
-                ZStack {
-                    Color.black.opacity(0.25).ignoresSafeArea()
-                    VStack(spacing: 12) {
-                        ProgressView()
-                        Text("正在请求 Apple 登录...")
-                            .font(.footnote)
-                            .foregroundColor(.primary)
-                    }
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 20)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .popup(
+            isPresented: Binding(get: { oauthManager.isLoading }, set: { _ in }),
+            type: .floater(),
+            position: .center,
+            animation: .easeInOut,
+            closeOnTap: false,
+            closeOnTapOutside: false,
+            view: {
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text("正在请求 Apple 登录...")
+                        .font(.footnote)
+                        .foregroundColor(.primary)
                 }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color(.systemBackground))
+                )
+                .shadow(radius: 12)
             }
+        ) { popup in
+            popup
+                .backgroundColor(Color.black.opacity(0.25))
+                .autohideIn(nil)
         }
         .onAppear(){
             self.emailInput = (self.email.count > 0 && self.emailInput.count == 0) ? self.email:""

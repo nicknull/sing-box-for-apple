@@ -215,20 +215,31 @@ struct LoginView: View {
         } customize: {
             $0.autohideIn(2)
         }
-        .overlay(alignment: .center) {
-            if oauthManager.isLoading {
-                ZStack {
-                    Color.black.opacity(0.25).ignoresSafeArea()
-                    VStack(spacing: 12) {
-                        ProgressView()
-                        Text("正在请求 Apple 登录...")
-                            .font(.footnote)
-                    }
-                    .padding(.horizontal, 28)
-                    .padding(.vertical, 20)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .popup(
+            isPresented: Binding(get: { oauthManager.isLoading }, set: { _ in }),
+            type: .floater(),
+            position: .center,
+            animation: .easeInOut,
+            closeOnTap: false,
+            closeOnTapOutside: false,
+            view: {
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text("正在请求 Apple 登录...")
+                        .font(.footnote)
                 }
+                .padding(.horizontal, 28)
+                .padding(.vertical, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color(.systemBackground))
+                )
+                .shadow(radius: 12)
             }
+        ) { popup in
+            popup
+                .backgroundColor(Color.black.opacity(0.25))
+                .autohideIn(nil)
         }
 
         .onChange(of: userManager.subscribe, perform: { newValue in
