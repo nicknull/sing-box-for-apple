@@ -8,7 +8,8 @@
 import SwiftUI
 import ApplicationLibrary
 
-import FirebaseRemoteConfig
+// Firebase 已移除
+// import FirebaseRemoteConfig
 import Defaults
 import Lottie
 import NetworkExtension

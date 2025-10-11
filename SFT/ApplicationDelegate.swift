@@ -3,35 +3,32 @@ import Foundation
 import Libbox
 import Library
 import UIKit
-import FirebaseCore
-#if os(iOS)
-import FirebaseMessaging
-#elseif os(tvOS)
+// Firebase 已移除，使用原生 APNS
+// import FirebaseCore
+// import FirebaseMessaging
 import UserNotifications
-#endif
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        // Firebase 初始化
-        FirebaseApp.configure()
+        // Firebase 已移除
+        // FirebaseApp.configure()
 
-        #if os(iOS)
-        // iOS 使用 Firebase Messaging
-        Messaging.messaging().delegate = self
-        #elseif os(tvOS)
-        // tvOS 使用原生 APNS
+        // 统一使用原生 APNS（iOS/tvOS）
         UNUserNotificationCenter.current().delegate = self
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if granted {
                 DispatchQueue.main.async {
                     UIApplication.shared.registerForRemoteNotifications()
                 }
+                #if os(iOS)
+                NSLog("✅ iOS 推送通知权限已授予")
+                #elseif os(tvOS)
                 NSLog("✅ tvOS 推送通知权限已授予")
+                #endif
             } else {
-                NSLog("❌ tvOS 推送通知权限被拒绝: \(error?.localizedDescription ?? "")")
+                NSLog("❌ 推送通知权限被拒绝: \(error?.localizedDescription ?? "")")
             }
         }
-        #endif
 
         // Libbox 初始化
         NSLog("Here I stand")
@@ -39,7 +36,9 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         options.basePath = FilePath.sharedDirectory.relativePath
         options.workingPath = FilePath.workingDirectory.relativePath
         options.tempPath = FilePath.cacheDirectory.relativePath
+        #if os(tvOS)
         options.isTVOS = true
+        #endif
         var error: NSError?
         LibboxSetup(options, &error)
         LibboxSetLocale(Locale.current.identifier)
@@ -56,43 +55,45 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
         }
     }
 
-    #if os(tvOS)
-    // tvOS: 成功注册 APNS Token
+    // APNS Token 注册成功
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        let tokenString = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
-        NSLog("📱 tvOS APNS Token 已获取: \(tokenString.prefix(20))...")
-
-        // 自动上传 Token（如果用户已登录）
-        DeviceTokenManager.shared.uploadTokenIfNeeded(tokenString)
+        DeviceTokenManager.shared.handleDeviceToken(deviceToken)
+        #if os(iOS)
+        NSLog("✅ iOS APNS Token 注册成功")
+        #elseif os(tvOS)
+        NSLog("✅ tvOS APNS Token 注册成功")
+        #endif
     }
 
-    // tvOS: 注册失败
+    // APNS Token 注册失败
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        NSLog("❌ tvOS APNS Token 注册失败: \(error.localizedDescription)")
+        DeviceTokenManager.shared.handleRegistrationError(error)
+        NSLog("❌ APNS Token 注册失败: \(error.localizedDescription)")
     }
-    #endif
 }
 
-#if os(iOS)
-// iOS: Firebase Messaging Delegate
-extension ApplicationDelegate: MessagingDelegate {
-    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
-        if let token = fcmToken {
-            NSLog("📱 iOS FCM Token 已获取: \(token.prefix(20))...")
-        }
-    }
-}
-#elseif os(tvOS)
-// tvOS: UserNotificationCenter Delegate
+// Firebase Messaging delegate 已移除
+// extension ApplicationDelegate: MessagingDelegate { ... }
+
+// 统一使用 UserNotificationCenter Delegate
 extension ApplicationDelegate: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        NSLog("📬 tvOS 收到前台通知: \(notification.request.content.title)")
+        let title = notification.request.content.title
+        #if os(iOS)
+        NSLog("📬 iOS 收到前台通知: \(title)")
+        completionHandler([.banner, .sound, .badge])
+        #elseif os(tvOS)
+        NSLog("📬 tvOS 收到前台通知: \(title)")
         completionHandler([.banner, .sound])
+        #endif
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        #if os(iOS)
+        NSLog("📬 iOS 用户点击通知")
+        #elseif os(tvOS)
         NSLog("📬 tvOS 用户点击通知")
+        #endif
         completionHandler()
     }
 }
-#endif

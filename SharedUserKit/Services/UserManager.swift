@@ -11,8 +11,9 @@ import Library
 import Libbox
 import CryptoSwift
 import Defaults
-import FirebaseCore
-import FirebaseMessaging
+// Firebase 已移除，使用原生 APNS
+// import FirebaseCore
+// import FirebaseMessaging
 import ApplicationLibrary
 
 class UserManager: ObservableObject {
@@ -111,36 +112,16 @@ class UserManager: ObservableObject {
     func refreshUserInfo() {
         refreshingUserInfo = true
 
-        // 获取设备 Token（平台适配）
-        var deviceToken = ""
-        #if os(iOS)
-        // iOS 使用 Firebase Messaging 的 APNS Token
-        if let apnsToken = Messaging.messaging().apnsToken {
-            deviceToken = apnsTokenString(from: apnsToken as Data)
-        }
-        #elseif os(tvOS)
-        // tvOS 暂不在这里传递 APNS Token（在 ApplicationDelegate 中直接上传）
-        deviceToken = ""
-        #endif
+        // APNS Token 已在 ApplicationDelegate 中注册并上传
+        // iOS/tvOS 统一使用原生 APNS
 
-        NewNetWorkRequest(AQAPIService.getUserInfo(apnsToken: deviceToken), modelType:UserInfoModel.self) { [self] (userInfo, responseModel) in
+        NewNetWorkRequest(AQAPIService.getUserInfo(apnsToken: ""), modelType:UserInfoModel.self) { [self] (userInfo, responseModel) in
             refreshingUserInfo = false
             if userInfo != nil {
                 userInfoJsonStr = responseModel.dataString!
 
-                // 登录成功后，根据平台上传设备 Token
-                #if os(iOS)
-                Messaging.messaging().token { token, error in
-                    if let fcmToken = token {
-                        DeviceTokenManager.shared.uploadTokenIfNeeded(fcmToken)
-                    } else if let error = error {
-                        NSLog("❌ 获取 FCM Token 失败: \(error.localizedDescription)")
-                    }
-                }
-                #elseif os(tvOS)
-                // tvOS 的 APNS Token 在 ApplicationDelegate 中注册后自动上传
-                NSLog("✅ tvOS 用户信息刷新成功，APNS Token 会在注册后自动上传")
-                #endif
+                // 登录成功后，触发 APNS Token 上传（如果还未上传）
+                NSLog("✅ 用户信息刷新成功，APNS Token 会在设备注册后自动上传")
             } else {
                 if responseModel.code == 403 {
                     logout()

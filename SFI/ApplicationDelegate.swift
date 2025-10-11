@@ -5,18 +5,19 @@ import Libbox
 import Library
 import Network
 import UIKit
-import FirebaseCore
-import FirebaseMessaging
+// Firebase 已移除，使用原生 APNS
+// import FirebaseCore
+// import FirebaseMessaging
 
 import UserNotifications
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     private var profileServer: ProfileServer?
-    let gcmMessageIDKey = "gcm.message_id"
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        FirebaseApp.configure()
-        Messaging.messaging().delegate = self
+        // Firebase 已移除
+        // FirebaseApp.configure()
+        // Messaging.messaging().delegate = self
 
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
@@ -28,30 +29,34 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
 
         UNUserNotificationCenter.current().delegate = self
 
-        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+        // 注册原生 APNS 推送
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             if granted {
+                NSLog("✅ 推送通知权限已授予 (iOS)")
                 DispatchQueue.main.async {
                     application.registerForRemoteNotifications()
                 }
+            } else {
+                NSLog("❌ 推送通知权限被拒绝: \(error?.localizedDescription ?? "unknown")")
             }
         }
-//        application.registerForRemoteNotifications()
+
         setup()
         print("✅ AppDelegate didFinishLaunchingWithOptions called")
 
         return true
     }
-    
-    func application(_: UIApplication,
-                     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-      Messaging.messaging().apnsToken = deviceToken
-        NSLog("didRegisterForRemoteNotificationsWithDeviceToken")
 
+    // APNS Device Token 回调
+    func application(_: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        DeviceTokenManager.shared.handleDeviceToken(deviceToken)
+        NSLog("✅ didRegisterForRemoteNotificationsWithDeviceToken")
     }
-    func application(_:UIApplication, didFailToRegisterForRemoteNotificationsWithError error:Error){
-        
-        NSLog("didFailToRegisterForRemoteNotificationsWithError")
+
+    // 注册失败回调
+    func application(_: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        DeviceTokenManager.shared.handleRegistrationError(error)
+        NSLog("❌ didFailToRegisterForRemoteNotificationsWithError: \(error.localizedDescription)")
     }
 
     private func setup() {
@@ -102,61 +107,28 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
             }
         }.resume()
     }
-    
-    
-
 }
 
-extension ApplicationDelegate: MessagingDelegate {
-    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+// Firebase Messaging delegate 已移除
+// extension ApplicationDelegate: MessagingDelegate { ... }
 
-      let deviceToken:[String: String] = ["token": fcmToken ?? ""]
-        print("Device token: ", deviceToken) // This token can be used for testing notifications on FCM
-
-        // 自动上传 FCM Token 到后端（如果用户已登录）
-        if let token = fcmToken {
-            // 延迟上传，确保应用完全启动
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                // 检查用户是否已登录
-                // 注意：这里使用 UserManager 或 UserDefaults 检查登录状态
-                // 实际上传逻辑在 FCMTokenManager 中实现（需要在登录成功后调用）
-                NSLog("📱 FCM Token 已获取: \(token.prefix(20))...")
-                NSLog("💡 提示：请在用户登录成功后调用 FCMTokenManager.shared.uploadToken()")
-            }
-        }
-    }
-}
 @available(iOS 10, *)
-extension ApplicationDelegate : UNUserNotificationCenterDelegate {
-
-  // Receive displayed notifications for iOS 10 devices.
-  func userNotificationCenter(_ center: UNUserNotificationCenter,
-                              willPresent notification: UNNotification,
-    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-    let userInfo = notification.request.content.userInfo
-
-    if let messageID = userInfo[gcmMessageIDKey] {
-        print("Message ID: \(messageID)")
+extension ApplicationDelegate: UNUserNotificationCenterDelegate {
+    // 前台收到推送
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let userInfo = notification.request.content.userInfo
+        print("📬 前台收到推送: \(userInfo)")
+        completionHandler([.banner, .badge, .sound])
     }
 
-    print(userInfo)
-
-    // Change this to your preferred presentation option
-    completionHandler([[.banner, .badge, .sound]])
-  }
-
-
-  func userNotificationCenter(_ center: UNUserNotificationCenter,
-                              didReceive response: UNNotificationResponse,
-                              withCompletionHandler completionHandler: @escaping () -> Void) {
-    let userInfo = response.notification.request.content.userInfo
-
-    if let messageID = userInfo[gcmMessageIDKey] {
-      print("Message ID from userNotificationCenter didReceive: \(messageID)")
+    // 用户点击推送
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        print("👆 用户点击推送: \(userInfo)")
+        completionHandler()
     }
-
-    print(userInfo)
-
-    completionHandler()
-  }
 }
