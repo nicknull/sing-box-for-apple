@@ -1,98 +1,75 @@
 import Foundation
-#if os(iOS)
-import FirebaseMessaging
-#elseif os(tvOS)
 import UserNotifications
-#endif
 
-/**
- * 设备 Token 管理器
- * iOS: 使用 FCM Token
- * tvOS: 使用 APNS Token
- */
-class DeviceTokenManager {
+class DeviceTokenManager: NSObject {
     static let shared = DeviceTokenManager()
 
-    private init() {}
+    private var deviceToken: String?
 
-    #if os(iOS)
-    /// 上传 FCM Token 到后端（iOS）
-    /// - Parameter fcmToken: Firebase Cloud Messaging Token
-    func uploadToken(_ fcmToken: String) {
-        NSLog("📤 准备上传 FCM Token: \(fcmToken.prefix(20))...")
+    private override init() {
+        super.init()
+    }
 
-        NewNetWorkRequest(
-            AQAPIService.registerFcmToken(fcmToken: fcmToken),
-            modelType: SimpleResponse.self
-        ) { response, responseModel in
-            if let response = response, response.code == 200 {
-                NSLog("✅ FCM Token 上传成功")
-                UserDefaults.standard.set(Date(), forKey: "fcm_token_upload_date")
-                UserDefaults.standard.set(fcmToken, forKey: "last_uploaded_fcm_token")
+    func registerForPushNotifications() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if granted {
+                NSLog("✅ 推送通知权限已授予")
+                DispatchQueue.main.async {
+                    #if os(iOS)
+                    UIApplication.shared.registerForRemoteNotifications()
+                    #elseif os(tvOS)
+                    UIApplication.shared.registerForRemoteNotifications()
+                    #endif
+                }
             } else {
-                NSLog("❌ FCM Token 上传失败: \(responseModel.messageStr ?? "未知错误")")
+                NSLog("❌ 推送通知权限被拒绝: \(error?.localizedDescription ?? "unknown")")
             }
         }
     }
-    #elseif os(tvOS)
-    /// 上传 APNS Token 到后端（tvOS）
-    /// - Parameter apnsToken: Apple Push Notification Service Token
-    func uploadToken(_ apnsToken: String) {
-        NSLog("📤 准备上传 APNS Token (tvOS): \(apnsToken.prefix(20))...")
 
-        // tvOS 使用相同的接口，后端通过 platform 参数区分
+    func handleDeviceToken(_ deviceToken: Data) {
+        let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+        self.deviceToken = token
+
+        #if os(iOS)
+        NSLog("📱 APNS Device Token (iOS): \(token.prefix(20))...")
+        #elseif os(tvOS)
+        NSLog("📺 APNS Device Token (tvOS): \(token.prefix(20))...")
+        #endif
+
+        uploadTokenIfNeeded(token)
+    }
+
+    func handleRegistrationError(_ error: Error) {
+        NSLog("❌ APNS 注册失败: \(error.localizedDescription)")
+    }
+
+    private func uploadToken(_ token: String) {
+        #if os(iOS)
+        let platform = "ios"
+        NSLog("📤 准备上传 APNS Token (iOS): \(token.prefix(20))...")
+        #elseif os(tvOS)
+        let platform = "tvos"
+        NSLog("📤 准备上传 APNS Token (tvOS): \(token.prefix(20))...")
+        #endif
+
         NewNetWorkRequest(
-            AQAPIService.registerDeviceToken(token: apnsToken, platform: "tvos"),
+            AQAPIService.registerDeviceToken(token: token, platform: platform),
             modelType: SimpleResponse.self
         ) { response, responseModel in
             if let response = response, response.code == 200 {
-                NSLog("✅ APNS Token 上传成功 (tvOS)")
+                NSLog("✅ APNS Token 上传成功")
                 UserDefaults.standard.set(Date(), forKey: "apns_token_upload_date")
-                UserDefaults.standard.set(apnsToken, forKey: "last_uploaded_apns_token")
+                UserDefaults.standard.set(token, forKey: "last_uploaded_apns_token")
             } else {
                 NSLog("❌ APNS Token 上传失败: \(responseModel.messageStr ?? "未知错误")")
             }
         }
     }
-    #endif
 
-    /// 移除设备 Token（用户登出时调用）
-    func removeToken() {
-        #if os(iOS)
-        NSLog("🗑️ 准备移除 FCM Token")
-        #elseif os(tvOS)
-        NSLog("🗑️ 准备移除 APNS Token (tvOS)")
-        #endif
-
-        NewNetWorkRequest(
-            AQAPIService.unregisterFcmToken,
-            modelType: SimpleResponse.self
-        ) { response, responseModel in
-            if let response = response, response.code == 200 {
-                NSLog("✅ 设备 Token 移除成功")
-                #if os(iOS)
-                UserDefaults.standard.removeObject(forKey: "fcm_token_upload_date")
-                UserDefaults.standard.removeObject(forKey: "last_uploaded_fcm_token")
-                #elseif os(tvOS)
-                UserDefaults.standard.removeObject(forKey: "apns_token_upload_date")
-                UserDefaults.standard.removeObject(forKey: "last_uploaded_apns_token")
-                #endif
-            } else {
-                NSLog("❌ 设备 Token 移除失败: \(responseModel.messageStr ?? "未知错误")")
-            }
-        }
-    }
-
-    /// 检查是否需要上传 Token（登录后或 Token 更新时）
     func uploadTokenIfNeeded(_ token: String) {
-        // 检查是否已上传相同的 Token
-        #if os(iOS)
-        let lastTokenKey = "last_uploaded_fcm_token"
-        let uploadDateKey = "fcm_token_upload_date"
-        #elseif os(tvOS)
         let lastTokenKey = "last_uploaded_apns_token"
         let uploadDateKey = "apns_token_upload_date"
-        #endif
 
         let lastToken = UserDefaults.standard.string(forKey: lastTokenKey)
         if lastToken == token {
@@ -100,7 +77,7 @@ class DeviceTokenManager {
             if let lastUploadDate = UserDefaults.standard.object(forKey: uploadDateKey) as? Date {
                 let daysSinceUpload = Calendar.current.dateComponents([.hour], from: lastUploadDate, to: Date()).hour ?? 0
                 if daysSinceUpload < 24 {
-                    NSLog("⏭️ 设备 Token 最近已上传，跳过")
+                    NSLog("⏭️ APNS Token 最近已上传，跳过")
                     return
                 }
             }
@@ -109,11 +86,23 @@ class DeviceTokenManager {
         uploadToken(token)
     }
 
-    /// 测试推送通知
-    /// - Parameters:
-    ///   - title: 通知标题
-    ///   - body: 通知内容
-    ///   - completion: 完成回调
+    func removeToken() {
+        NSLog("🗑️ 准备移除 APNS Token")
+
+        NewNetWorkRequest(
+            AQAPIService.unregisterDeviceToken,
+            modelType: SimpleResponse.self
+        ) { response, responseModel in
+            if let response = response, response.code == 200 {
+                NSLog("✅ APNS Token 移除成功")
+                UserDefaults.standard.removeObject(forKey: "apns_token_upload_date")
+                UserDefaults.standard.removeObject(forKey: "last_uploaded_apns_token")
+            } else {
+                NSLog("❌ APNS Token 移除失败: \(responseModel.messageStr ?? "未知错误")")
+            }
+        }
+    }
+
     func testPush(title: String, body: String, completion: ((Bool, String?) -> Void)? = nil) {
         NSLog("🔔 发送测试推送: \(title)")
 
@@ -133,7 +122,6 @@ class DeviceTokenManager {
     }
 }
 
-/// 简单响应模型
 struct SimpleResponse: Codable {
     let code: Int
     let msg: String?

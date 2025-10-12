@@ -66,8 +66,6 @@
 #end
 def lib
   use_frameworks!
-  pod 'FirebaseRemoteConfig'
-  pod 'FirebaseAnalytics'
   pod 'SwiftyJSON'
   pod 'Moya'
   pod 'Alamofire'
@@ -116,7 +114,6 @@ end
 
 target 'ApplicationLibrary' do
   use_frameworks!
-  pod 'FirebaseMessaging'
   pod 'CryptoSwift'
   pod 'Defaults'
   pod 'CodableWrappers'

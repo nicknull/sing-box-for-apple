@@ -2,35 +2,29 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CLIENT_ID</key>
-	<string>675791679437-8j4cf8vd1u5p2mg5r332rsshtehfb63t.apps.googleusercontent.com</string>
-	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.675791679437-8j4cf8vd1u5p2mg5r332rsshtehfb63t</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAX_88KHiYV2T0UWvGFKJ11-E4CJQaggXw</string>
+	<string>YOUR_API_KEY_HERE</string>
 	<key>GCM_SENDER_ID</key>
-	<string>675791679437</string>
+	<string>YOUR_SENDER_ID_HERE</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.gy.iflash</string>
+	<string>com.yourapp.bundleid</string>
 	<key>PROJECT_ID</key>
-	<string>lightvpn-5b10c</string>
+	<string>your-project-id</string>
 	<key>STORAGE_BUCKET</key>
-	<string>lightvpn-5b10c.appspot.com</string>
+	<string>your-project-id.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
-	<false></false>
+	<false/>
 	<key>IS_ANALYTICS_ENABLED</key>
-	<false></false>
+	<true/>
 	<key>IS_APPINVITE_ENABLED</key>
-	<true></true>
+	<false/>
 	<key>IS_GCM_ENABLED</key>
-	<true></true>
+	<false/>
 	<key>IS_SIGNIN_ENABLED</key>
-	<true></true>
+	<false/>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:675791679437:ios:d0efe96716b98b84b69e84</string>
-	<key>ADMOB_APP_ID</key>
-	<string>ca-app-pub-9554706710177457~4743207555</string>
+	<string>1:YOUR_APP_ID:ios:YOUR_IOS_ID</string>
 </dict>
 </plist>

@@ -12,7 +12,7 @@ import Defaults
 
 enum AQAPIService{
     case signIn(email:String,password:String) //登录
-    case getUserInfo(apnsToken:String) //获取用户信息
+    case getUserInfo //获取用户信息
     case getSubscribe //获取用户订阅信息
     case getService //获取服务的地址 host 是备用服务器地址
     case local(address:String)//扫码修复地址 服务器地址通过扫码保存到本地
@@ -46,9 +46,8 @@ enum AQAPIService{
     case ticketClose_admin(id:Int) //管理员 关闭工单
 
     // 设备推送 Token 相关
-    case registerFcmToken(fcmToken:String) //注册 FCM Token (iOS)
-    case registerDeviceToken(token:String, platform:String) //注册设备 Token (iOS/tvOS通用)
-    case unregisterFcmToken //注销 FCM Token
+    case registerDeviceToken(token:String, platform:String) //注册 APNS Device Token (iOS/tvOS)
+    case unregisterDeviceToken //注销 Device Token
     case testPush(title:String, body:String) //测试推送
     case getPlans // 获取可用套餐列表
 
@@ -128,7 +127,7 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         switch self {
         case .signIn(_,_):
             return "/passport/auth/login"
-        case .getUserInfo(_):
+        case .getUserInfo:
             return "/user/info"
         case .getSubscribe:
             return "/user/getSubscribe"
@@ -184,11 +183,9 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .ticketClose_admin(_):
             return "\(Defaults[.secure_path])/ticket/close"
 
-        case .registerFcmToken(_):
-            return "/user/device/register"
         case .registerDeviceToken(_,_):
             return "/user/device/register"
-        case .unregisterFcmToken:
+        case .unregisterDeviceToken:
             return "/user/device/unregister"
         case .testPush(_,_):
             return "/user/device/test-push"
@@ -239,11 +236,9 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .ticketClose_admin(_):
             return .post
 
-        case .registerFcmToken(_):
-            return .post
         case .registerDeviceToken(_,_):
             return .post
-        case .unregisterFcmToken:
+        case .unregisterDeviceToken:
             return .post
         case .testPush(_,_):
             return .post
@@ -257,8 +252,8 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         switch self {
         case let .signIn(email, password):
             return .requestParameters(parameters: ["email": email, "password": password], encoding: JSONEncoding.default)
-        case let .getUserInfo(apnsToken):
-            return .requestParameters(parameters: ["pushtoken": apnsToken], encoding: URLEncoding.default)
+        case .getUserInfo:
+            return .requestPlain
         case let .getVersion(token):
             return .requestParameters(parameters: ["token": token], encoding: URLEncoding.default)
 
@@ -382,20 +377,12 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case let .ticketClose_admin(id):
             return .requestParameters(parameters: ["id":id], encoding: URLEncoding.default)
 
-        case let .registerFcmToken(fcmToken):
-            return .requestParameters(parameters: ["fcm_token": fcmToken], encoding: JSONEncoding.default)
 
         case let .registerDeviceToken(token, platform):
-            var params: [String: Any] = ["platform": platform]
-            if platform == "tvos" {
-                params["apns_token"] = token
-            } else {
-                params["fcm_token"] = token
-            }
-            return .requestParameters(parameters: params, encoding: JSONEncoding.default)
-
-        case .unregisterFcmToken:
-            return .requestPlain
+            return .requestParameters(parameters: [
+                "device_token": token,
+                "platform": platform
+            ], encoding: JSONEncoding.default)
 
         case let .testPush(title, body):
             return .requestParameters(parameters: [
