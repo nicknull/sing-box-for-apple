@@ -13,6 +13,10 @@ import CryptoSwift
 import Defaults
 import ApplicationLibrary
 
+extension Notification.Name {
+    static let authExpired = Notification.Name("authExpiredNotification")
+}
+
 class UserManager: ObservableObject {
     @AppStorage(ConstantKey.email) var email: String = ""
     @AppStorage(ConstantKey.password) var password: String = ""

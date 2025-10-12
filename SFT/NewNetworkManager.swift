@@ -48,6 +48,9 @@ func NewNetWorkRequest(_ target:TargetType&ResponseProvider,progress: ProgressBl
 //                return
 //            }
             let model:NewResponseModel = target.responsePrase(response)
+            if model.code == 401 || model.code == 403 {
+                NotificationCenter.default.post(name: .authExpired, object: nil)
+            }
             successCallback(model)
 
         case let .failure(error as NSError):

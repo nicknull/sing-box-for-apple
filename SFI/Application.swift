@@ -3,6 +3,7 @@ import Library
 import SwiftUI
 import Defaults
 import SPIndicator
+import Combine
 
 enum AppState {
     case sync      // 需要显示同步界面
@@ -119,6 +120,12 @@ struct Application: App {
                 userManager.reload()
 #endif
 
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .authExpired)) { _ in
+                DispatchQueue.main.async {
+                    userManager.logout()
+                    appStateManager.userLoggedOut()
+                }
             }
 
         }

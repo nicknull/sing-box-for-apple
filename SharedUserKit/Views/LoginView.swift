@@ -261,6 +261,7 @@ struct LoginView: View {
                 .animation(.easeInOut(duration: 0.25))
                 .closeOnTap(false)
                 .closeOnTapOutside(false)
+                .dragToDismiss(false)
                 .backgroundColor(Color.black.opacity(0.25))
                 .autohideIn(nil)
         }
