@@ -202,6 +202,7 @@ private extension PurchaseView {
                                 plan: section.plan,
                                 options: section.options,
                                 isPurchasing: $isPurchasing,
+                                showSuccess: $showSuccess,
                                 onPurchase: { product in
                                     await purchase(product: product)
                                 }
@@ -600,6 +601,7 @@ private struct PlanDetailView: View {
     let plan: PlanSummary
     let options: [PurchaseView.PlanOption]
     @Binding var isPurchasing: Bool
+    @Binding var showSuccess: Bool
     let onPurchase: (Product) async -> Void
 
     var body: some View {
@@ -624,6 +626,28 @@ private struct PlanDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .listStyle(.insetGrouped)
         .disabled(isPurchasing)
+        .popup(isPresented: $showSuccess) {
+            VStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.white)
+                    .font(.system(size: 28))
+                Text("购买成功！")
+                    .font(.footnote)
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+            .background(Color.black.opacity(0.75))
+            .cornerRadius(14)
+        } customize: { popup in
+            popup
+                .type(.toast)
+                .position(.top)
+                .animation(.easeInOut)
+                .autohideIn(1.6)
+                .closeOnTap(true)
+                .closeOnTapOutside(true)
+        }
     }
 }
 
