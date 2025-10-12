@@ -331,8 +331,12 @@ private extension PurchaseView {
             await MainActor.run {
                 isPurchasing = false
                 if success {
-                    userManager.reload()
+                    showSuccess = false
                     showSuccess = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+                        showSuccess = false
+                    }
+                    userManager.reload()
                 } else {
                     alertMessage = "购买成功，但订单同步失败: \(errorMessage ?? "未知错误")"
                     showAlert = true
