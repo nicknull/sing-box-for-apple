@@ -1,11 +1,6 @@
 import Foundation
 import UserNotifications
 
-/**
- * 设备 Token 管理器（原生 APNS）
- * iOS/tvOS: 统一使用 APNS Device Token
- * Firebase 已移除，使用原生推送
- */
 class DeviceTokenManager: NSObject {
     static let shared = DeviceTokenManager()
 
@@ -15,7 +10,6 @@ class DeviceTokenManager: NSObject {
         super.init()
     }
 
-    /// 注册推送通知权限
     func registerForPushNotifications() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             if granted {
@@ -33,7 +27,6 @@ class DeviceTokenManager: NSObject {
         }
     }
 
-    /// 处理获取到的 Device Token
     func handleDeviceToken(_ deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         self.deviceToken = token
@@ -44,16 +37,13 @@ class DeviceTokenManager: NSObject {
         NSLog("📺 APNS Device Token (tvOS): \(token.prefix(20))...")
         #endif
 
-        // 上传到后端
         uploadTokenIfNeeded(token)
     }
 
-    /// 处理注册失败
     func handleRegistrationError(_ error: Error) {
         NSLog("❌ APNS 注册失败: \(error.localizedDescription)")
     }
 
-    /// 上传 Device Token 到后端
     private func uploadToken(_ token: String) {
         #if os(iOS)
         let platform = "ios"
@@ -77,7 +67,6 @@ class DeviceTokenManager: NSObject {
         }
     }
 
-    /// 检查是否需要上传 Token（登录后或 Token 更新时）
     func uploadTokenIfNeeded(_ token: String) {
         let lastTokenKey = "last_uploaded_apns_token"
         let uploadDateKey = "apns_token_upload_date"
@@ -97,12 +86,11 @@ class DeviceTokenManager: NSObject {
         uploadToken(token)
     }
 
-    /// 移除设备 Token（用户登出时调用）
     func removeToken() {
         NSLog("🗑️ 准备移除 APNS Token")
 
         NewNetWorkRequest(
-            AQAPIService.unregisterFcmToken,
+            AQAPIService.unregisterDeviceToken,
             modelType: SimpleResponse.self
         ) { response, responseModel in
             if let response = response, response.code == 200 {
@@ -115,11 +103,6 @@ class DeviceTokenManager: NSObject {
         }
     }
 
-    /// 测试推送通知
-    /// - Parameters:
-    ///   - title: 通知标题
-    ///   - body: 通知内容
-    ///   - completion: 完成回调
     func testPush(title: String, body: String, completion: ((Bool, String?) -> Void)? = nil) {
         NSLog("🔔 发送测试推送: \(title)")
 
@@ -139,7 +122,6 @@ class DeviceTokenManager: NSObject {
     }
 }
 
-/// 简单响应模型
 struct SimpleResponse: Codable {
     let code: Int
     let msg: String?

@@ -5,20 +5,12 @@ import Libbox
 import Library
 import Network
 import UIKit
-// Firebase 已移除，使用原生 APNS
-// import FirebaseCore
-// import FirebaseMessaging
-
 import UserNotifications
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     private var profileServer: ProfileServer?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        // Firebase 已移除
-        // FirebaseApp.configure()
-        // Messaging.messaging().delegate = self
-
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath
         options.workingPath = FilePath.workingDirectory.relativePath
@@ -29,7 +21,6 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
 
         UNUserNotificationCenter.current().delegate = self
 
-        // 注册原生 APNS 推送
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             if granted {
                 NSLog("✅ 推送通知权限已授予 (iOS)")
@@ -109,12 +100,8 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
-// Firebase Messaging delegate 已移除
-// extension ApplicationDelegate: MessagingDelegate { ... }
-
 @available(iOS 10, *)
 extension ApplicationDelegate: UNUserNotificationCenterDelegate {
-    // 前台收到推送
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
@@ -123,7 +110,6 @@ extension ApplicationDelegate: UNUserNotificationCenterDelegate {
         completionHandler([.banner, .badge, .sound])
     }
 
-    // 用户点击推送
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {

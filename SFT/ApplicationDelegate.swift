@@ -3,17 +3,10 @@ import Foundation
 import Libbox
 import Library
 import UIKit
-// Firebase 已移除，使用原生 APNS
-// import FirebaseCore
-// import FirebaseMessaging
 import UserNotifications
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     func application(_: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        // Firebase 已移除
-        // FirebaseApp.configure()
-
-        // 统一使用原生 APNS（iOS/tvOS）
         UNUserNotificationCenter.current().delegate = self
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if granted {
@@ -72,10 +65,6 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
     }
 }
 
-// Firebase Messaging delegate 已移除
-// extension ApplicationDelegate: MessagingDelegate { ... }
-
-// 统一使用 UserNotificationCenter Delegate
 extension ApplicationDelegate: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         let title = notification.request.content.title

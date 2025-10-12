@@ -11,9 +11,6 @@ import Library
 import Libbox
 import CryptoSwift
 import Defaults
-// Firebase 已移除，使用原生 APNS
-// import FirebaseCore
-// import FirebaseMessaging
 import ApplicationLibrary
 
 class UserManager: ObservableObject {
@@ -66,7 +63,6 @@ class UserManager: ObservableObject {
     @State private var gettingSubscribe :Bool = false
     
     func logout() {
-        // 移除设备 Token
         DeviceTokenManager.shared.removeToken()
 
         self.email = ""
@@ -112,15 +108,11 @@ class UserManager: ObservableObject {
     func refreshUserInfo() {
         refreshingUserInfo = true
 
-        // APNS Token 已在 ApplicationDelegate 中注册并上传
-        // iOS/tvOS 统一使用原生 APNS
-
-        NewNetWorkRequest(AQAPIService.getUserInfo(apnsToken: ""), modelType:UserInfoModel.self) { [self] (userInfo, responseModel) in
+        NewNetWorkRequest(AQAPIService.getUserInfo, modelType:UserInfoModel.self) { [self] (userInfo, responseModel) in
             refreshingUserInfo = false
             if userInfo != nil {
                 userInfoJsonStr = responseModel.dataString!
 
-                // 登录成功后，触发 APNS Token 上传（如果还未上传）
                 NSLog("✅ 用户信息刷新成功，APNS Token 会在设备注册后自动上传")
             } else {
                 if responseModel.code == 403 {
