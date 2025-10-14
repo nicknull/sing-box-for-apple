@@ -77,7 +77,9 @@ def lib
 #  pod 'PingManager'#ping请求造成大量的请求 把自己的真实地址塞在中间
   pod 'ExytePopupView'
   pod 'SwiftDate'
-
+  pod 'CryptoSwift'
+  pod 'Defaults'
+  pod 'CodableWrappers'
 
 end
 
@@ -111,15 +113,6 @@ end
 #    end
 #  end
 #end
-
-target 'ApplicationLibrary' do
-  use_frameworks!
-  pod 'CryptoSwift'
-  pod 'Defaults'
-  pod 'CodableWrappers'
-
-end
-
 
 #target 'SystemExtension' do
 #  # Comment the next line if you don't want to use dynamic frameworks

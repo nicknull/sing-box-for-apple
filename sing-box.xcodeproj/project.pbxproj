@@ -186,8 +186,9 @@
 		95DFC3C3E216007D7EF3AF24 /* ConstantKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = D762FAA3D97DC5FF5DCC9B60 /* ConstantKey.swift */; };
 		9DB93E0401ABC1EC074AA869 /* SharedUserKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6048973FFBFBB63A4D18AC1 /* SharedUserKit.swift */; };
 		A661C8019C01DDCFE56EB020 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 684EFB13D4F377CDF799C66A /* LoginView.swift */; };
-		AB4C80FBA9F23CE2F99ACDFA /* Pods_ApplicationLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BEEE22E4D9305F5F2040FE0 /* Pods_ApplicationLibrary.framework */; };
 		AB8E447E1C8173FFD28D833C /* PurchaseXException.swift in Sources */ = {isa = PBXBuildFile; fileRef = C611B877D70CD08085BB3E2E /* PurchaseXException.swift */; };
+		B60FAAF52E9D20F60084F18D /* PlanDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60FAAF42E9D20F60084F18D /* PlanDetailView.swift */; };
+		B60FAAF72E9D22370084F18D /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B60FAAF62E9D22370084F18D /* CFNetwork.framework */; };
 		B6165A962B25DAB2008DE6D3 /* ProfileListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6165A952B25DAB1008DE6D3 /* ProfileListView.swift */; };
 		B61E51772C6F91C000D020DB /* URL+Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = B61E51762C6F91C000D020DB /* URL+Query.swift */; };
 		B621EDA22D6B4E6000314EC6 /* ReadMe in Resources */ = {isa = PBXBuildFile; fileRef = B621EDA12D6B4E6000314EC6 /* ReadMe */; };
@@ -269,6 +270,7 @@
 		B6F5C78A2BA32D160038016B /* Sync.json in Resources */ = {isa = PBXBuildFile; fileRef = B6F5C7882BA32D150038016B /* Sync.json */; };
 		BB8E7F232B7D89D4A2BAF442 /* Defaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD887AFD1770F8AE912146AD /* Defaults.swift */; };
 		C2EE153EEE19D6AACF6E77FD /* PurchaseXManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73208BDAFF6F587C82F0FFC4 /* PurchaseXManager.swift */; };
+		C5BD2B9C2E7D4B8000A1B3F2 /* QRCode in Frameworks */ = {isa = PBXBuildFile; productRef = B65F59612D6B5BF600F1F695 /* QRCode */; };
 		C680D560641BA8B70AA2BD9A /* GitHubSignInManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3256F37834F17264FA45341 /* GitHubSignInManager.swift */; };
 		C6F017DF0BEFE84A282B00F2 /* IAPOrderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642091E5ED7394597DA2D492 /* IAPOrderManager.swift */; };
 		C7DF3B6ED690DA1F44B00CE0 /* OAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFF98C42018D93A23634CCF2 /* OAuthManager.swift */; };
@@ -717,15 +719,14 @@
 		77BB7DEEA52EC2982210F327 /* Pods_SFT.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SFT.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BB47344978C61E3D47219FE /* Pods_SFI.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SFI.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		82DE699DB51B584A67218375 /* PurchaseView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PurchaseView.swift; sourceTree = "<group>"; };
-		894D9CC5F3FB85B851F2B4CE /* Pods-ApplicationLibrary.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ApplicationLibrary.release.xcconfig"; path = "Target Support Files/Pods-ApplicationLibrary/Pods-ApplicationLibrary.release.xcconfig"; sourceTree = "<group>"; };
 		97361C725FB2ADFB6787F9FD /* Pods-SFT.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SFT.release.xcconfig"; path = "Target Support Files/Pods-SFT/Pods-SFT.release.xcconfig"; sourceTree = "<group>"; };
-		9BEEE22E4D9305F5F2040FE0 /* Pods_ApplicationLibrary.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ApplicationLibrary.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A2E1D6BF50C9C7A238B3F9D0 /* PurchaseXNotification.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PurchaseXNotification.swift; sourceTree = "<group>"; };
-		A61B1B007FB5912E0EF4A377 /* Pods-ApplicationLibrary.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ApplicationLibrary.debug.xcconfig"; path = "Target Support Files/Pods-ApplicationLibrary/Pods-ApplicationLibrary.debug.xcconfig"; sourceTree = "<group>"; };
 		AD887AFD1770F8AE912146AD /* Defaults.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Defaults.swift; sourceTree = "<group>"; };
 		AF2615C73A466A71817585D0 /* PurchaseXState.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PurchaseXState.swift; sourceTree = "<group>"; };
 		B3256F37834F17264FA45341 /* GitHubSignInManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GitHubSignInManager.swift; sourceTree = "<group>"; };
 		B6048973FFBFBB63A4D18AC1 /* SharedUserKit.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharedUserKit.swift; sourceTree = "<group>"; };
+		B60FAAF42E9D20F60084F18D /* PlanDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanDetailView.swift; sourceTree = "<group>"; };
+		B60FAAF62E9D22370084F18D /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.5.sdk/System/Library/Frameworks/CFNetwork.framework; sourceTree = DEVELOPER_DIR; };
 		B6165A952B25DAB1008DE6D3 /* ProfileListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileListView.swift; sourceTree = "<group>"; };
 		B61E51762C6F91C000D020DB /* URL+Query.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Query.swift"; sourceTree = "<group>"; };
 		B621EDA12D6B4E6000314EC6 /* ReadMe */ = {isa = PBXFileReference; lastKnownFileType = text; path = ReadMe; sourceTree = "<group>"; };
@@ -796,7 +797,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3A4EAD1B2A4FEB02005435B3 /* Library.framework in Frameworks */,
-				AB4C80FBA9F23CE2F99ACDFA /* Pods_ApplicationLibrary.framework in Frameworks */,
+				C5BD2B9C2E7D4B8000A1B3F2 /* QRCode in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -834,6 +835,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B65F59622D6B5BF600F1F695 /* QRCode in Frameworks */,
+				B60FAAF72E9D22370084F18D /* CFNetwork.framework in Frameworks */,
 				B65F59352D6B53DC00F1F695 /* BinaryCodable in Frameworks */,
 				3A9759202A4EB69C00E4404B /* Library.framework in Frameworks */,
 				B65F59382D6B53F200F1F695 /* CodeScanner in Frameworks */,
@@ -1140,6 +1142,7 @@
 		3AEC21012A459AE300A63465 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B60FAAF62E9D22370084F18D /* CFNetwork.framework */,
 				3AF3A3D12B2207E1001FD7C1 /* libresolv.tbd */,
 				3A3DEBE62A4FFA6000373BF4 /* AppIntents.framework */,
 				3A3DEBE12A4FFA1A00373BF4 /* ExtensionFoundation.framework */,
@@ -1147,7 +1150,6 @@
 				3ABA46D22A6A32A100D8366B /* Messages.framework */,
 				77BB7DEEA52EC2982210F327 /* Pods_SFT.framework */,
 				7BB47344978C61E3D47219FE /* Pods_SFI.framework */,
-				9BEEE22E4D9305F5F2040FE0 /* Pods_ApplicationLibrary.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1430,8 +1432,6 @@
 				97361C725FB2ADFB6787F9FD /* Pods-SFT.release.xcconfig */,
 				E4B1464FA5581F8C8E7D1BA6 /* Pods-SFI.debug.xcconfig */,
 				6F1815BAE65271F47869430F /* Pods-SFI.release.xcconfig */,
-				A61B1B007FB5912E0EF4A377 /* Pods-ApplicationLibrary.debug.xcconfig */,
-				894D9CC5F3FB85B851F2B4CE /* Pods-ApplicationLibrary.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -1440,6 +1440,7 @@
 			isa = PBXGroup;
 			children = (
 				82DE699DB51B584A67218375 /* PurchaseView.swift */,
+				B60FAAF42E9D20F60084F18D /* PlanDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1521,7 +1522,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 3A4EAD182A4FEAE6005435B3 /* Build configuration list for PBXNativeTarget "ApplicationLibrary" */;
 			buildPhases = (
-				986DC28745DD9CB4DE878672 /* [CP] Check Pods Manifest.lock */,
 				3A4EAD0B2A4FEAE6005435B3 /* Headers */,
 				3A4EAD0C2A4FEAE6005435B3 /* Sources */,
 				3A4EAD0D2A4FEAE6005435B3 /* Frameworks */,
@@ -1533,6 +1533,9 @@
 				3A4EAD1E2A4FEB02005435B3 /* PBXTargetDependency */,
 			);
 			name = ApplicationLibrary;
+			packageProductDependencies = (
+				B65F59612D6B5BF600F1F695 /* QRCode */,
+			);
 			productName = ApplicationLibrary;
 			productReference = 3A4EAD102A4FEAE6005435B3 /* ApplicationLibrary.framework */;
 			productType = "com.apple.product-type.framework";
@@ -1919,28 +1922,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		986DC28745DD9CB4DE878672 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ApplicationLibrary-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
 		B62C4A55DD09D91C42A4E853 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1949,9 +1930,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1966,9 +1951,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -2202,6 +2191,7 @@
 				28C8C6C766BE8354009FCF19 /* AppleSignInManager.swift in Sources */,
 				C680D560641BA8B70AA2BD9A /* GitHubSignInManager.swift in Sources */,
 				B6BC324A2E9556E600DDAFC9 /* TestEnv.swift in Sources */,
+				B60FAAF52E9D20F60084F18D /* PlanDetailView.swift in Sources */,
 				4D7B553FB75A7E610DFCD668 /* GoogleSignInManager.swift in Sources */,
 				EE463B217ACF2D5E81DBBCD5 /* OAuthBindingManager.swift in Sources */,
 				C7DF3B6ED690DA1F44B00CE0 /* OAuthManager.swift in Sources */,
@@ -2424,7 +2414,7 @@
 				CODE_SIGN_ENTITLEMENTS = Extension/Extension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2439,7 +2429,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.extensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2465,7 +2455,7 @@
 				CODE_SIGN_ENTITLEMENTS = Extension/Extension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -2480,7 +2470,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.extensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2500,7 +2490,6 @@
 		};
 		3A4EAD192A4FEAE6005435B3 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A61B1B007FB5912E0EF4A377 /* Pods-ApplicationLibrary.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
@@ -2544,7 +2533,6 @@
 		};
 		3A4EAD1A2A4FEAE6005435B3 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 894D9CC5F3FB85B851F2B4CE /* Pods-ApplicationLibrary.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
@@ -2591,7 +2579,7 @@
 				CODE_SIGN_ENTITLEMENTS = IntentsExtension/IntentsExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
@@ -2606,7 +2594,7 @@
 				);
 				LINK_WITH_STANDARD_LIBRARIES = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.intents;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2631,7 +2619,7 @@
 				CODE_SIGN_ENTITLEMENTS = IntentsExtension/IntentsExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = IntentsExtension/Info.plist;
@@ -2646,7 +2634,7 @@
 				);
 				LINK_WITH_STANDARD_LIBRARIES = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.intents;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -2674,7 +2662,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SFT/SFT.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -2691,7 +2679,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2711,7 +2699,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SFT/SFT.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -2728,7 +2716,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = "sing-box";
 				SDKROOT = appletvos;
@@ -2747,7 +2735,7 @@
 				CODE_SIGN_ENTITLEMENTS = TVExtension/TVExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TVExtension/Info.plist;
@@ -2760,7 +2748,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.extensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2783,7 +2771,7 @@
 				CODE_SIGN_ENTITLEMENTS = TVExtension/TVExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = TVExtension/Info.plist;
@@ -2796,7 +2784,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.extensions;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2955,7 +2943,7 @@
 				CODE_SIGN_ENTITLEMENTS = SFI/SFI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_PREVIEWS = YES;
@@ -2978,7 +2966,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
@@ -3001,7 +2989,7 @@
 				CODE_SIGN_ENTITLEMENTS = SFI/SFI.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_PREVIEWS = YES;
@@ -3024,88 +3012,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				OTHER_CODE_SIGN_FLAGS = "--deep";
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-ObjC",
-					"-l\"c++\"",
-					"-l\"sqlite3\"",
-					"-l\"z\"",
-					"-framework",
-					"\"Accelerate\"",
-					"-framework",
-					"\"Alamofire\"",
-					"-framework",
-					"-framework",
-					"\"CFNetwork\"",
-					"-framework",
-					"\"CoreGraphics\"",
-					"-framework",
-					"\"CryptoSwift\"",
-					"-framework",
-					"\"Defaults\"",
-					"-framework",
-					"\"DynamicColor\"",
-					"-framework",
-					"\"ExytePopupView\"",
-					"-framework",
-					"\"FBLPromises\"",
-					"-framework",
-					"\"FirebaseABTesting\"",
-					"-framework",
-					"\"FirebaseAnalytics\"",
-					"-framework",
-					"\"FirebaseCore\"",
-					"-framework",
-					"\"FirebaseCoreInternal\"",
-					"-framework",
-					"\"FirebaseInstallations\"",
-					"-framework",
-					"\"FirebaseRemoteConfig\"",
-					"-framework",
-					"\"FirebaseRemoteConfigInterop\"",
-					"-framework",
-					"\"FirebaseSharedSwift\"",
-					"-framework",
-					"\"Foundation\"",
-					"-framework",
-					"\"GoogleAppMeasurement\"",
-					"-framework",
-					"\"GoogleAppMeasurementIdentitySupport\"",
-					"-framework",
-					"\"GoogleUtilities\"",
-					"-framework",
-					"\"Kingfisher\"",
-					"-framework",
-					"\"Lottie\"",
-					"-framework",
-					"\"Moya\"",
-					"-framework",
-					"\"QuartzCore\"",
-					"-framework",
-					"\"SPIndicator\"",
-					"-framework",
-					"\"Security\"",
-					"-framework",
-					"\"Siren\"",
-					"-framework",
-					"\"StoreKit\"",
-					"-framework",
-					"\"SwiftUIIntrospect\"",
-					"-framework",
-					"\"SwiftyJSON\"",
-					"-framework",
-					"\"SystemConfiguration\"",
-					"-framework",
-					"\"UIKit\"",
-					"-framework",
-					"\"nanopb\"",
-					"-weak_framework",
-					"\"Combine\"",
-					"-weak_framework",
-					"\"SwiftUI\"",
-				);
+				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = iFlash;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3126,7 +3035,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -3144,7 +3053,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = "sing-box";
@@ -3166,7 +3075,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -3184,7 +3093,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				OTHER_CODE_SIGN_FLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash;
 				PRODUCT_NAME = "sing-box";
@@ -3298,7 +3207,7 @@
 				CODE_SIGN_ENTITLEMENTS = SystemExtension/SystemExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -3313,7 +3222,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3332,7 +3241,7 @@
 				CODE_SIGN_ENTITLEMENTS = SystemExtension/SystemExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -3347,7 +3256,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.system;
 				PRODUCT_NAME = "$(inherited)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3370,7 +3279,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -3387,7 +3296,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -3409,7 +3318,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3.7.0;
+				CURRENT_PROJECT_VERSION = 3.8.0;
 				DEVELOPMENT_TEAM = JJ6GAZ8828;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -3426,7 +3335,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 3.7;
+				MARKETING_VERSION = 3.8;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gy.iflash.independent;
 				PRODUCT_NAME = SFM;
 				PROVISIONING_PROFILE_SPECIFIER = "";
