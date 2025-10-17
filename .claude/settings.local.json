@@ -31,7 +31,10 @@
       "Bash(rm -rf UserModule/)",
       "Bash(grep -E \"\\.(sh|py|rb)$\")",
       "Bash(cp:*)",
-      "Bash(pod update:*)"
+      "Bash(pod update:*)",
+      "Bash(pod install:*)",
+      "Bash(make:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

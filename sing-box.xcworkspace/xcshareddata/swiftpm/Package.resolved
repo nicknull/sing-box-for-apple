@@ -1,5 +1,5 @@
 {
-  "originHash" : "7a4a72f54e6f6e2586fb44ef561eebbe21227957e21bfe511cfdcfea1ad7d940",
+  "originHash" : "e5ca7b3993da1dc194dda7c2bc2d22693b32234f62fae3dc8f73cba2ef86d03e",
   "pins" : [
     {
       "identity" : "bettersafariview",
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/dagronf/QRCode.git",
       "state" : {
-        "revision" : "177d4091f7fcce1efc22de2a5fcdb671bd103101",
-        "version" : "26.10.0"
+        "revision" : "ea4047a7777bae470adc140cd94bfa5396a96202",
+        "version" : "27.11.0"
       }
     },
     {
