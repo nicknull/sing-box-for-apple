@@ -29,7 +29,9 @@
       "Bash(cp SFT/ResponseProvider.swift UserModule/Network/)",
       "Bash(cp SFT/NewResponseModel.swift UserModule/Network/)",
       "Bash(rm -rf UserModule/)",
-      "Bash(grep -E \"\\.(sh|py|rb)$\")"
+      "Bash(grep -E \"\\.(sh|py|rb)$\")",
+      "Bash(cp:*)",
+      "Bash(pod update:*)"
     ],
     "deny": [],
     "ask": []

@@ -269,6 +269,9 @@ struct LoginView: View {
             self.emailInput = (self.email.count > 0 && self.emailInput.count == 0) ? self.email:""
             self.passwordInput = (self.password.count > 0 && self.passwordInput.count == 0) ? self.password:""
 
+            // 记录登录页面访问
+             SharedAnalyticsKit.shared.logScreenView(screenName: "LoginView")
+
             // 设置 OAuth 回调
             setupOAuthCallbacks()
         }
@@ -284,21 +287,38 @@ struct LoginView: View {
                 userManager.token = authModel.token
                 userManager.is_admin = authModel.is_admin
 
+                // 记录OAuth登录成功事件
+                SharedAnalyticsKit.shared.logUserLogin(
+                    method: "oauth",
+                    success: true,
+                    userId: userManager.userInfo?.email
+                )
+
                 Task {
-                    userManager.reload()
+                    await userManager.reload()
 
                     DispatchQueue.main.async {
                         // 登录成功后通知 AppStateManager 进入主界面
                         appStateManager.loginCompleted()
                     }
                 }
+                }
             }
-        }
 
         oauthManager.onFailure = { error in
             DispatchQueue.main.async {
                 errorStr = error
                 showingPopup = true
+
+                // 记录OAuth登录失败事件
+                SharedAnalyticsKit.shared.logUserLogin(
+                    method: "oauth",
+                    success: false
+                )
+                SharedAnalyticsKit.shared.logCustomError(
+                    message: "OAuth login failed: \(error)",
+                    context: "login"
+                )
             }
         }
     }
@@ -352,9 +372,16 @@ struct LoginView: View {
                 userManager.token = authModel.token
                 userManager.is_admin = authModel.is_admin
 
+                // 记录传统登录成功事件
+                 SharedAnalyticsKit.shared.logUserLogin(
+                     method: "email_password",
+                     success: true,
+                     userId: userManager.userInfo?.email
+                 )
+
                 Task {
-                    userManager.reload()
-                    
+                    await userManager.reload()
+
                     DispatchQueue.main.async {
                         isLoading = false
                         // 登录成功后通知 AppStateManager 进入主界面
@@ -367,6 +394,16 @@ struct LoginView: View {
                 isLoading = false
                 errorStr = responseModel.messageStr ?? "网络请求失败，请检查网络连接"
                 showingPopup = true
+
+                // 记录传统登录失败事件
+                 SharedAnalyticsKit.shared.logUserLogin(
+                     method: "email_password",
+                     success: false
+                 )
+                 SharedAnalyticsKit.shared.logCustomError(
+                     message: "Email login failed: \(responseModel.messageStr ?? "unknown")",
+                     context: "login"
+                 )
             }
         }
     }

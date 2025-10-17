@@ -129,7 +129,7 @@ struct AccountBindingView: View {
             showingAlert = true
 
             // 刷新用户信息
-            userManager.reload()
+            Task { await userManager.reload() }
         }
 
         bindingManager.onBindFailure = { error in
@@ -144,7 +144,7 @@ struct AccountBindingView: View {
             showingAlert = true
 
             // 刷新用户信息
-            userManager.reload()
+            Task { await userManager.reload() }
         }
 
         bindingManager.onUnbindFailure = { error in

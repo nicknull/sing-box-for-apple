@@ -81,6 +81,9 @@ struct DashBoardView: View {
         }
         .ignoresSafeArea()
         .onAppear {
+            // 记录Dashboard页面访问
+             SharedAnalyticsKit.shared.logScreenView(screenName: "DashBoardView")
+
             environments.postReload()
             // 登录状态检查已经移到 Application 层处理，这里不再需要
         }

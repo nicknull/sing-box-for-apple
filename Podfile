@@ -81,6 +81,10 @@ def lib
   pod 'Defaults'
   pod 'CodableWrappers'
 
+  # Firebase Analytics and Crashlytics
+  pod 'Firebase/Analytics'
+  pod 'Firebase/Crashlytics'
+
 end
 
 target 'SFI' do

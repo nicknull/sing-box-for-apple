@@ -9,7 +9,7 @@ import Foundation
 
 enum SharedUserKit {
     /// 工厂方法：创建默认的用户管理器实例。
-    static func makeUserManager() -> UserManager {
+    @MainActor static func makeUserManager() -> UserManager {
         UserManager()
     }
 

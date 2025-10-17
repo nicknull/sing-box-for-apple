@@ -154,3 +154,48 @@ struct CreateTicketResponse: Codable {
     let data: Bool?
     let message:String?
 }
+
+// MARK: - Trial Models
+struct TrialInfoResponse: Codable {
+    let status: String
+    let data: TrialInfoData
+}
+
+struct TrialInfoData: Codable {
+    let trial_enabled: Bool
+    let trial_config: TrialConfig?
+    let user_status: TrialUserStatus
+    let can_claim: Bool
+    let message: String
+}
+
+struct TrialConfig: Codable {
+    let plan_id: Int
+    let plan_name: String
+    let trial_hours: Int
+    let plan_description: String
+    let transfer_enable: Int64
+}
+
+struct TrialUserStatus: Codable {
+    let status: String
+    let can_claim: Bool
+    let message: String
+    let expired_at: TimeInterval?
+    let is_trial: Bool
+    let is_expired: Bool
+    let remaining_hours: Double?
+}
+
+struct TrialClaimResponse: Codable {
+    let status: String
+    let message: String
+    let data: TrialClaimData?
+}
+
+struct TrialClaimData: Codable {
+    let plan_name: String
+    let expired_at: TimeInterval
+    let transfer_enable: Int64
+    let remaining_hours: Int
+}

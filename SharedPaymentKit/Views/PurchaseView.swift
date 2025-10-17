@@ -5,11 +5,13 @@
 //  统一的内购购买页，负责加载商品、发起购买、恢复交易与提示用户状态。
 //
 
-import SwiftUI
-import StoreKit
 import ExytePopupView
+import StoreKit
+import SwiftUI
 
-private typealias PurchaseResult = (transaction: StoreKit.Transaction?, purchaseState: PurchaseXState)
+private typealias PurchaseResult = (
+    transaction: StoreKit.Transaction?, purchaseState: PurchaseXState
+)
 
 struct PurchaseView: View {
 
@@ -32,7 +34,7 @@ struct PurchaseView: View {
             periods: [
                 ProductPeriod(code: "month", label: "月付"),
                 ProductPeriod(code: "quart", label: "季付"),
-                ProductPeriod(code: "year", label: "年付")
+                ProductPeriod(code: "year", label: "年付"),
             ]
         ),
         ProductGroup(
@@ -42,7 +44,7 @@ struct PurchaseView: View {
             periods: [
                 ProductPeriod(code: "month", label: "月付"),
                 ProductPeriod(code: "quart", label: "季付"),
-                ProductPeriod(code: "year", label: "年付")
+                ProductPeriod(code: "year", label: "年付"),
             ]
         ),
         ProductGroup(
@@ -52,7 +54,7 @@ struct PurchaseView: View {
             periods: [
                 ProductPeriod(code: "month", label: "月付"),
                 ProductPeriod(code: "quart", label: "季付"),
-                ProductPeriod(code: "year", label: "年付")
+                ProductPeriod(code: "year", label: "年付"),
             ]
         ),
         ProductGroup(
@@ -62,21 +64,23 @@ struct PurchaseView: View {
             periods: [
                 ProductPeriod(code: "year", label: "年付")
             ]
-        )
+        ),
     ]
 
-    init(productIDs: [String] = [
-        "com.gy.iflash.bcup.month",
-        "com.gy.iflash.bcup.quart",
-        "com.gy.iflash.bcup.year",
-        "com.gy.iflash.ccup.month",
-        "com.gy.iflash.ccup.quart",
-        "com.gy.iflash.ccup.year",
-        "com.gy.iflash.dcup.month",
-        "com.gy.iflash.dcup.quart",
-        "com.gy.iflash.dcup.year",
-        "com.gy.iflash.zcup.year"
-    ]) {
+    init(
+        productIDs: [String] = [
+            "com.gy.iflash.bcup.month",
+            "com.gy.iflash.bcup.quart",
+            "com.gy.iflash.bcup.year",
+            "com.gy.iflash.ccup.month",
+            "com.gy.iflash.ccup.quart",
+            "com.gy.iflash.ccup.year",
+            "com.gy.iflash.dcup.month",
+            "com.gy.iflash.dcup.quart",
+            "com.gy.iflash.dcup.year",
+            "com.gy.iflash.zcup.year",
+        ]
+    ) {
         self.productIDs = productIDs
         let manager = PurchaseXManager()
         manager.onPurchaseSuccess = { transaction in
@@ -89,6 +93,11 @@ struct PurchaseView: View {
         content
             .navigationTitle("选择套餐")
             .task {
+                // 记录购买页面访问
+                SharedAnalyticsKit.shared.logScreenView(
+                    screenName: "PurchaseView"
+                )
+
                 configurePurchaseCallbacksIfNeeded()
                 guard screenState == .idle else { return }
                 await loadInitialData()
@@ -97,10 +106,13 @@ struct PurchaseView: View {
                 Alert(
                     title: Text("提示"),
                     message: Text(alertMessage ?? ""),
-                    dismissButton: .default(Text("确定"), action: {
-                        alertMessage = nil
-                        showAlert = false
-                    })
+                    dismissButton: .default(
+                        Text("确定"),
+                        action: {
+                            alertMessage = nil
+                            showAlert = false
+                        }
+                    )
                 )
             }
             .popup(isPresented: $isPurchasing) {
@@ -140,8 +152,8 @@ struct PurchaseView: View {
 
 // MARK: - Screen State
 
-private extension PurchaseView {
-    enum ScreenState: Equatable {
+extension PurchaseView {
+    fileprivate enum ScreenState: Equatable {
         case idle
         case loading
         case loaded([Product])
@@ -151,9 +163,9 @@ private extension PurchaseView {
 
 // MARK: - View Builders
 
-private extension PurchaseView {
+extension PurchaseView {
     @ViewBuilder
-    var content: some View {
+    fileprivate var content: some View {
         switch screenState {
         case .idle, .loading:
             loadingView
@@ -164,7 +176,7 @@ private extension PurchaseView {
         }
     }
 
-    var loadingView: some View {
+    fileprivate var loadingView: some View {
         VStack {
             Spacer()
             ProgressView("加载中...")
@@ -172,7 +184,7 @@ private extension PurchaseView {
         }
     }
 
-    var emptyView: some View {
+    fileprivate var emptyView: some View {
         VStack(spacing: 16) {
             Spacer()
             Image(systemName: "cart.badge.questionmark")
@@ -188,8 +200,10 @@ private extension PurchaseView {
         .padding()
     }
 
-    func productList(_ products: [Product]) -> some View {
-        let productDictionary = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0) })
+    fileprivate func productList(_ products: [Product]) -> some View {
+        let productDictionary = Dictionary(
+            uniqueKeysWithValues: products.map { ($0.id, $0) }
+        )
         let sections = planSections(products: productDictionary)
 
         return List {
@@ -228,7 +242,7 @@ private extension PurchaseView {
         .disabled(isPurchasing)
     }
 
-    var hudView: some View {
+    fileprivate var hudView: some View {
         VStack(spacing: 12) {
             ProgressView()
             Text("正在处理订单...")
@@ -244,8 +258,8 @@ private extension PurchaseView {
 
 // MARK: - Initialisation Flow
 
-private extension PurchaseView {
-    func configurePurchaseCallbacksIfNeeded() {
+extension PurchaseView {
+    fileprivate func configurePurchaseCallbacksIfNeeded() {
         if purchaseManager.onPurchaseSuccess == nil {
             purchaseManager.onPurchaseSuccess = { transaction in
                 NSLog("purchase success: \(transaction.productID)")
@@ -253,7 +267,7 @@ private extension PurchaseView {
         }
     }
 
-    func loadInitialData() async {
+    fileprivate func loadInitialData() async {
         await MainActor.run { screenState = .loading }
         if await isLoggedIn() {
             _ = await ensureAppToken()
@@ -269,15 +283,17 @@ private extension PurchaseView {
         loadPlans()
     }
 
-    func fetchProducts() async -> [Product] {
-        await purchaseManager.requestProductsFromAppstore(productIds: productIDs) ?? []
+    fileprivate func fetchProducts() async -> [Product] {
+        await purchaseManager.requestProductsFromAppstore(
+            productIds: productIDs
+        ) ?? []
     }
 }
 
 // MARK: - Purchase Actions
 
-private extension PurchaseView {
-    func purchase(product: Product) async {
+extension PurchaseView {
+    fileprivate func purchase(product: Product) async {
         guard await isLoggedIn() else {
             await MainActor.run {
                 presentAlert("请先登录")
@@ -298,9 +314,19 @@ private extension PurchaseView {
         }
 
         do {
-            let tradeNo = await prepareOrder(productID: product.id, appToken: appToken)
-            let result = try await purchaseManager.purchase(product: product, userID: appToken)
-            await handlePurchaseResult(result, tradeNo: tradeNo, appToken: appToken)
+            let tradeNo = await prepareOrder(
+                productID: product.id,
+                appToken: appToken
+            )
+            let result = try await purchaseManager.purchase(
+                product: product,
+                userID: appToken
+            )
+            await handlePurchaseResult(
+                result,
+                tradeNo: tradeNo,
+                appToken: appToken
+            )
         } catch {
             await MainActor.run {
                 isPurchasing = false
@@ -311,7 +337,11 @@ private extension PurchaseView {
         }
     }
 
-    func handlePurchaseResult(_ result: PurchaseResult, tradeNo: String?, appToken: String) async {
+    fileprivate func handlePurchaseResult(
+        _ result: PurchaseResult,
+        tradeNo: String?,
+        appToken: String
+    ) async {
         switch result.purchaseState {
         case .complete:
             guard let transaction = result.transaction else {
@@ -321,27 +351,32 @@ private extension PurchaseView {
                 }
                 return
             }
-            let (success, errorMessage) = await reportOrder(transaction: transaction, tradeNo: tradeNo, appToken: appToken)
+            let (success, errorMessage) = await reportOrder(
+                transaction: transaction,
+                tradeNo: tradeNo,
+                appToken: appToken
+            )
             if success {
                 do {
                     try await transaction.finish()
                 } catch {
-                    NSLog("finish transaction failed: %@", error.localizedDescription)
+                    NSLog(
+                        "finish transaction failed: %@",
+                        error.localizedDescription
+                    )
                 }
             }
-            await MainActor.run {
-                isPurchasing = false
-                if success {
+            isPurchasing = false
+            if success {
+                showSuccess = false
+                showSuccess = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
                     showSuccess = false
-                    showSuccess = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
-                        showSuccess = false
-                    }
-                    userManager.reload()
-                } else {
-                    alertMessage = "购买成功，但订单同步失败: \(errorMessage ?? "未知错误")"
-                    showAlert = true
                 }
+                await userManager.reload()
+            } else {
+                alertMessage = "购买成功，但订单同步失败: \(errorMessage ?? "未知错误")"
+                showAlert = true
             }
         case .cancelled:
             await MainActor.run {
@@ -374,7 +409,7 @@ private extension PurchaseView {
         }
     }
 
-    func restorePurchases() async {
+    fileprivate func restorePurchases() async {
         guard await isLoggedIn() else {
             await MainActor.run {
                 presentAlert("请先登录")
@@ -389,34 +424,42 @@ private extension PurchaseView {
             return
         }
 
-        let snapshot = await purchaseManager.transactionsSnapshot(appAccountToken: appToken)
+        let snapshot = await purchaseManager.transactionsSnapshot(
+            appAccountToken: appToken
+        )
         if snapshot.isEmpty {
             await MainActor.run { presentAlert("当前没有可恢复的有效订阅") }
             return
         }
-        let (success, errorMessage) = await restoreOrders(appToken: appToken, transactions: snapshot)
-        await MainActor.run {
-            if success {
-                userManager.reload()
-                alertMessage = "恢复完成"
-            } else {
-                alertMessage = errorMessage ?? "恢复失败"
-            }
-            showAlert = true
+        let (success, errorMessage) = await restoreOrders(
+            appToken: appToken,
+            transactions: snapshot
+        )
+        if success {
+            await userManager.reload()
+            alertMessage = "恢复完成"
+        } else {
+            alertMessage = errorMessage ?? "恢复失败"
         }
+        showAlert = true
     }
 }
 
 // MARK: - Helpers
 
-private extension PurchaseView {
-    func prepareOrder(productID: String, appToken: String) async -> String? {
+extension PurchaseView {
+    fileprivate func prepareOrder(productID: String, appToken: String) async
+        -> String?
+    {
         await withCheckedContinuation { continuation in
             Task.detached {
                 var tradeNo: String?
                 let semaphore = DispatchSemaphore(value: 0)
                 NewNetWorkRequest(
-                    AQAPIService.prepareIAPOrder(productID: productID, appAccountToken: appToken),
+                    AQAPIService.prepareIAPOrder(
+                        productID: productID,
+                        appAccountToken: appToken
+                    ),
                     modelType: PrepareIAPOrderResponse.self
                 ) { model, _ in
                     tradeNo = model?.trade_no
@@ -428,12 +471,20 @@ private extension PurchaseView {
         }
     }
 
-    func reportOrder(transaction: StoreKit.Transaction, tradeNo: String?, appToken: String) async -> (Bool, String?) {
+    fileprivate func reportOrder(
+        transaction: StoreKit.Transaction,
+        tradeNo: String?,
+        appToken: String
+    ) async -> (Bool, String?) {
         await withCheckedContinuation { continuation in
             Task.detached {
                 var result: (Bool, String?) = (false, "请求超时")
                 let semaphore = DispatchSemaphore(value: 0)
-                IAPOrderManager.reportOrder(transaction: transaction, tradeNo: tradeNo, appAccountToken: appToken) { success, error in
+                IAPOrderManager.reportOrder(
+                    transaction: transaction,
+                    tradeNo: tradeNo,
+                    appAccountToken: appToken
+                ) { success, error in
                     result = (success, error)
                     semaphore.signal()
                 }
@@ -447,12 +498,18 @@ private extension PurchaseView {
         }
     }
 
-    func restoreOrders(appToken: String, transactions: [[String: Any]]) async -> (Bool, String?) {
+    fileprivate func restoreOrders(
+        appToken: String,
+        transactions: [[String: Any]]
+    ) async -> (Bool, String?) {
         await withCheckedContinuation { continuation in
             Task.detached {
                 var result: (Bool, String?) = (false, "请求超时")
                 let semaphore = DispatchSemaphore(value: 0)
-                IAPOrderManager.restorePurchases(appAccountToken: appToken, transactions: transactions) { success, error in
+                IAPOrderManager.restorePurchases(
+                    appAccountToken: appToken,
+                    transactions: transactions
+                ) { success, error in
                     result = (success, error)
                     semaphore.signal()
                 }
@@ -466,14 +523,11 @@ private extension PurchaseView {
         }
     }
 
-    func ensureAppToken() async -> String? {
+    fileprivate func ensureAppToken() async -> String? {
         if let token = await currentAppToken() {
             return token
         }
-
-        await MainActor.run {
-            userManager.reload()
-        }
+        await userManager.reload()
 
         for _ in 0..<4 {
             try? await Task.sleep(nanoseconds: 500_000_000)
@@ -485,26 +539,26 @@ private extension PurchaseView {
         return nil
     }
 
-    func currentAppToken() async -> String? {
+    fileprivate func currentAppToken() async -> String? {
         await MainActor.run {
             let token = userManager.userInfo?.app_account_token ?? ""
             return token.isEmpty ? nil : token
         }
     }
 
-    func isLoggedIn() async -> Bool {
+    fileprivate func isLoggedIn() async -> Bool {
         await MainActor.run {
             userManager.isLoggedIn
         }
     }
 
     @MainActor
-    func presentAlert(_ message: String) {
+    fileprivate func presentAlert(_ message: String) {
         alertMessage = message
         showAlert = true
     }
 
-    func loadPlans() {
+    fileprivate func loadPlans() {
         NewNetWorkRequest(
             AQAPIService.getPlans,
             modelType: [PlanSummary].self
@@ -515,13 +569,16 @@ private extension PurchaseView {
         }
     }
 
-    func productIdentifier(groupKey: String, periodCode: String) -> String {
+    fileprivate func productIdentifier(groupKey: String, periodCode: String)
+        -> String
+    {
         "com.gy.iflash.\(groupKey).\(periodCode)"
     }
 
-    func planCard(for section: PlanSection) -> some View {
+    fileprivate func planCard(for section: PlanSection) -> some View {
         let plan = section.plan
-        let footer: String? = section.lowestPriceDisplay.map { "最低 \($0) 起" } ?? "查看更多…"
+        let footer: String? =
+            section.lowestPriceDisplay.map { "最低 \($0) 起" } ?? "查看更多…"
 
         return VStack(alignment: .leading, spacing: 12) {
             Text(plan.name)
@@ -534,48 +591,62 @@ private extension PurchaseView {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-//        .background(
-//            RoundedRectangle(cornerRadius: 16, style: .continuous)
-//                .fill(Color(uiColor: .secondarySystemBackground))
-//        )
-//        .padding(.vertical, 4)
+        //        .background(
+        //            RoundedRectangle(cornerRadius: 16, style: .continuous)
+        //                .fill(Color(uiColor: .secondarySystemBackground))
+        //        )
+        //        .padding(.vertical, 4)
     }
 
 }
 
 // MARK: - Supporting Models
 
-private extension PurchaseView {
-    struct PlanSection: Identifiable {
+extension PurchaseView {
+    fileprivate struct PlanSection: Identifiable {
         let plan: PlanSummary
         let options: [PlanOption]
         var id: Int64 { plan.id }
 
         var lowestPriceDisplay: String? {
-            guard let option = options.min(by: { $0.priceValue < $1.priceValue }) else { return nil }
+            guard
+                let option = options.min(by: { $0.priceValue < $1.priceValue })
+            else { return nil }
             return "\(option.label) \(option.product.displayPrice)"
         }
     }
 
-    struct ProductGroup {
+    fileprivate struct ProductGroup {
         let key: String
         let displayName: String
         let planID: Int64
         let periods: [ProductPeriod]
     }
 
-    struct ProductPeriod {
+    fileprivate struct ProductPeriod {
         let code: String
         let label: String
     }
 }
 
-private extension PurchaseView {
-    func planSections(products: [String: Product]) -> [PlanSection] {
+extension PurchaseView {
+    fileprivate func planSections(products: [String: Product]) -> [PlanSection]
+    {
         productGroups.compactMap { group in
-            let plan = plan(for: group) ?? PlanSummary(id: group.planID, name: group.displayName, transferEnable: 0, speedLimit: nil, content: nil)
+            let plan =
+                plan(for: group)
+                ?? PlanSummary(
+                    id: group.planID,
+                    name: group.displayName,
+                    transferEnable: 0,
+                    speedLimit: nil,
+                    content: nil
+                )
             let options = group.periods.compactMap { period -> PlanOption? in
-                let identifier = productIdentifier(groupKey: group.key, periodCode: period.code)
+                let identifier = productIdentifier(
+                    groupKey: group.key,
+                    periodCode: period.code
+                )
                 guard let product = products[identifier] else { return nil }
                 return PlanOption(product: product, label: period.label)
             }
@@ -584,7 +655,7 @@ private extension PurchaseView {
         }
     }
 
-    func plan(for group: ProductGroup) -> PlanSummary? {
+    fileprivate func plan(for group: ProductGroup) -> PlanSummary? {
         plans.first(where: { $0.id == group.planID })
     }
 }

@@ -11,6 +11,7 @@ enum AppState {
     case main      // 主界面
 }
 
+@MainActor
 class AppStateManager: ObservableObject {
     @Published var currentState: AppState = .main
     private let serviceInterval: TimeInterval = 3 * 24 * 60 * 60 // 3 days
@@ -90,6 +91,7 @@ struct Application: App {
                             .environmentObject(userManager)
                             .environmentObject(appStateManager)
                             .navigationTitle("闪电加速器")
+                            .trialReminder()
                     }
                 }
             }
@@ -117,13 +119,13 @@ struct Application: App {
                 }
                 Defaults[.host] = decodedString
                 SPIndicator.present(title: "修复成功", message: "请重启后再试", preset: .done)
-                userManager.reload()
+                Task { await userManager.reload() }
 #endif
 
             }
             .onReceive(NotificationCenter.default.publisher(for: .authExpired)) { _ in
-                DispatchQueue.main.async {
-                    userManager.logout()
+                Task { @MainActor in
+                    await userManager.logout()
                     appStateManager.userLoggedOut()
                 }
             }

@@ -305,10 +305,13 @@ struct DashBoardView: View {
                         }
                         
                         Button {
-                            userManager.logout()
-                            showLogIn.toggle()
-                            
-                        } label: {
+                            Task {
+                                await userManager.logout()
+                                await MainActor.run {
+                                    showLogIn.toggle()
+                                }
+                            }
+                        } label {
                             LabeledContent {
                                 Text("退出")
                             } label: {
@@ -340,11 +343,13 @@ struct DashBoardView: View {
         }
         .alertBinding($alert)
         .onAppear {
-            environments.postReload()
-            if(!userManager.isLoggedIn){
-                showLogIn.toggle()
-            }else{
-                userManager.reload()
+            Task { @MainActor in
+                environments.postReload()
+                if(!userManager.isLoggedIn){
+                    showLogIn.toggle()
+                }else{
+                    await userManager.reload()
+                }
             }
         }
         .sheet(isPresented: $showLogIn, content: {

@@ -51,6 +51,10 @@ enum AQAPIService{
     case testPush(title:String, body:String) //测试推送
     case getPlans // 获取可用套餐列表
 
+    // 试用功能相关
+    case getTrialInfo // 获取试用信息
+    case claimTrial // 领取试用
+
 }
 extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
     func responsePrase(_ response:Response) -> NewResponseModel {
@@ -191,6 +195,10 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return "/user/device/test-push"
         case .getPlans:
             return "/user/plan/fetch"
+        case .getTrialInfo:
+            return "/user/trial/info"
+        case .claimTrial:
+            return "/user/trial/claim"
         }
         
 
@@ -241,6 +249,9 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
         case .unregisterDeviceToken:
             return .post
         case .testPush(_,_):
+            return .post
+
+        case .claimTrial:
             return .post
 
         default:
@@ -390,6 +401,10 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
                 "body": body
             ], encoding: JSONEncoding.default)
         case .getPlans:
+            return .requestPlain
+        case .getTrialInfo:
+            return .requestPlain
+        case .claimTrial:
             return .requestPlain
 
         default:

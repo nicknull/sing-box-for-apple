@@ -97,6 +97,9 @@ struct UserView: View {
             Text("个人信息")
           }
 
+          // 试用状态信息
+          TrialStatusSection()
+
           Section {
 
               if(userManager.is_admin){
@@ -442,6 +445,9 @@ struct UserView: View {
     }
 
     .onAppear() {
+      // 记录用户页面访问
+       SharedAnalyticsKit.shared.logScreenView(screenName: "UserView")
+
       refresh()
 
       Task {
@@ -480,10 +486,14 @@ struct UserView: View {
           message: Text("登出后需要重新登录以继续使用"),
           primaryButton: .destructive(Text("确定")) {
             // 登出用户
-            userManager.logout()
-            
-            // 通知 AppStateManager 用户已登出
-            appStateManager.userLoggedOut()
+            Task {
+                await userManager.logout()
+
+                // 通知 AppStateManager 用户已登出
+                await MainActor.run {
+                    appStateManager.userLoggedOut()
+                }
+            }
           },
           secondaryButton: .cancel()
         )
@@ -568,6 +578,7 @@ struct UserView: View {
     } catch {}
   }
   // 恢复购买逻辑：采集交易快照并上报后端
+  @MainActor
   private func restorePurchases() async {
     guard userManager.isLoggedIn else {
       DispatchQueue.main.async {
@@ -594,7 +605,7 @@ struct UserView: View {
     IAPOrderManager.restorePurchases(appAccountToken: appToken, transactions: snapshot) { success, error in
       DispatchQueue.main.async {
         if success {
-          userManager.reload()
+          Task { await userManager.reload() }
           successMessage = "恢复完成"
           successAlert = true
         } else {

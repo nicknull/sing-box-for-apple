@@ -151,6 +151,14 @@ extension AppleSignInManager: ASAuthorizationControllerDelegate {
                 errorMessage = "请求未处理"
             case .unknown:
                 errorMessage = "未知错误"
+            case .notInteractive:
+                errorMessage = "非交互式错误"
+            case .matchedExcludedCredential:
+                errorMessage = "匹配排除的凭据"
+            case .credentialImport:
+                errorMessage = "凭据导入错误"
+            case .credentialExport:
+                errorMessage = "凭据导出错误"
             @unknown default:
                 errorMessage = "未知错误"
             }

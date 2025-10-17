@@ -241,6 +241,13 @@
 		B6739A9C2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */; };
 		B6739A9D2E10170A004EDF14 /* TicketListView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A992E10170A004EDF14 /* TicketListView_admin.swift */; };
 		B67B200B2C54CA3B00310430 /* FormItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67B200A2C54CA3B00310430 /* FormItem.swift */; };
+		B6A116952EA2725300455050 /* TrialReminderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A116942EA2725300455050 /* TrialReminderView.swift */; };
+		B6A116972EA2727200455050 /* TrialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A116962EA2727200455050 /* TrialManager.swift */; };
+		B6A116982EA2727200455050 /* TrialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A116962EA2727200455050 /* TrialManager.swift */; };
+		B6A1169D2EA2729900455050 /* AnalyticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A116992EA2729900455050 /* AnalyticsManager.swift */; };
+		B6A1169E2EA2729900455050 /* SharedAnalyticsKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A1169B2EA2729900455050 /* SharedAnalyticsKit.swift */; };
+		B6A1169F2EA2729900455050 /* AnalyticsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A116992EA2729900455050 /* AnalyticsManager.swift */; };
+		B6A116A02EA2729900455050 /* SharedAnalyticsKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A1169B2EA2729900455050 /* SharedAnalyticsKit.swift */; };
 		B6BC324A2E9556E600DDAFC9 /* TestEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BC32492E9556E600DDAFC9 /* TestEnv.swift */; };
 		B6BC324B2E9556E600DDAFC9 /* TestEnv.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6BC32492E9556E600DDAFC9 /* TestEnv.swift */; };
 		B6C9F0DD2C889DAC009B0F70 /* SyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */; };
@@ -761,6 +768,10 @@
 		B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketChatView_admin.swift; sourceTree = "<group>"; };
 		B6739A992E10170A004EDF14 /* TicketListView_admin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TicketListView_admin.swift; sourceTree = "<group>"; };
 		B67B200A2C54CA3B00310430 /* FormItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FormItem.swift; sourceTree = "<group>"; };
+		B6A116942EA2725300455050 /* TrialReminderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialReminderView.swift; sourceTree = "<group>"; };
+		B6A116962EA2727200455050 /* TrialManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialManager.swift; sourceTree = "<group>"; };
+		B6A116992EA2729900455050 /* AnalyticsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsManager.swift; sourceTree = "<group>"; };
+		B6A1169B2EA2729900455050 /* SharedAnalyticsKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedAnalyticsKit.swift; sourceTree = "<group>"; };
 		B6BC32492E9556E600DDAFC9 /* TestEnv.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestEnv.swift; sourceTree = "<group>"; };
 		B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncView.swift; sourceTree = "<group>"; };
 		B6C9F0DF2C89E01B009B0F70 /* MonitoringNetworkState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringNetworkState.swift; sourceTree = "<group>"; };
@@ -1073,6 +1084,7 @@
 		3AEC20BC2A45991900A63465 = {
 			isa = PBXGroup;
 			children = (
+				B6A1169C2EA2729900455050 /* SharedAnalyticsKit */,
 				3A4EAD112A4FEAE6005435B3 /* ApplicationLibrary */,
 				3A096F882A4ED3DE00D4A2ED /* Extension */,
 				3AEC21012A459AE300A63465 /* Frameworks */,
@@ -1372,6 +1384,7 @@
 			children = (
 				E233C2C069FEF9D605B52F35 /* AccountBindingView.swift */,
 				684EFB13D4F377CDF799C66A /* LoginView.swift */,
+				B6A116942EA2725300455050 /* TrialReminderView.swift */,
 				CE13E0A3B80CCDD36D4BEB8D /* UserView.swift */,
 			);
 			path = Views;
@@ -1405,6 +1418,23 @@
 				B6739A992E10170A004EDF14 /* TicketListView_admin.swift */,
 			);
 			path = Ticket_admin;
+			sourceTree = "<group>";
+		};
+		B6A1169A2EA2729900455050 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				B6A116992EA2729900455050 /* AnalyticsManager.swift */,
+			);
+			path = Analytics;
+			sourceTree = "<group>";
+		};
+		B6A1169C2EA2729900455050 /* SharedAnalyticsKit */ = {
+			isa = PBXGroup;
+			children = (
+				B6A1169A2EA2729900455050 /* Analytics */,
+				B6A1169B2EA2729900455050 /* SharedAnalyticsKit.swift */,
+			);
+			path = SharedAnalyticsKit;
 			sourceTree = "<group>";
 		};
 		DB8DF33045AAC014B7932D11 /* Components */ = {
@@ -1469,6 +1499,7 @@
 			isa = PBXGroup;
 			children = (
 				D762FAA3D97DC5FF5DCC9B60 /* ConstantKey.swift */,
+				B6A116962EA2727200455050 /* TrialManager.swift */,
 				E003888BE576C4B9AB7B56B7 /* UserManager.swift */,
 			);
 			path = Services;
@@ -2107,6 +2138,7 @@
 				3A4FB16A2A735AC9007012B9 /* MainView.swift in Sources */,
 				B63553612AC311D000BE8873 /* NewResponseModel.swift in Sources */,
 				B635535A2AC311D000BE8873 /* StatusView.swift in Sources */,
+				B6A116982EA2727200455050 /* TrialManager.swift in Sources */,
 				3AC03B992A72BF3300B7946F /* Application.swift in Sources */,
 				B63553602AC311D000BE8873 /* JWTPlugin.swift in Sources */,
 				B6739A8A2E0FD840004EDF14 /* ToastModifier.swift in Sources */,
@@ -2120,6 +2152,8 @@
 				B6739A9D2E10170A004EDF14 /* TicketListView_admin.swift in Sources */,
 				B6BC324B2E9556E600DDAFC9 /* TestEnv.swift in Sources */,
 				D087EF408E10EACD9CF8A669 /* ToastNotification.swift in Sources */,
+				B6A1169F2EA2729900455050 /* AnalyticsManager.swift in Sources */,
+				B6A116A02EA2729900455050 /* SharedAnalyticsKit.swift in Sources */,
 				76F28F9C88571D58A62890DC /* Models.swift in Sources */,
 				402A547D7CFAB58700C51BAB /* AppleSignInManager.swift in Sources */,
 				869627DF5F8E4A923FEF7AF9 /* GitHubSignInManager.swift in Sources */,
@@ -2169,6 +2203,7 @@
 				B6165A962B25DAB2008DE6D3 /* ProfileListView.swift in Sources */,
 				B6F0A2372B23543A00885AE8 /* JWTPlugin.swift in Sources */,
 				B6F0A23C2B23546000885AE8 /* ModeView.swift in Sources */,
+				B6A116952EA2725300455050 /* TrialReminderView.swift in Sources */,
 				B6F0A2342B23543400885AE8 /* IVYTrafficFormatter.swift in Sources */,
 				B6739A862E0D80D0004EDF14 /* FullScreenImageView.swift in Sources */,
 				B6F0A2432B23556C00885AE8 /* AQAPIService.swift in Sources */,
@@ -2206,10 +2241,13 @@
 				AB8E447E1C8173FFD28D833C /* PurchaseXException.swift in Sources */,
 				0002D98FA41C01BF3DFB84F6 /* PurchaseXManager.swift in Sources */,
 				55BE7777FD3006AB5266B8A3 /* PurchaseXNotification.swift in Sources */,
+				B6A1169D2EA2729900455050 /* AnalyticsManager.swift in Sources */,
+				B6A1169E2EA2729900455050 /* SharedAnalyticsKit.swift in Sources */,
 				3C88DA757BFAE366EDFA325B /* PurchaseXState.swift in Sources */,
 				734832AF8538BC56254402FD /* PXLog.swift in Sources */,
 				8FA4BFF4E9B115BDA59C71C3 /* SharedPaymentKit.swift in Sources */,
 				444AF2B7588F73FCFC91C405 /* PurchaseView.swift in Sources */,
+				B6A116972EA2727200455050 /* TrialManager.swift in Sources */,
 				5381C8550BFA9A18D7CF7BF6 /* DeviceTokenManager.swift in Sources */,
 				4057B999ED402B108FBFB0C5 /* SharedNotificationKit.swift in Sources */,
 				605EB62C8C61DC1A48F7E9C9 /* Defaults.swift in Sources */,

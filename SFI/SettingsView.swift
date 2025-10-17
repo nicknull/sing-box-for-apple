@@ -92,9 +92,12 @@ struct SettingsView: View {
         .navigationTitle("设置")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            // 记录设置页面访问
+             SharedAnalyticsKit.shared.logScreenView(screenName: "SettingsView")
+
             commandClient.connect()
             Task{
-                
+
                 guard let profileTemp = try await ProfileManager.get(by: "iFlash")else{
                     return
                 }

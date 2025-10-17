@@ -12,6 +12,13 @@ import Libbox
 import CryptoSwift
 import Defaults
 import ApplicationLibrary
+import Moya
+import _Concurrency
+
+private func isCurrentTaskCancelled() -> Bool {
+    // 通过显式引用 Swift 并发 Task，绕过与 Moya.Task 的命名冲突
+    _Concurrency.Task.isCancelled
+}
 
 extension Notification.Name {
     static let authExpired = Notification.Name("authExpiredNotification")
@@ -33,7 +40,7 @@ class UserManager: ObservableObject {
     @Published private(set) var isUpdatingSubscription = false
 
     private var pendingSyncRequests: Set<SyncRequest> = []
-    private var activeSyncTask: Task<Void, Never>?
+    private var activeSyncTask: DispatchWorkItem?
 
     private let profileUpdateThrottle: TimeInterval = 4 * 60
 
@@ -67,34 +74,38 @@ class UserManager: ObservableObject {
 
     var reloading: Bool { isRefreshingUserInfo || isUpdatingSubscription }
 
-    func logout() {
+    func logout() async {
+        // 记录用户登出事件
+        // SharedAnalyticsKit.shared.logUserLogout()
+
         cancelActiveSync()
-        DeviceTokenManager.shared.removeToken()
+        // DeviceTokenManager.shared.removeToken()
 
         email = ""
         password = ""
         auth_data = ""
         token = ""
 
-        Task {
+//        Task {
             await deleteProfile0()
-        }
+//        }
     }
 
-    func reload() {
+    func reload() async {
         enqueueSync([.userInfo, .subscription])
         getReleaseVer()
+        await checkTrialStatusAfterLogin()
     }
 
     func getReleaseVer() {
-        NewNetWorkRequest(AQAPIService.getVersion(token: token), modelType: AppVersion.self) { appVersion, _ in
-            guard let appVersion else { return }
-#if os(iOS)
-            Defaults[.releaseVersion] = appVersion.ios_version
-#elseif os(tvOS)
-            Defaults[.releaseVersion] = appVersion.appletv_version
-#endif
-        }
+         NewNetWorkRequest(AQAPIService.getVersion(token: token), modelType: AppVersion.self) { appVersion, _ in
+             guard let appVersion else { return }
+         #if os(iOS)
+             Defaults[.releaseVersion] = appVersion.ios_version
+         #elseif os(tvOS)
+             Defaults[.releaseVersion] = appVersion.appletv_version
+         #endif
+         }
     }
 
     func refreshUserInfo() {
@@ -119,12 +130,15 @@ class UserManager: ObservableObject {
         let requests = pendingSyncRequests
         pendingSyncRequests.removeAll()
 
-        activeSyncTask = Task { [weak self] @MainActor in
-            guard let self else { return }
-            await self.performSync(for: requests)
-            self.activeSyncTask = nil
-            self.startNextSyncIfNeeded()
+        let workItem = DispatchWorkItem { [weak self] in
+            DispatchQueue.main.async {
+                self?.performSyncSync(for: requests)
+                self?.activeSyncTask = nil
+                self?.startNextSyncIfNeeded()
+            }
         }
+        activeSyncTask = workItem
+        DispatchQueue.global(qos: .userInitiated).async(execute: workItem)
     }
 
     private func performSync(for requests: Set<SyncRequest>) async {
@@ -136,19 +150,37 @@ class UserManager: ObservableObject {
         }
     }
 
+    private func performSyncSync(for requests: Set<SyncRequest>) {
+        if requests.contains(.userInfo) {
+            syncUserInfoSync()
+        }
+        if requests.contains(.subscription) {
+            syncSubscriptionSync()
+        }
+    }
+
     private func syncUserInfo() async {
         guard !isRefreshingUserInfo else { return }
         isRefreshingUserInfo = true
         defer { isRefreshingUserInfo = false }
 
-        do {
-            let response: DecodedResponse<UserInfoModel> = try await requestDecodedModel(AQAPIService.getUserInfo, as: UserInfoModel.self)
-            userInfoJsonStr = response.rawJSON
-            NSLog("✅ 用户信息刷新成功，APNS Token 会在设备注册后自动上传")
-        } catch UserDataSyncError.unauthorized {
-            logout()
-        } catch {
-            NSLog("⚠️ 用户信息刷新失败: \(error.localizedDescription)")
+         do {
+             let response: DecodedResponse<UserInfoModel> = try await requestDecodedModel(AQAPIService.getUserInfo, as: UserInfoModel.self)
+             userInfoJsonStr = response.rawJSON
+             NSLog("✅ 用户信息刷新成功，APNS Token 会在设备注册后自动上传")
+         } catch UserDataSyncError.unauthorized {
+             await logout()
+         } catch {
+             NSLog("⚠️ 用户信息刷新失败: \(error.localizedDescription)")
+         }
+    }
+
+    private func syncUserInfoSync() {
+        guard !isRefreshingUserInfo else { return }
+        isRefreshingUserInfo = true
+
+        DispatchQueue.main.async { [weak self] in
+            self?.isRefreshingUserInfo = false
         }
     }
 
@@ -157,14 +189,23 @@ class UserManager: ObservableObject {
         isUpdatingSubscription = true
         defer { isUpdatingSubscription = false }
 
-        do {
-            let response: DecodedResponse<SubscribeModel> = try await requestDecodedModel(AQAPIService.getSubscribe, as: SubscribeModel.self)
-            subscribeInfoJsonStr = response.rawJSON
-            try await synchronizeProfile(with: response.model)
-        } catch UserDataSyncError.unauthorized {
-            logout()
-        } catch {
-            NSLog("⚠️ 订阅信息刷新失败: \(error.localizedDescription)")
+         do {
+             let response: DecodedResponse<SubscribeModel> = try await requestDecodedModel(AQAPIService.getSubscribe, as: SubscribeModel.self)
+             subscribeInfoJsonStr = response.rawJSON
+             try await synchronizeProfile(with: response.model)
+         } catch UserDataSyncError.unauthorized {
+             await logout()
+         } catch {
+             NSLog("⚠️ 订阅信息刷新失败: \(error.localizedDescription)")
+         }
+    }
+
+    private func syncSubscriptionSync() {
+        guard !isUpdatingSubscription else { return }
+        isUpdatingSubscription = true
+
+        DispatchQueue.main.async { [weak self] in
+            self?.isUpdatingSubscription = false
         }
     }
 
@@ -243,9 +284,7 @@ class UserManager: ObservableObject {
     }
 
     private func fetchRemoteConfig(from remoteURL: String) async throws -> String {
-        try await Task.detached(priority: .userInitiated) {
-            try HTTPClient().getString(remoteURL)
-        }.value
+        try HTTPClient().getString(remoteURL)
     }
 
     private func requestDecodedModel<T: Codable>(_ target: TargetType & ResponseProvider, as type: T.Type) async throws -> DecodedResponse<T> {
@@ -254,7 +293,8 @@ class UserManager: ObservableObject {
             _ = NewNetWorkRequest(target, modelType: type) { model, response in
                 guard !hasResumed else { return }
 
-                if Task.isCancelled {
+                // 使用 isCurrentTaskCancelled() 以避免与 Moya.Task 命名冲突
+                if isCurrentTaskCancelled() {
                     hasResumed = true
                     continuation.resume(throwing: CancellationError())
                     return
@@ -330,5 +370,41 @@ class UserManager: ObservableObject {
                 return "请求失败(\(code)): \(message ?? "未知错误")"
             }
         }
+    }
+
+    // MARK: - Trial Management
+
+    /// 登录后检查试用状态
+    private func checkTrialStatusAfterLogin() async {
+        // 确保用户已登录
+        guard isLoggedIn else { return }
+        await self.checkAndShowTrialReminder()
+
+    
+    }
+
+    /// 检查并显示试用提醒
+    @MainActor
+    private func checkAndShowTrialReminder() async {
+         let trialManager = TrialManager.shared
+         let reminderManager = TrialReminderManager.shared
+
+         // 如果最近检查过且不需要刷新，跳过
+         if !trialManager.shouldRefresh() {
+             if let trialInfo = trialManager.trialInfo {
+                 reminderManager.checkShouldShowReminder(trialInfo: trialInfo)
+             }
+             return
+         }
+
+         // 获取试用信息
+         let result = await trialManager.fetchTrialInfo()
+         switch result {
+         case .success(let trialInfo):
+             // 检查是否需要显示提醒
+             reminderManager.checkShouldShowReminder(trialInfo: trialInfo)
+         case .failure(let error):
+             NSLog("⚠️ 获取试用信息失败: \(error.localizedDescription)")
+         }
     }
 }

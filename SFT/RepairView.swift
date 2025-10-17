@@ -168,7 +168,7 @@ struct RepairView: View {
                     return GCDWebServerDataResponse(jsonObject: ["error":1,"msg":"无有效参数"])
                 }
                 Defaults[.host] = address
-                userManager.reload()
+                Task { await userManager.reload() }
                 dismiss()
                 errorStr = "修复成功，请您重启后继续使用"
                 showingPopup.toggle()

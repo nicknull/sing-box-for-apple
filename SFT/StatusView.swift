@@ -84,35 +84,36 @@ struct StatusView: View {
             Spacer()
             
             Button(action: {
-                if (subscribe != nil && (subscribe!.d! + subscribe!.u! >= subscribe!.transfer_enable!))
-                {
-                    errorTitle = "流量已用尽"
-                    errorSubTitle = "请登录网站续费后使用"
-                    errorAlert.toggle()
-                }else if userInfo != nil && userInfo!.expired_at != nil && userInfo!.expired_at!<Date().timeIntervalSince1970{
-                    errorTitle = "订阅已到期"
-                    errorSubTitle = "请登录网站续费后使用"
-                    errorAlert.toggle()
-                }
-                else if auth_data.count == 0 {
-                    showLogIn.toggle()
-                }
-                else if(!userManager.isLoggedIn){
-                    showLogIn.toggle()
-                }else if(environments.extensionProfileLoading){
-                    
-                }else if((profile == nil)){
-                    errorTitle = "正在加载资源"
-                    errorSubTitle = "请稍候，等待加载成功后连接"
-                    errorAlert.toggle()
-                    userManager.getSubscribe()
-                    environments.profileUpdate.send()
-                    environments.selectedProfileUpdate.send()
+                Task { @MainActor in
+                    if (subscribe != nil && (subscribe!.d! + subscribe!.u! >= subscribe!.transfer_enable!))
+                    {
+                        errorTitle = "流量已用尽"
+                        errorSubTitle = "请登录网站续费后使用"
+                        errorAlert.toggle()
+                    }else if userInfo != nil && userInfo!.expired_at != nil && userInfo!.expired_at!<Date().timeIntervalSince1970{
+                        errorTitle = "订阅已到期"
+                        errorSubTitle = "请登录网站续费后使用"
+                        errorAlert.toggle()
+                    }
+                    else if auth_data.count == 0 {
+                        showLogIn.toggle()
+                    }
+                    else if(!userManager.isLoggedIn){
+                        showLogIn.toggle()
+                    }else if(environments.extensionProfileLoading){
 
-                }
-                else{
-                    if extensionProfile.status == .disconnected {
-                        Task{
+                    }else if((profile == nil)){
+                        errorTitle = "正在加载资源"
+                        errorSubTitle = "请稍候，等待加载成功后连接"
+                        errorAlert.toggle()
+                        userManager.getSubscribe()
+                        environments.profileUpdate.send()
+                        environments.selectedProfileUpdate.send()
+
+                    }
+                    else{
+                        if extensionProfile.status == .disconnected {
+                            Task{
 //                            let profiles = try await ProfileManager.list()
 //                            if profiles.count == 0 {
 //                                await userManager.createProfile0()
@@ -124,6 +125,7 @@ struct StatusView: View {
                         Task {
                             await switchProfile(false)
                         }
+                    }
                     }
                 }
             }, label: {
