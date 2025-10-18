@@ -6,51 +6,12 @@ import Library
 import Network
 import UIKit
 import UserNotifications
-import SharedCrashKit
-
-// MARK: - AQAPIService 网络提供者实现
-class AQAPIServiceCrashNetworkProvider: CrashReportNetworkProvider {
-    func reportCrash(
-        userInfo: [String: Any],
-        deviceInfo: [String: Any],
-        crashInfo: [String: Any],
-        completion: @escaping (Bool, String?) -> Void
-    ) {
-        // 导入网络层模块并使用 AQAPIService
-        NewNetWorkRequest(
-            AQAPIService.reportCrash(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo),
-            modelType: CrashReportResponse.self
-        ) { response, responseModel in
-            if let response = response, response.code == 200 {
-                completion(true, nil)
-            } else {
-                completion(false, responseModel.messageStr ?? "未知错误")
-            }
-        } failureCallback: { responseModel in
-            completion(false, responseModel.messageStr ?? "网络错误")
-        }
-    }
-}
-
-// MARK: - 崩溃响应模型
-struct CrashReportResponse: Codable {
-    let code: Int
-    let msg: String?
-    let data: CrashReportData?
-}
-
-struct CrashReportData: Codable {
-    let success: Bool
-    let message: String?
-    let crash_log_id: Int?
-}
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     private var profileServer: ProfileServer?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        // 🔍 设置崩溃日志网络提供者并安装收集器（需要尽早安装）
-        SharedCrashKit.setNetworkProvider(AQAPIServiceCrashNetworkProvider())
+        // 🔍 安装崩溃日志收集器（需要尽早安装）
         SharedCrashKit.install()
 
         // 初始化 Firebase Analytics

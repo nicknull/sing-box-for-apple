@@ -258,6 +258,10 @@
 		B6C9F0E02C89E01B009B0F70 /* MonitoringNetworkState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C9F0DF2C89E01B009B0F70 /* MonitoringNetworkState.swift */; };
 		B6C9F0E12C89E01B009B0F70 /* MonitoringNetworkState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6C9F0DF2C89E01B009B0F70 /* MonitoringNetworkState.swift */; };
 		B6CAB4942C820F6C00289B91 /* PopupMiddle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CAB4932C820F6C00289B91 /* PopupMiddle.swift */; };
+		B6D8D0742EA32B2F007A248E /* SharedCrashKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0722EA32B2F007A248E /* SharedCrashKit.swift */; };
+		B6D8D0752EA32B2F007A248E /* CrashManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0712EA32B2F007A248E /* CrashManager.swift */; };
+		B6D8D0762EA32B2F007A248E /* SharedCrashKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0722EA32B2F007A248E /* SharedCrashKit.swift */; };
+		B6D8D0772EA32B2F007A248E /* CrashManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0712EA32B2F007A248E /* CrashManager.swift */; };
 		B6F0A2322B23533200885AE8 /* DashBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F0A2312B23533200885AE8 /* DashBoardView.swift */; };
 		B6F0A2342B23543400885AE8 /* IVYTrafficFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635534D2AC311CE00BE8873 /* IVYTrafficFormatter.swift */; };
 		B6F0A2352B23543A00885AE8 /* LoggingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635534C2AC311CE00BE8873 /* LoggingPlugin.swift */; };
@@ -778,6 +782,8 @@
 		B6C9F0DC2C889DAC009B0F70 /* SyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncView.swift; sourceTree = "<group>"; };
 		B6C9F0DF2C89E01B009B0F70 /* MonitoringNetworkState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonitoringNetworkState.swift; sourceTree = "<group>"; };
 		B6CAB4932C820F6C00289B91 /* PopupMiddle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupMiddle.swift; sourceTree = "<group>"; };
+		B6D8D0712EA32B2F007A248E /* CrashManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashManager.swift; sourceTree = "<group>"; };
+		B6D8D0722EA32B2F007A248E /* SharedCrashKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCrashKit.swift; sourceTree = "<group>"; };
 		B6F0A2312B23533200885AE8 /* DashBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashBoardView.swift; sourceTree = "<group>"; };
 		B6F0A24D2B235D1600885AE8 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B6F5C7722BA07BF20038016B /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -1088,6 +1094,7 @@
 		3AEC20BC2A45991900A63465 = {
 			isa = PBXGroup;
 			children = (
+				B6D8D0732EA32B2F007A248E /* SharedCrashKit */,
 				B6A1169C2EA2729900455050 /* SharedAnalyticsKit */,
 				3A4EAD112A4FEAE6005435B3 /* ApplicationLibrary */,
 				3A096F882A4ED3DE00D4A2ED /* Extension */,
@@ -1439,6 +1446,15 @@
 				B6A1169B2EA2729900455050 /* SharedAnalyticsKit.swift */,
 			);
 			path = SharedAnalyticsKit;
+			sourceTree = "<group>";
+		};
+		B6D8D0732EA32B2F007A248E /* SharedCrashKit */ = {
+			isa = PBXGroup;
+			children = (
+				B6D8D0712EA32B2F007A248E /* CrashManager.swift */,
+				B6D8D0722EA32B2F007A248E /* SharedCrashKit.swift */,
+			);
+			path = SharedCrashKit;
 			sourceTree = "<group>";
 		};
 		DB8DF33045AAC014B7932D11 /* Components */ = {
@@ -2151,6 +2167,8 @@
 				B6739A822E0A7C06004EDF14 /* CreateTicketView.swift in Sources */,
 				B6C9F0DE2C889DAC009B0F70 /* SyncView.swift in Sources */,
 				B635535E2AC311D000BE8873 /* IVYTrafficFormatter.swift in Sources */,
+				B6D8D0762EA32B2F007A248E /* SharedCrashKit.swift in Sources */,
+				B6D8D0772EA32B2F007A248E /* CrashManager.swift in Sources */,
 				B635536A2AC311D000BE8873 /* LoginView.swift in Sources */,
 				B63553632AC311D000BE8873 /* AQAPIService.swift in Sources */,
 				B6739A9C2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */,
@@ -2250,6 +2268,8 @@
 				B6A1169E2EA2729900455050 /* SharedAnalyticsKit.swift in Sources */,
 				3C88DA757BFAE366EDFA325B /* PurchaseXState.swift in Sources */,
 				734832AF8538BC56254402FD /* PXLog.swift in Sources */,
+				B6D8D0742EA32B2F007A248E /* SharedCrashKit.swift in Sources */,
+				B6D8D0752EA32B2F007A248E /* CrashManager.swift in Sources */,
 				8FA4BFF4E9B115BDA59C71C3 /* SharedPaymentKit.swift in Sources */,
 				444AF2B7588F73FCFC91C405 /* PurchaseView.swift in Sources */,
 				B6A116972EA2727200455050 /* TrialManager.swift in Sources */,
