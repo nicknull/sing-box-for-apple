@@ -18,8 +18,14 @@ public class CrashManager {
     private let queue = DispatchQueue(label: "com.gy.crashmanager", qos: .utility)
     private var eventLogs: [String] = []
     private let maxEventLogs = 50 // 最多保留50条事件日志
+    private var networkProvider: CrashReportNetworkProvider?
 
     private init() {}
+
+    /// 设置网络提供者
+    public func setNetworkProvider(_ provider: CrashReportNetworkProvider) {
+        self.networkProvider = provider
+    }
 
     /// 安装崩溃监听器
     public func install() {
@@ -171,70 +177,24 @@ public class CrashManager {
 
     /// 同步上报崩溃（用于崩溃时立即上报）
     private func reportCrashSync(userInfo: [String: Any], deviceInfo: [String: Any], crashInfo: [String: Any]) {
-        guard let hostURL = Defaults[.host], !hostURL.isEmpty else {
-            print("❌ CrashManager: No host URL configured")
-            return
-        }
-
-        let urlString = "\(hostURL)/api/v1/user/crash/report"
-        guard let url = URL(string: urlString) else {
-            print("❌ CrashManager: Invalid URL")
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // 添加 JWT Token（如果有的话）
-        if let token = Defaults[.jwt_token], !token.isEmpty {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        let parameters: [String: Any] = [
-            "user_info": userInfo,
-            "device_info": deviceInfo,
-            "crash_info": crashInfo,
-            "timestamp": ISO8601DateFormatter().string(from: Date())
-        ]
-
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: parameters)
-            request.httpBody = jsonData
-
-            // 使用同步请求，确保在崩溃前发送完成
-            let semaphore = DispatchSemaphore(value: 0)
-            var success = false
-
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                defer { semaphore.signal() }
-
-                if let error = error {
-                    print("❌ CrashManager upload failed: \(error.localizedDescription)")
-                } else if let httpResponse = response as? HTTPURLResponse {
-                    if httpResponse.statusCode == 200 {
-                        print("✅ CrashManager upload successful")
-                        success = true
-                    } else {
-                        print("❌ CrashManager upload failed with status: \(httpResponse.statusCode)")
-                    }
-                }
-            }
-
-            task.resume()
-
-            // 等待最多3秒
-            _ = semaphore.wait(timeout: .now() + 3.0)
-
-            if !success {
-                // 如果上报失败，保存到本地
-                saveCrashToLocal(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
-            }
-
-        } catch {
-            print("❌ CrashManager JSON serialization failed: \(error)")
-            // 保存到本地
+        guard let networkProvider = networkProvider else {
+            print("❌ CrashManager: No network provider configured")
             saveCrashToLocal(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
+            return
+        }
+
+        networkProvider.reportCrash(
+            userInfo: userInfo,
+            deviceInfo: deviceInfo,
+            crashInfo: crashInfo
+        ) { [weak self] success, errorMessage in
+            if success {
+                print("✅ CrashManager upload successful")
+            } else {
+                print("❌ CrashManager upload failed: \(errorMessage ?? "未知错误")")
+                // 如果上报失败，保存到本地
+                self?.saveCrashToLocal(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
+            }
         }
     }
 
@@ -346,52 +306,30 @@ public class CrashManager {
 
     /// 异步上报崩溃数据
     private func uploadCrashDataAsync(crashData: [String: Any], completion: @escaping (Bool) -> Void) {
-        guard let hostURL = Defaults[.host], !hostURL.isEmpty else {
+        guard let networkProvider = networkProvider else {
             completion(false)
             return
         }
 
-        let urlString = "\(hostURL)/api/v1/user/crash/report"
-        guard let url = URL(string: urlString) else {
+        guard let userInfo = crashData["user_info"] as? [String: Any],
+              let deviceInfo = crashData["device_info"] as? [String: Any],
+              let crashInfo = crashData["crash_info"] as? [String: Any] else {
             completion(false)
             return
         }
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 10.0
-
-        // 添加 JWT Token（如果有的话）
-        if let token = Defaults[.jwt_token], !token.isEmpty {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: crashData)
-            request.httpBody = jsonData
-
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("❌ CrashManager async upload failed: \(error.localizedDescription)")
-                    completion(false)
-                } else if let httpResponse = response as? HTTPURLResponse {
-                    if httpResponse.statusCode == 200 {
-                        print("✅ CrashManager async upload successful")
-                        completion(true)
-                    } else {
-                        print("❌ CrashManager async upload failed with status: \(httpResponse.statusCode)")
-                        completion(false)
-                    }
-                } else {
-                    completion(false)
-                }
+        networkProvider.reportCrash(
+            userInfo: userInfo,
+            deviceInfo: deviceInfo,
+            crashInfo: crashInfo
+        ) { success, errorMessage in
+            if success {
+                print("✅ CrashManager async upload successful")
+                completion(true)
+            } else {
+                print("❌ CrashManager async upload failed: \(errorMessage ?? "未知错误")")
+                completion(false)
             }
-
-            task.resume()
-        } catch {
-            print("❌ CrashManager async JSON serialization failed: \(error)")
-            completion(false)
         }
     }
 
@@ -469,5 +407,5 @@ public class CrashManager {
 extension Defaults.Keys {
     static let user_id = Key<String?>("user_id")
     static let jwt_token = Key<String?>("jwt_token")
-    static let host = Key<String>("host", default: "")
+//    static let host = Key<String>("host", default: "")
 }

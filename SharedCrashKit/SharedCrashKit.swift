@@ -8,10 +8,25 @@
 import Foundation
 import UIKit
 
+// MARK: - 网络层协议
+public protocol CrashReportNetworkProvider {
+    func reportCrash(
+        userInfo: [String: Any],
+        deviceInfo: [String: Any],
+        crashInfo: [String: Any],
+        completion: @escaping (Bool, String?) -> Void
+    )
+}
+
 public enum SharedCrashKit {
     /// 获取崩溃管理器单例
     public static var shared: CrashManager {
         CrashManager.shared
+    }
+
+    /// 设置网络提供者
+    public static func setNetworkProvider(_ provider: CrashReportNetworkProvider) {
+        CrashManager.shared.setNetworkProvider(provider)
     }
 
     /// 便捷方法：安装崩溃收集器
