@@ -6,11 +6,15 @@ import Library
 import Network
 import UIKit
 import UserNotifications
+import SharedCrashKit
 
 class ApplicationDelegate: NSObject, UIApplicationDelegate {
     private var profileServer: ProfileServer?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        // 🔍 安装崩溃日志收集器（需要尽早安装）
+        SharedCrashKit.install()
+
         // 初始化 Firebase Analytics
          SharedAnalyticsKit.configure()
 

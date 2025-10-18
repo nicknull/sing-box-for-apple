@@ -55,6 +55,9 @@ enum AQAPIService{
     case getTrialInfo // 获取试用信息
     case claimTrial // 领取试用
 
+    // 崩溃日志上报
+    case reportCrash(userInfo:[String:Any], deviceInfo:[String:Any], crashInfo:[String:Any]) // 上报崩溃日志
+
 }
 extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
     func responsePrase(_ response:Response) -> NewResponseModel {
@@ -199,6 +202,8 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return "/user/trial/info"
         case .claimTrial:
             return "/user/trial/claim"
+        case .reportCrash(_,_,_):
+            return "/user/crash/report"
         }
         
 
@@ -252,6 +257,9 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return .post
 
         case .claimTrial:
+            return .post
+
+        case .reportCrash(_,_,_):
             return .post
 
         default:
@@ -406,6 +414,15 @@ extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
             return .requestPlain
         case .claimTrial:
             return .requestPlain
+
+        case let .reportCrash(userInfo, deviceInfo, crashInfo):
+            let parameters: [String: Any] = [
+                "user_info": userInfo,
+                "device_info": deviceInfo,
+                "crash_info": crashInfo,
+                "timestamp": ISO8601DateFormatter().string(from: Date())
+            ]
+            return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
 
         default:
             return .requestPlain
