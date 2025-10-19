@@ -10,7 +10,6 @@ import NetworkExtension
 import Libbox
 import Library
 import ApplicationLibrary
-import SwiftDate
 
 struct SettingsView: View {
     @EnvironmentObject private var environments: ExtensionEnvironments
@@ -79,8 +78,8 @@ struct SettingsView: View {
                         if isLoading {
                             ProgressView()
                                 .progressViewStyle(.circular)
-                        }else{
-                            Text(profile!.lastUpdated?.toString() ?? "未知")
+                        } else {
+                            Text(formattedUpdateTime(profile?.lastUpdated))
                                 .font(.footnote)
                         }
 
@@ -134,6 +133,29 @@ struct SettingsView: View {
         } catch {
             alert = Alert(error)
         }
+    }
+
+    private func formattedUpdateTime(_ date: Date?) -> String {
+        guard let date else { return "未知" }
+        let now = Date()
+        let interval = abs(now.timeIntervalSince(date))
+
+        if interval < 24 * 60 * 60 {
+            let relativeFormatter = RelativeDateTimeFormatter()
+            relativeFormatter.locale = .autoupdatingCurrent
+            relativeFormatter.unitsStyle = .full
+            return relativeFormatter.localizedString(for: date, relativeTo: now)
+        }
+
+        let formatter = DateFormatter()
+        formatter.locale = .autoupdatingCurrent
+        if formatter.locale.identifier.hasPrefix("zh") {
+            formatter.dateFormat = "yyyy年MM月dd日 HH:mm:ss"
+        } else {
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .medium
+        }
+        return formatter.string(from: date)
     }
 
 }

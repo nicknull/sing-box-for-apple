@@ -12,16 +12,14 @@ import Libbox
 import CryptoSwift
 import Defaults
 import ApplicationLibrary
+
 import Moya
 import _Concurrency
+import UIKit
 
 private func isCurrentTaskCancelled() -> Bool {
     // 通过显式引用 Swift 并发 Task，绕过与 Moya.Task 的命名冲突
     _Concurrency.Task.isCancelled
-}
-
-extension Notification.Name {
-    static let authExpired = Notification.Name("authExpiredNotification")
 }
 
 @MainActor
@@ -40,9 +38,10 @@ class UserManager: ObservableObject {
     @Published private(set) var isUpdatingSubscription = false
 
     private var pendingSyncRequests: Set<SyncRequest> = []
-    private var activeSyncTask: DispatchWorkItem?
+    private var activeSyncTask: _Concurrency.Task<Void, Never>?
 
-    private let profileUpdateThrottle: TimeInterval = 4 * 60
+    private let profileUpdateThrottle: TimeInterval = 60
+    private var hasUpdatedProfileThisSession = false
 
     var userInfo: UserInfoModel? {
         let decoder = JSONDecoder()
@@ -74,6 +73,14 @@ class UserManager: ObservableObject {
 
     var reloading: Bool { isRefreshingUserInfo || isUpdatingSubscription }
 
+    init() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleAppDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     func logout() async {
         // 记录用户登出事件
         // SharedAnalyticsKit.shared.logUserLogout()
@@ -85,6 +92,11 @@ class UserManager: ObservableObject {
         password = ""
         auth_data = ""
         token = ""
+        is_admin = false
+        userInfoJsonStr = ""
+        subscribeInfoJsonStr = ""
+        fileContentHash = ""
+        hasUpdatedProfileThisSession = false
 
 //        Task {
             await deleteProfile0()
@@ -97,15 +109,61 @@ class UserManager: ObservableObject {
         await checkTrialStatusAfterLogin()
     }
 
+    /// 登录成功后立即执行一次完整的用户数据同步，确保会话状态可用。
+    func establishSessionAfterLogin() async throws {
+        do {
+            let response: DecodedResponse<UserInfoModel> = try await requestDecodedModel(
+                AQAPIService.getUserInfo,
+                as: UserInfoModel.self
+            )
+            userInfoJsonStr = response.rawJSON
+            NSLog("✅ 登录初始化：用户信息同步成功")
+        } catch let error as CancellationError {
+            throw error
+        } catch {
+            throw mapToInitializationError(error)
+        }
+
+        do {
+            let response: DecodedResponse<SubscribeModel> = try await requestDecodedModel(
+                AQAPIService.getSubscribe,
+                as: SubscribeModel.self
+            )
+            subscribeInfoJsonStr = response.rawJSON
+            try await synchronizeProfile(with: response.model)
+            NSLog("✅ 登录初始化：订阅信息同步成功")
+        } catch let error as CancellationError {
+            throw error
+        } catch {
+            throw mapToInitializationError(error)
+        }
+
+        getReleaseVer()
+        await checkTrialStatusAfterLogin()
+    }
+
+    func requestSubscriptionRefresh(force: Bool = false) {
+        if hasUpdatedProfileThisSession && !force {
+            return
+        }
+        if force {
+            hasUpdatedProfileThisSession = false
+        }
+        enqueueSync([.subscription])
+    }
+
     func getReleaseVer() {
-         NewNetWorkRequest(AQAPIService.getVersion(token: token), modelType: AppVersion.self) { appVersion, _ in
-             guard let appVersion else { return }
-         #if os(iOS)
-             Defaults[.releaseVersion] = appVersion.ios_version
-         #elseif os(tvOS)
-             Defaults[.releaseVersion] = appVersion.appletv_version
-         #endif
-         }
+        NetworkService.shared.request(
+            AQAPIService.getVersion(token: token),
+            decodeTo: AppVersion.self
+        ) { result in
+            guard case let .success(payload) = result, let appVersion = payload.model else { return }
+#if os(iOS)
+            Defaults[.releaseVersion] = appVersion.ios_version
+#elseif os(tvOS)
+            Defaults[.releaseVersion] = appVersion.appletv_version
+#endif
+        }
     }
 
     func refreshUserInfo() {
@@ -130,15 +188,12 @@ class UserManager: ObservableObject {
         let requests = pendingSyncRequests
         pendingSyncRequests.removeAll()
 
-        let workItem = DispatchWorkItem { [weak self] in
-            DispatchQueue.main.async {
-                self?.performSyncSync(for: requests)
-                self?.activeSyncTask = nil
-                self?.startNextSyncIfNeeded()
-            }
+        activeSyncTask = _Concurrency.Task { [weak self] in
+            guard let self else { return }
+            await self.performSync(for: requests)
+            self.activeSyncTask = nil
+            self.startNextSyncIfNeeded()
         }
-        activeSyncTask = workItem
-        DispatchQueue.global(qos: .userInitiated).async(execute: workItem)
     }
 
     private func performSync(for requests: Set<SyncRequest>) async {
@@ -147,15 +202,6 @@ class UserManager: ObservableObject {
         }
         if requests.contains(.subscription) {
             await syncSubscription()
-        }
-    }
-
-    private func performSyncSync(for requests: Set<SyncRequest>) {
-        if requests.contains(.userInfo) {
-            syncUserInfoSync()
-        }
-        if requests.contains(.subscription) {
-            syncSubscriptionSync()
         }
     }
 
@@ -175,15 +221,6 @@ class UserManager: ObservableObject {
          }
     }
 
-    private func syncUserInfoSync() {
-        guard !isRefreshingUserInfo else { return }
-        isRefreshingUserInfo = true
-
-        DispatchQueue.main.async { [weak self] in
-            self?.isRefreshingUserInfo = false
-        }
-    }
-
     private func syncSubscription() async {
         guard !isUpdatingSubscription else { return }
         isUpdatingSubscription = true
@@ -200,15 +237,6 @@ class UserManager: ObservableObject {
          }
     }
 
-    private func syncSubscriptionSync() {
-        guard !isUpdatingSubscription else { return }
-        isUpdatingSubscription = true
-
-        DispatchQueue.main.async { [weak self] in
-            self?.isUpdatingSubscription = false
-        }
-    }
-
     private func synchronizeProfile(with subscription: SubscribeModel) async throws {
         guard let remoteURL = subscription.sing_url ?? subscription.subscribe_url, !remoteURL.isEmpty else {
             NSLog("⚠️ 订阅数据缺少有效的远程配置地址")
@@ -217,18 +245,26 @@ class UserManager: ObservableObject {
 
         let selectedID = await SharedPreferences.selectedProfileID.get()
         if let profile = try await loadProfile(id: selectedID) {
-            if profile.remoteURL != remoteURL {
+            let urlChanged = profile.remoteURL != remoteURL
+            if urlChanged {
                 profile.remoteURL = remoteURL
                 try await ProfileManager.update(profile)
+                hasUpdatedProfileThisSession = false
             }
 
-            if shouldThrottleProfileUpdate(profile: profile, remoteURL: remoteURL) {
+            if hasUpdatedProfileThisSession && !urlChanged {
+                return
+            }
+
+            if !urlChanged && shouldThrottleProfileUpdate(profile: profile, remoteURL: remoteURL) {
                 return
             }
 
             try await profile.updateRemoteProfile()
+            hasUpdatedProfileThisSession = true
         } else {
             try await createProfile(remoteURL: remoteURL)
+            hasUpdatedProfileThisSession = true
         }
     }
 
@@ -290,38 +326,53 @@ class UserManager: ObservableObject {
     private func requestDecodedModel<T: Codable>(_ target: TargetType & ResponseProvider, as type: T.Type) async throws -> DecodedResponse<T> {
         try await withCheckedThrowingContinuation { continuation in
             var hasResumed = false
-            _ = NewNetWorkRequest(target, modelType: type) { model, response in
+            NetworkService.shared.request(
+                target,
+                decodeTo: type
+            ) { result in
                 guard !hasResumed else { return }
 
-                // 使用 isCurrentTaskCancelled() 以避免与 Moya.Task 命名冲突
-                if isCurrentTaskCancelled() {
-                    hasResumed = true
-                    continuation.resume(throwing: CancellationError())
-                    return
-                }
-
-                guard let raw = response.dataString else {
-                    hasResumed = true
-                    continuation.resume(throwing: UserDataSyncError.emptyPayload)
-                    return
-                }
-
-                guard response.code == 200, let model else {
-                    hasResumed = true
-                    if response.code == 403 {
-                        continuation.resume(throwing: UserDataSyncError.unauthorized)
-                    } else {
-                        continuation.resume(throwing: UserDataSyncError.requestFailed(code: response.code, message: response.messageStr))
+                switch result {
+                case let .success(payload):
+                    if isCurrentTaskCancelled() {
+                        hasResumed = true
+                        continuation.resume(throwing: CancellationError())
+                        return
                     }
-                    return
-                }
 
-                hasResumed = true
-                continuation.resume(returning: DecodedResponse(model: model, rawJSON: raw))
-            } failureCallback: { response in
-                guard !hasResumed else { return }
-                hasResumed = true
-                continuation.resume(throwing: UserDataSyncError.requestFailed(code: response.code, message: response.messageStr))
+                    guard let raw = payload.context.payloadString else {
+                        hasResumed = true
+                        continuation.resume(throwing: UserDataSyncError.emptyPayload)
+                        return
+                    }
+
+                    guard payload.context.httpStatusCode == 200, let model = payload.model else {
+                        hasResumed = true
+                        if payload.context.httpStatusCode == 403 {
+                            continuation.resume(throwing: UserDataSyncError.unauthorized)
+                        } else {
+                            continuation.resume(
+                                throwing: UserDataSyncError.requestFailed(
+                                    code: payload.context.httpStatusCode,
+                                    message: payload.context.message
+                                )
+                            )
+                        }
+                        return
+                    }
+
+                    hasResumed = true
+                    continuation.resume(returning: DecodedResponse(model: model, rawJSON: raw))
+
+                case let .failure(error):
+                    hasResumed = true
+                    continuation.resume(
+                        throwing: UserDataSyncError.requestFailed(
+                            code: error.httpStatusCode,
+                            message: error.message
+                        )
+                    )
+                }
             }
         }
     }
@@ -332,6 +383,28 @@ class UserManager: ObservableObject {
         pendingSyncRequests.removeAll()
         isRefreshingUserInfo = false
         isUpdatingSubscription = false
+    }
+
+    @objc private func handleAppDidBecomeActive() {
+        requestSubscriptionRefresh()
+        DeviceTokenManager.shared.syncTokenIfAvailable(force: false)
+    }
+
+    private func mapToInitializationError(_ error: Error) -> Error {
+        if let syncError = error as? UserDataSyncError {
+            return syncError
+        }
+        if let networkError = error as? NetworkRequestError {
+            return UserDataSyncError.requestFailed(
+                code: networkError.httpStatusCode,
+                message: networkError.message
+            )
+        }
+        let nsError = error as NSError
+        return UserDataSyncError.requestFailed(
+            code: nsError.code,
+            message: nsError.localizedDescription
+        )
     }
 
     private func deleteProfile0() async {

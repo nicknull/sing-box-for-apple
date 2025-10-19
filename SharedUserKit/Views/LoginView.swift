@@ -10,7 +10,6 @@ import UIKit
 import Combine
 
 import AuthenticationServices
-import LoadingButton
 //import MarkdownUI
 import NetworkExtension
 import DynamicColor
@@ -25,24 +24,14 @@ struct LoginView: View {
     @EnvironmentObject var appStateManager: AppStateManager
     @EnvironmentObject var userManager: UserManager
 
-    @State var errorStr: String = ""
-    @State var showingPopup: Bool = false
-
     @State var emailInput: String = ""
     @State var passwordInput: String = ""
-    @State var isLoading: Bool = false
     @State var popUp: Bool = false
     @StateObject private var oauthManager = OAuthManager(
         googleClientID: "YOUR_GOOGLE_CLIENT_ID",
         githubClientID: "YOUR_GITHUB_CLIENT_ID"
     )
-    var style = LoadingButtonStyle(width: 312,
-                                   height: 40,
-                                   cornerRadius: 27,
-                                   backgroundColor:Color("blueblue"),
-                                   loadingColor: Color("blueblue"),
-                                   strokeWidth: 5,
-                                   strokeColor: .gray)
+    @State private var currentAction: LoginAction?
     
     @AppStorage(ConstantKey.auth_data, store: .standard) private var auth_data  = ""
     @AppStorage(ConstantKey.email, store: .standard) private var email  = ""
@@ -50,7 +39,16 @@ struct LoginView: View {
     @State var showLink:Bool = false
     @State var link:URL?
     @AppStorage(ConstantKey.consentAgreed) private var agreed: Bool = true
-    
+
+    private enum LoginAction: Equatable {
+        case credentials
+        case apple
+        case google
+        case github
+    }
+
+    private var isProcessing: Bool { currentAction != nil }
+
     // 不随键盘移动页面；通过可滚动表单避免遮挡
 
     var body: some View {
@@ -88,13 +86,13 @@ struct LoginView: View {
                                 .font(.title3)
                                 .fontWeight(.bold)
                                 .foregroundColor(Color("blueblue"))
-                                .disabled(isLoading)
+                                .disabled(isProcessing)
                             TextField("请输入用户名", text: $emailInput)
                                 .padding(.leading,10)
                                 .frame(height: 40)
                                 .textFieldStyle(UnderLineTextFieldStyle())
                                 .keyboardType(.emailAddress)
-                                .disabled(isLoading)
+                                .disabled(isProcessing)
                         }.padding(.horizontal,20)
                         HStack{
                             Text("密    码:")
@@ -109,23 +107,27 @@ struct LoginView: View {
                             .padding(.leading,10)
                             .frame(height: 40)
                             .textFieldStyle(UnderLineTextFieldStyle())
-                            .disabled(isLoading)
+                            .disabled(isProcessing)
                         }.padding(.horizontal,20)
-                        LoadingButton(action: {
+                        Button {
+                            guard currentAction == nil else { return }
                             if !agreed {
-                                errorStr = "请先勾选同意《用户协议》和《隐私政策》"
-                                showingPopup = true
+                                HUDManager.showFailure("请先勾选同意《用户协议》和《隐私政策》")
                                 return
                             }
                             loginBtnPressed()
-                            // Your Action here
-                        }, isLoading: $isLoading, style: style) {
-                            Text("马上登录").foregroundColor(Color.white)
+                        } label: {
+                            Text(currentAction == .credentials ? "正在登录…" : "马上登录")
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 44)
+                                .background(Color("blueblue"))
+                                .cornerRadius(22)
                         }
-                        .disabled(!agreed || isLoading)
-                        .opacity((!agreed || isLoading) ? 0.5 : 1.0)
-
-                        .padding(40)
+                        .disabled(!agreed || isProcessing)
+                        .opacity((!agreed || isProcessing) ? 0.6 : 1.0)
+                        .padding(.horizontal, 40)
+                        .padding(.vertical, 20)
 
                         // 第三方登录分隔线（仅保留 Apple 登录）
                         HStack(alignment: .center, spacing: 8) {
@@ -159,7 +161,7 @@ struct LoginView: View {
                                         .background(Color.black)
                                         .clipShape(Circle())
                                 }
-                                .disabled(isLoading || oauthManager.isLoading || !agreed)
+                                .disabled(isProcessing || !agreed)
                                 .opacity(agreed ? 1.0 : 0.5)
                                 Text("Apple").font(.caption2).foregroundColor(.secondary)
                             }
@@ -184,8 +186,8 @@ struct LoginView: View {
 //                                        .stroke(Color("blueblue"), lineWidth: 1)
 //                                )
                             }
-                            .disabled(!agreed)
-                            .opacity(agreed ? 1.0 : 0.5)
+                            .disabled(!agreed || isProcessing)
+                            .opacity((!agreed || isProcessing) ? 0.5 : 1.0)
 //
                             Spacer()
                         }
@@ -215,9 +217,6 @@ struct LoginView: View {
                 
                 }
             }
-            .toast(isPresenting: $showingPopup){
-                ToastNotification(type: .error(.green), title:errorStr)
-            }
             .popup(isPresented: $popUp, view: {
                 PopupMiddle {
                     if let url = URL(string: "mailto:LightningVPN888@gmail.com?subject=无法注册&body=请回复我最新的可访问的网址\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n") {
@@ -238,33 +237,6 @@ struct LoginView: View {
         .safariView(isPresented: $showLink) {
             SafariView(url: link!)
         }
-        .popup(isPresented: Binding(get: { oauthManager.isLoading }, set: { _ in }), view: {
-            ZStack {
-                Color.black.opacity(0.25).ignoresSafeArea()
-                VStack(spacing: 12) {
-                    ProgressView()
-                    Text("正在请求 Apple 登录...")
-                        .font(.footnote)
-                }
-                .padding(.horizontal, 28)
-                .padding(.vertical, 20)
-                .background(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color(.systemBackground))
-                )
-                .shadow(radius: 12)
-            }
-        }) { popup in
-            popup
-                .type(.floater())
-                .position(.center)
-                .animation(.easeInOut(duration: 0.25))
-                .closeOnTap(false)
-                .closeOnTapOutside(false)
-                .dragToDismiss(false)
-                .backgroundColor(Color.black.opacity(0.25))
-                .autohideIn(nil)
-        }
         .onAppear(){
             self.emailInput = (self.email.count > 0 && self.emailInput.count == 0) ? self.email:""
             self.passwordInput = (self.password.count > 0 && self.passwordInput.count == 0) ? self.password:""
@@ -282,35 +254,22 @@ struct LoginView: View {
     func setupOAuthCallbacks() {
         oauthManager.onSuccess = { [self] authModel in
             DispatchQueue.main.async {
-                // 保存用户信息
                 userManager.auth_data = authModel.auth_data
                 userManager.token = authModel.token
                 userManager.is_admin = authModel.is_admin
 
-                // 记录OAuth登录成功事件
-                SharedAnalyticsKit.shared.logUserLogin(
-                    method: "oauth",
-                    success: true,
-                    userId: userManager.userInfo?.email
-                )
-
-                Task {
-                    await userManager.reload()
-
-                    DispatchQueue.main.async {
-                        // 登录成功后通知 AppStateManager 进入主界面
-                        appStateManager.loginCompleted()
-                    }
-                }
+                Task { @MainActor in
+                    await finalizeLoginSession(
+                        method: "oauth",
+                        successMessage: "登录成功",
+                        typedEmail: nil
+                    )
                 }
             }
+        }
 
         oauthManager.onFailure = { error in
             DispatchQueue.main.async {
-                errorStr = error
-                showingPopup = true
-
-                // 记录OAuth登录失败事件
                 SharedAnalyticsKit.shared.logUserLogin(
                     method: "oauth",
                     success: false
@@ -319,93 +278,178 @@ struct LoginView: View {
                     message: "OAuth login failed: \(error)",
                     context: "login"
                 )
+
+                failCurrentAction(error)
             }
         }
     }
 
     // MARK: - Apple 登录处理
     func handleAppleSignIn() {
+        guard currentAction == nil else { return }
         wzz_hideKeyboard()
+        startAction(.apple, message: "正在使用 Apple 登录…")
         oauthManager.signInWithApple()
     }
 
     // MARK: - Google 登录处理
     func handleGoogleSignIn() {
+        guard currentAction == nil else { return }
         wzz_hideKeyboard()
+        startAction(.google, message: "正在使用 Google 登录…")
         oauthManager.signInWithGoogle()
     }
 
     // MARK: - GitHub 登录处理
     func handleGitHubSignIn() {
+        guard currentAction == nil else { return }
         wzz_hideKeyboard()
+        startAction(.github, message: "正在使用 GitHub 登录…")
         oauthManager.signInWithGitHub()
     }
 
     // MARK: - 传统登录处理
     func loginBtnPressed() {
+        guard currentAction == nil else { return }
         wzz_hideKeyboard()
         let email = emailInput
         let password = passwordInput
         
         // 输入验证
         guard !email.isEmpty, !password.isEmpty else {
-            errorStr = "请输入用户名和密码"
-            showingPopup = true
+            HUDManager.showFailure("请输入用户名和密码")
             return
         }
         
-        isLoading = true
-        
-        NewNetWorkRequest(AQAPIService.signIn(email: email, password: password), modelType: AuthModel.self) { authModel, responseModel in
+        startAction(.credentials, message: "正在登录…")
+        NetworkService.shared.request(
+            AQAPIService.signIn(email: email, password: password),
+            decodeTo: AuthModel.self
+        ) { result in
             DispatchQueue.main.async {
-                guard let authModel = authModel, !authModel.auth_data.isEmpty else {
-                    isLoading = false
-                    errorStr = responseModel.messageStr ?? "登录失败，请检查用户名和密码"
-                    showingPopup = true
-                    return
-                }
-                
-                // 保存用户信息
-                userManager.email = email
-                userManager.password = password
-                userManager.auth_data = authModel.auth_data
-                userManager.token = authModel.token
-                userManager.is_admin = authModel.is_admin
-
-                // 记录传统登录成功事件
-                 SharedAnalyticsKit.shared.logUserLogin(
-                     method: "email_password",
-                     success: true,
-                     userId: userManager.userInfo?.email
-                 )
-
-                Task {
-                    await userManager.reload()
-
-                    DispatchQueue.main.async {
-                        isLoading = false
-                        // 登录成功后通知 AppStateManager 进入主界面
-                        appStateManager.loginCompleted()
+                switch result {
+                case .success(let payload):
+                    guard let authModel = payload.model, !authModel.auth_data.isEmpty else {
+                        failCurrentAction(payload.context.message ?? "登录失败，请检查用户名和密码")
+                        SharedAnalyticsKit.shared.logUserLogin(
+                            method: "email_password",
+                            success: false
+                        )
+                        SharedAnalyticsKit.shared.logCustomError(
+                            message: "Email login failed: \(payload.context.message ?? "unknown")",
+                            context: "login"
+                        )
+                        return
                     }
-                }
-            }
-        } failureCallback: { responseModel in
-            DispatchQueue.main.async {
-                isLoading = false
-                errorStr = responseModel.messageStr ?? "网络请求失败，请检查网络连接"
-                showingPopup = true
 
-                // 记录传统登录失败事件
-                 SharedAnalyticsKit.shared.logUserLogin(
-                     method: "email_password",
-                     success: false
-                 )
-                 SharedAnalyticsKit.shared.logCustomError(
-                     message: "Email login failed: \(responseModel.messageStr ?? "unknown")",
-                     context: "login"
-                 )
+                    userManager.email = email
+                    userManager.password = password
+                    userManager.auth_data = authModel.auth_data
+                    userManager.token = authModel.token
+                    userManager.is_admin = authModel.is_admin
+
+                    Task { @MainActor in
+                        await finalizeLoginSession(
+                            method: "email_password",
+                            successMessage: "登录成功",
+                            typedEmail: email
+                        )
+                    }
+
+                case .failure(let error):
+                    failCurrentAction(error.message)
+
+                    SharedAnalyticsKit.shared.logUserLogin(
+                        method: "email_password",
+                        success: false
+                    )
+                    SharedAnalyticsKit.shared.logCustomError(
+                        message: "Email login failed: \(error.message)",
+                        context: "login"
+                    )
+                }
             }
         }
+    }
+
+    @MainActor
+    private func finalizeLoginSession(
+        method: String,
+        successMessage: String,
+        typedEmail: String?
+    ) async {
+        HUDManager.showLoading("正在同步账号数据…")
+        do {
+            try await userManager.establishSessionAfterLogin()
+
+            SharedAnalyticsKit.shared.logUserLogin(
+                method: method,
+                success: true,
+                userId: userManager.userInfo?.email
+            )
+
+            finishCurrentAction(successMessage: successMessage)
+            DeviceTokenManager.shared.syncTokenIfAvailable(force: true)
+            appStateManager.loginCompleted()
+        } catch {
+            await handleLoginInitializationFailure(error, method: method, typedEmail: typedEmail)
+        }
+    }
+
+    @MainActor
+    private func handleLoginInitializationFailure(
+        _ error: Error,
+        method: String,
+        typedEmail: String?
+    ) async {
+        let message: String
+        if let localizedError = error as? LocalizedError,
+           let description = localizedError.errorDescription,
+           !description.isEmpty {
+            message = description
+        } else {
+            let fallback = error.localizedDescription
+            message = fallback.isEmpty ? "登录失败，请稍后重试" : fallback
+        }
+
+        SharedAnalyticsKit.shared.logUserLogin(
+            method: method,
+            success: false
+        )
+        SharedAnalyticsKit.shared.logCustomError(
+            message: "Login session init failed: \(message)",
+            context: "login"
+        )
+
+        userManager.token = ""
+        userManager.auth_data = ""
+        userManager.is_admin = false
+
+        if let typedEmail {
+            userManager.email = typedEmail
+        }
+
+        failCurrentAction(message)
+    }
+
+    private func startAction(_ action: LoginAction, message: String) {
+        currentAction = action
+        HUDManager.showLoading(message)
+    }
+
+    private func finishCurrentAction(successMessage: String? = nil) {
+        let hadAction = currentAction != nil
+        currentAction = nil
+        if let message = successMessage, !message.isEmpty, hadAction {
+            HUDManager.showSuccess(message)
+        } else {
+            HUDManager.dismiss()
+        }
+    }
+
+    private func failCurrentAction(_ message: String) {
+        currentAction = nil
+        HUDManager.showFailure(message.isEmpty ? "操作失败" : message)
     }
 }
 
