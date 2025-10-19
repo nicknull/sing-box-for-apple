@@ -10,11 +10,12 @@ import UIKit
 import Defaults
 import SystemConfiguration
 import Moya
+import Darwin
 
 
 // MARK: - 崩溃响应模型
 struct CrashReportResponse: Codable {
-    let code: Int
+    let code: Int?
     let msg: String?
     let data: CrashReportData?
 }
@@ -172,6 +173,10 @@ public class CrashManager {
 
         // 立即上报
         reportCrashSync(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
+
+        // 恢复默认信号处理并重新触发，确保应用终止
+        Darwin.signal(signal, SIG_DFL)
+        kill(getpid(), signal)
     }
 
     /// 处理信号
@@ -261,7 +266,7 @@ public class CrashManager {
 
     /// 安装信号处理器
     private func installSignalHandlers() {
-        let signals = [SIGABRT, SIGILL, SIGSEGV, SIGFPE, SIGBUS, SIGPIPE]
+        let signals = [SIGABRT, SIGILL, SIGSEGV, SIGFPE, SIGBUS, SIGPIPE, SIGTRAP, SIGQUIT]
 
         for signal in signals {
             var action = sigaction()
@@ -347,18 +352,34 @@ public class CrashManager {
         }
 
         NetworkService.shared.request(
-            AQAPIService.reportCrash(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo),
-            decodeTo: CrashReportResponse.self
+            AQAPIService.reportCrash(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
         ) { result in
             switch result {
-            case .success(let payload):
-                if payload.model?.code == 200 || payload.context.httpStatusCode == 200 {
-                    print("✅ CrashManager async upload successful")
-                    completion(true)
-                } else {
-                    print("❌ CrashManager async upload failed: \(payload.model?.msg ?? payload.context.message ?? "未知错误")")
+            case .success(let context):
+                guard context.httpStatusCode == 200 else {
+                    print("❌ CrashManager async upload failed: HTTP \(context.httpStatusCode)")
                     completion(false)
+                    return
                 }
+
+                if let payloadString = context.payloadString,
+                   let data = payloadString.data(using: .utf8),
+                   let response = try? JSONDecoder().decode(CrashReportResponse.self, from: data) {
+                    if response.data?.success == true {
+                        print("✅ CrashManager async upload successful")
+                        completion(true)
+                        return
+                    }
+
+                    if let message = response.msg, !message.isEmpty {
+                        print("✅ CrashManager async upload successful: \(message)")
+                        completion(true)
+                        return
+                    }
+                }
+
+                print("✅ CrashManager async upload successful (no structured payload)")
+                completion(true)
 
             case .failure(let error):
                 print("❌ CrashManager async upload failed: \(error.message)")
@@ -366,7 +387,6 @@ public class CrashManager {
             }
         }
     }
-
     // MARK: - Public Convenience Methods
 
     /// 手动上报自定义崩溃信息

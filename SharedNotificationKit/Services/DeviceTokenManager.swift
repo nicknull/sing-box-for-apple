@@ -7,6 +7,8 @@ class DeviceTokenManager: NSObject {
     static let shared = DeviceTokenManager()
 
     private var deviceToken: String?
+    private var isUploadingToken = false
+    private let authDataKey = "auth_data"
 
     private override init() {
         super.init()
@@ -39,7 +41,9 @@ class DeviceTokenManager: NSObject {
         #elseif os(tvOS)
         NSLog("📺 APNS Device Token (tvOS): \(token.prefix(20))...")
         #endif
-        uploadTokenIfNeeded(token, force: false)
+        if isUserAuthenticated {
+            uploadTokenIfNeeded(token, force: false)
+        }
     }
 
     func handleRegistrationError(_ error: Error) {
@@ -55,10 +59,22 @@ class DeviceTokenManager: NSObject {
         NSLog("📤 准备上传 APNS Token (tvOS): \(token.prefix(20))...")
         #endif
 
+        guard isUserAuthenticated else {
+            NSLog("⏭️ 当前未登录，跳过 APNS Token 上传")
+            return
+        }
+
+        if isUploadingToken {
+            NSLog("⏳ APNS Token 上传进行中，跳过重复请求")
+            return
+        }
+        isUploadingToken = true
+
         NetworkService.shared.request(
             AQAPIService.registerDeviceToken(token: token, platform: platform),
             decodeTo: SimpleResponse.self
         ) { result in
+            self.isUploadingToken = false
             switch result {
             case .success(let payload):
                 if payload.model?.code == 200 || payload.context.httpStatusCode == 200 {
@@ -75,6 +91,11 @@ class DeviceTokenManager: NSObject {
     }
 
     func uploadTokenIfNeeded(_ token: String, force: Bool) {
+        guard isUserAuthenticated else {
+            NSLog("⏭️ 当前未登录，跳过 APNS Token 同步")
+            return
+        }
+
         let lastTokenKey = "last_uploaded_apns_token"
         let uploadDateKey = "apns_token_upload_date"
 
@@ -96,6 +117,11 @@ class DeviceTokenManager: NSObject {
     func syncTokenIfAvailable(force: Bool = false) {
         guard let token = deviceToken else { return }
         uploadTokenIfNeeded(token, force: force)
+    }
+
+    private var isUserAuthenticated: Bool {
+        guard let authData = UserDefaults.standard.string(forKey: authDataKey) else { return false }
+        return !authData.isEmpty
     }
 
     func removeToken() {

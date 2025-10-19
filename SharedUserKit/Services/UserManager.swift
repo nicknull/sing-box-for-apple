@@ -104,6 +104,7 @@ class UserManager: ObservableObject {
     }
 
     func reload() async {
+        guard isLoggedIn else { return }
         enqueueSync([.userInfo, .subscription])
         getReleaseVer()
         await checkTrialStatusAfterLogin()
@@ -143,6 +144,7 @@ class UserManager: ObservableObject {
     }
 
     func requestSubscriptionRefresh(force: Bool = false) {
+        guard isLoggedIn else { return }
         if hasUpdatedProfileThisSession && !force {
             return
         }
@@ -179,6 +181,7 @@ class UserManager: ObservableObject {
     }
 
     private func enqueueSync(_ requests: Set<SyncRequest>) {
+        guard isLoggedIn else { return }
         pendingSyncRequests.formUnion(requests)
         startNextSyncIfNeeded()
     }
@@ -386,6 +389,7 @@ class UserManager: ObservableObject {
     }
 
     @objc private func handleAppDidBecomeActive() {
+        guard isLoggedIn else { return }
         requestSubscriptionRefresh()
         DeviceTokenManager.shared.syncTokenIfAvailable(force: false)
     }

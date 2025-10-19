@@ -12,6 +12,7 @@ import Defaults
 import StoreKit
 import Library
 import CodeScanner
+import SharedCrashKit
 
 struct UserView: View {
   @EnvironmentObject private var environments: ExtensionEnvironments
@@ -236,6 +237,25 @@ struct UserView: View {
             }
           }
           .padding(.vertical,4)
+
+#if DEBUG
+          Button {
+            triggerTestCrashRequest()
+          } label: {
+            LabeledContent {
+              Image(systemName: "chevron.forward")
+                .foregroundColor(.secondary)
+                .opacity(0.7)
+            } label: {
+              Label {
+                Text("触发测试崩溃")
+              } icon: {
+                IVYIcon(systemName: "flame.fill", backgroundColor: .red)
+              }
+            }
+          }
+          .padding(.vertical,4)
+#endif
 
             LabeledContent {
               Text(formatter.string(from: self.subscribe!.u! as NSNumber) ?? "-")
@@ -533,6 +553,15 @@ struct UserView: View {
     }
   }
   
+#if DEBUG
+  private func triggerTestCrashRequest() {
+    HUDManager.showLoading("即将触发测试崩溃…")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+      CrashManager.shared.triggerTestCrash(reason: "手动触发测试崩溃")
+    }
+  }
+#endif
+
   // MARK: - 二维码扫描结果处理
   private func handleScanResult(_ result: Result<ScanResult, ScanError>) {
     showScan = false
