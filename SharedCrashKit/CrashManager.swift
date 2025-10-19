@@ -173,20 +173,20 @@ public class CrashManager {
 
         // 立即上报
         reportCrashSync(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
-
-        // 恢复默认信号处理并重新触发，确保应用终止
-        Darwin.signal(signal, SIG_DFL)
-        kill(getpid(), signal)
     }
 
     /// 处理信号
-    private func handleSignal(_ signal: Int32) {
+    private func handleSignal(_ signalCode: Int32) {
         let userInfo = collectUserInfo()
         let deviceInfo = collectDeviceInfo()
-        let crashInfo = collectCrashInfo(exception: nil, signal: signal)
+        let crashInfo = collectCrashInfo(exception: nil, signal: signalCode)
 
         // 立即上报
         reportCrashSync(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
+
+        // 恢复默认处理并重新触发，让系统照常终止进程
+        Darwin.signal(signalCode, SIG_DFL)
+        kill(getpid(), signalCode)
     }
 
     /// 同步上报崩溃（用于崩溃时立即上报）
@@ -388,6 +388,24 @@ public class CrashManager {
         }
     }
     // MARK: - Public Convenience Methods
+
+    /// 触发一次测试崩溃，用于验证崩溃日志捕获与上报链路。
+    public func triggerTestCrash(reason: String = "测试触发崩溃", signal: Int32 = SIGABRT) {
+#if DEBUG
+        guard isInstalled else {
+            print("⚠️ CrashManager 未安装，无法触发测试崩溃")
+            return
+        }
+
+        print("🧪 CrashManager 即将触发测试崩溃: signal=\(signal), reason=\(reason)")
+        logEvent(name: "force_crash_trigger", parameters: ["reason": reason])
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            raise(signal)
+        }
+#else
+        NSLog("⚠️ triggerTestCrash 仅在 Debug 构建可用: %@", reason)
+#endif
+    }
 
     /// 手动上报自定义崩溃信息
     /// 用于捕获非致命错误或特定业务逻辑错误
