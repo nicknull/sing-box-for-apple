@@ -9,6 +9,7 @@
 import Foundation
 import SwiftUI
 
+
 /// OAuth 账号绑定管理器
 class OAuthBindingManager: ObservableObject {
 
@@ -50,32 +51,33 @@ class OAuthBindingManager: ObservableObject {
             print("🍎 开始绑定 Apple 账号...")
 
             // 调用后端 API 绑定账号
-            NewNetWorkRequest(
+            NetworkService.shared.request(
                 AQAPIService.bindAppleAccount(
                     identityToken: credential.identityToken,
                     userIdentifier: credential.userIdentifier
                 ),
-                modelType: BindResponse.self
-            ) { response, responseModel in
+                decodeTo: BindResponse.self
+            ) { result in
                 DispatchQueue.main.async {
                     self.isLoading = false
 
-                    if responseModel.code == 200 {
-                        print("✅ Apple 账号绑定成功")
-                        self.onBindSuccess?("apple")
-                    } else {
-                        let error = responseModel.messageStr ?? "绑定失败"
-                        print("❌ Apple 账号绑定失败: \(error)")
-                        self.errorMessage = error
-                        self.onBindFailure?(error)
+                    switch result {
+                    case .success(let payload):
+                        if payload.context.httpStatusCode == 200 {
+                            print("✅ Apple 账号绑定成功")
+                            self.onBindSuccess?("apple")
+                        } else {
+                            let error = payload.model?.message ?? payload.context.message ?? "绑定失败"
+                            print("❌ Apple 账号绑定失败: \(error)")
+                            self.errorMessage = error
+                            self.onBindFailure?(error)
+                        }
+
+                    case .failure(let error):
+                        let message = error.message
+                        self.errorMessage = message
+                        self.onBindFailure?(message)
                     }
-                }
-            } failureCallback: { responseModel in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    let error = responseModel.messageStr ?? "网络请求失败"
-                    self.errorMessage = error
-                    self.onBindFailure?(error)
                 }
             }
         }
@@ -105,29 +107,30 @@ class OAuthBindingManager: ObservableObject {
 
             print("🔍 开始绑定 Google 账号...")
 
-            NewNetWorkRequest(
+            NetworkService.shared.request(
                 AQAPIService.bindGoogleAccount(authorizationCode: credential.authorizationCode),
-                modelType: BindResponse.self
-            ) { response, responseModel in
+                decodeTo: BindResponse.self
+            ) { result in
                 DispatchQueue.main.async {
                     self.isLoading = false
 
-                    if responseModel.code == 200 {
-                        print("✅ Google 账号绑定成功")
-                        self.onBindSuccess?("google")
-                    } else {
-                        let error = responseModel.messageStr ?? "绑定失败"
-                        print("❌ Google 账号绑定失败: \(error)")
-                        self.errorMessage = error
-                        self.onBindFailure?(error)
+                    switch result {
+                    case .success(let payload):
+                        if payload.context.httpStatusCode == 200 {
+                            print("✅ Google 账号绑定成功")
+                            self.onBindSuccess?("google")
+                        } else {
+                            let error = payload.model?.message ?? payload.context.message ?? "绑定失败"
+                            print("❌ Google 账号绑定失败: \(error)")
+                            self.errorMessage = error
+                            self.onBindFailure?(error)
+                        }
+
+                    case .failure(let error):
+                        let message = error.message
+                        self.errorMessage = message
+                        self.onBindFailure?(message)
                     }
-                }
-            } failureCallback: { responseModel in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    let error = responseModel.messageStr ?? "网络请求失败"
-                    self.errorMessage = error
-                    self.onBindFailure?(error)
                 }
             }
         }
@@ -157,29 +160,30 @@ class OAuthBindingManager: ObservableObject {
 
             print("🐙 开始绑定 GitHub 账号...")
 
-            NewNetWorkRequest(
+            NetworkService.shared.request(
                 AQAPIService.bindGitHubAccount(authorizationCode: credential.authorizationCode),
-                modelType: BindResponse.self
-            ) { response, responseModel in
+                decodeTo: BindResponse.self
+            ) { result in
                 DispatchQueue.main.async {
                     self.isLoading = false
 
-                    if responseModel.code == 200 {
-                        print("✅ GitHub 账号绑定成功")
-                        self.onBindSuccess?("github")
-                    } else {
-                        let error = responseModel.messageStr ?? "绑定失败"
-                        print("❌ GitHub 账号绑定失败: \(error)")
-                        self.errorMessage = error
-                        self.onBindFailure?(error)
+                    switch result {
+                    case .success(let payload):
+                        if payload.context.httpStatusCode == 200 {
+                            print("✅ GitHub 账号绑定成功")
+                            self.onBindSuccess?("github")
+                        } else {
+                            let error = payload.model?.message ?? payload.context.message ?? "绑定失败"
+                            print("❌ GitHub 账号绑定失败: \(error)")
+                            self.errorMessage = error
+                            self.onBindFailure?(error)
+                        }
+
+                    case .failure(let error):
+                        let message = error.message
+                        self.errorMessage = message
+                        self.onBindFailure?(message)
                     }
-                }
-            } failureCallback: { responseModel in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    let error = responseModel.messageStr ?? "网络请求失败"
-                    self.errorMessage = error
-                    self.onBindFailure?(error)
                 }
             }
         }
@@ -201,33 +205,31 @@ class OAuthBindingManager: ObservableObject {
 
         print("🔓 开始解绑 \(provider) 账号...")
 
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.unbindOAuthAccount(provider: provider),
-            modelType: BindResponse.self
-        ) { [weak self] response, responseModel in
+            decodeTo: BindResponse.self
+        ) { [weak self] result in
             guard let self = self else { return }
 
             DispatchQueue.main.async {
                 self.isLoading = false
+                switch result {
+                case .success(let payload):
+                    if payload.context.httpStatusCode == 200 {
+                        print("✅ \(provider) 账号解绑成功")
+                        self.onUnbindSuccess?(provider)
+                    } else {
+                        let error = payload.model?.message ?? payload.context.message ?? "解绑失败"
+                        print("❌ \(provider) 账号解绑失败: \(error)")
+                        self.errorMessage = error
+                        self.onUnbindFailure?(error)
+                    }
 
-                if responseModel.code == 200 {
-                    print("✅ \(provider) 账号解绑成功")
-                    self.onUnbindSuccess?(provider)
-                } else {
-                    let error = responseModel.messageStr ?? "解绑失败"
-                    print("❌ \(provider) 账号解绑失败: \(error)")
-                    self.errorMessage = error
-                    self.onUnbindFailure?(error)
+                case .failure(let error):
+                    let message = error.message
+                    self.errorMessage = message
+                    self.onUnbindFailure?(message)
                 }
-            }
-        } failureCallback: { [weak self] responseModel in
-            guard let self = self else { return }
-
-            DispatchQueue.main.async {
-                self.isLoading = false
-                let error = responseModel.messageStr ?? "网络请求失败"
-                self.errorMessage = error
-                self.onUnbindFailure?(error)
             }
         }
     }

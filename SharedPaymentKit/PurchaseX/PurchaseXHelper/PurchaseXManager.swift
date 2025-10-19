@@ -84,28 +84,37 @@ public class PurchaseXManager: NSObject, ObservableObject {
     /// - Parameter completion: a closure that will be called when the results returned from the appstore
     @MainActor public func requestProductsFromAppstore(productIds: [String]) async -> [Product]? {
         // 记录产品加载开始
-         SharedAnalyticsKit.shared.logCustomEvent(name: "iap_products_load_started", parameters: [
-             "product_ids": productIds,
-             "product_count": productIds.count
-         ])
+        SharedAnalyticsKit.shared.logCustomEvent(
+            name: "iap_products_load_started",
+            parameters: [
+                "product_ids": productIds.joined(separator: ","),
+                "product_count": productIds.count
+            ]
+        )
 
         do {
             products = try await Product.products(for: Set.init(productIds))
 
             // 记录产品加载成功
-             SharedAnalyticsKit.shared.logCustomEvent(name: "iap_products_load_success", parameters: [
-                 "requested_count": productIds.count,
-                 "loaded_count": products?.count ?? 0,
-                 "loaded_products": products?.map { $0.id } ?? []
-             ])
+            SharedAnalyticsKit.shared.logCustomEvent(
+                name: "iap_products_load_success",
+                parameters: [
+                    "requested_count": productIds.count,
+                    "loaded_count": products?.count ?? 0,
+                    "loaded_products": (products?.map { $0.id } ?? []).joined(separator: ",")
+                ]
+            )
 
             return products
         } catch {
             // 记录产品加载失败
-             SharedAnalyticsKit.shared.logCustomEvent(name: "iap_products_load_failed", parameters: [
-                 "product_ids": productIds,
-                 "error": error.localizedDescription
-             ])
+            SharedAnalyticsKit.shared.logCustomEvent(
+                name: "iap_products_load_failed",
+                parameters: [
+                    "product_ids": productIds.joined(separator: ","),
+                    "error": error.localizedDescription
+                ]
+            )
              SharedAnalyticsKit.shared.logError(error: error, context: "iap_products_load")
 
             products = nil

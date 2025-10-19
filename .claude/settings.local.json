@@ -34,7 +34,12 @@
       "Bash(pod update:*)",
       "Bash(pod install:*)",
       "Bash(make:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Read(//Users/xiaokangchen/Documents/VPN/m.lightningvpns.com/**)",
+      "Bash(php artisan:*)",
+      "Bash(ruby:*)",
+      "Bash(git rm:*)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []

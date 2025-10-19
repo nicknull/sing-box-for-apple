@@ -95,15 +95,26 @@ struct TicketChatView: View {
     
     private func loadMessages() {
         isLoading = true
-        NewNetWorkRequest(AQAPIService.ticketFetch(id: ticketId), modelType: MessageData.self) {
-            response, _ in
+        NetworkService.shared.request(
+            AQAPIService.ticketFetch(id: ticketId),
+            decodeTo: MessageData.self
+        ) { result in
             isLoading = false
-            if let messages = response?.message {  // 直接访问data.message
-                self.messages = messages
-                subject = response?.subject ?? ""
-                status = response?.status ?? 1
+            switch result {
+            case .success(let payload):
+                if let data = payload.model {
+                    messages = data.message
+                    subject = data.subject
+                    status = data.status
+                    reply_status = data.reply_status
+                } else {
+                    errorMessage = payload.context.message ?? "加载失败"
+                    showingPopup = true
+                }
 
-                reply_status = response?.reply_status ?? 1
+            case .failure(let error):
+                errorMessage = error.message
+                showingPopup = true
             }
         }
     }
@@ -112,15 +123,24 @@ struct TicketChatView: View {
         
         isLoading = true
         
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.ticketReply(id: ticketId, message: newMessage, imageData: selectedImage?.jpegData(compressionQuality: 0.8)),
-            modelType: CreateTicketResponse.self
-        ) { [self] response, error in
+            decodeTo: CreateTicketResponse.self
+        ) { result in
             isLoading = false
-            if(response?.data == true){
-                loadMessages()
-            }else{
-                errorMessage = response?.message
+            switch result {
+            case .success(let payload):
+                if payload.model?.data == true {
+                    loadMessages()
+                    newMessage = ""
+                    selectedImage = nil
+                } else {
+                    errorMessage = payload.model?.message ?? payload.context.message
+                    showingPopup = true
+                }
+
+            case .failure(let error):
+                errorMessage = error.message
                 showingPopup = true
             }
         }
@@ -129,15 +149,22 @@ struct TicketChatView: View {
     
     private func closeTicket() {
         isLoading = true
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.ticketClose(id: ticketId),
-            modelType: CreateTicketResponse.self
-        ) { [self] response, error in
+            decodeTo: CreateTicketResponse.self
+        ) { result in
             isLoading = false
-            if(response?.data == true){
-                dismiss()
-            }else{
-                errorMessage = response?.message
+            switch result {
+            case .success(let payload):
+                if payload.model?.data == true {
+                    dismiss()
+                } else {
+                    errorMessage = payload.model?.message ?? payload.context.message
+                    showingPopup = true
+                }
+
+            case .failure(let error):
+                errorMessage = error.message
                 showingPopup = true
             }
         }
@@ -283,5 +310,4 @@ struct MessageBubble: View {
         return baseURL.appendingPathComponent(path)
     }
 }
-
 

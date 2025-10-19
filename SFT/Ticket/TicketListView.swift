@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 struct TicketListView: View {
     @EnvironmentObject var userManager: UserManager
     @State private var tickets: [TicketModel] = []
@@ -94,14 +95,23 @@ struct TicketListView: View {
     
     private func loadTickets() {
         isLoading = true
-        NewNetWorkRequest(AQAPIService.getTickets, modelType: [TicketModel].self) { tickets, response in
+        NetworkService.shared.request(
+            AQAPIService.getTickets,
+            decodeTo: [TicketModel].self
+        ) { result in
             isLoading = false
-            if let tickets = tickets {
-                self.tickets = tickets
-            } else {
-                errorMessage = response.messageStr ?? "加载工单失败"
+            switch result {
+            case .success(let payload):
+                if let tickets = payload.model {
+                    self.tickets = tickets
+                    errorMessage = ""
+                } else {
+                    errorMessage = payload.context.message ?? "加载工单失败"
+                }
+
+            case .failure(let error):
+                errorMessage = error.message
             }
         }
     }
 }
-

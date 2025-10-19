@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 import UserNotifications
 
+
 class DeviceTokenManager: NSObject {
     static let shared = DeviceTokenManager()
 
@@ -9,6 +10,7 @@ class DeviceTokenManager: NSObject {
 
     private override init() {
         super.init()
+        deviceToken = UserDefaults.standard.string(forKey: "last_uploaded_apns_token")
     }
 
     func registerForPushNotifications() {
@@ -32,13 +34,12 @@ class DeviceTokenManager: NSObject {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         self.deviceToken = token
 
-        #if os(iOS)
+#if os(iOS)
         NSLog("📱 APNS Device Token (iOS): \(token.prefix(20))...")
         #elseif os(tvOS)
         NSLog("📺 APNS Device Token (tvOS): \(token.prefix(20))...")
         #endif
-
-        uploadTokenIfNeeded(token)
+        uploadTokenIfNeeded(token, force: false)
     }
 
     func handleRegistrationError(_ error: Error) {
@@ -46,7 +47,7 @@ class DeviceTokenManager: NSObject {
     }
 
     private func uploadToken(_ token: String) {
-        #if os(iOS)
+#if os(iOS)
         let platform = "ios"
         NSLog("📤 准备上传 APNS Token (iOS): \(token.prefix(20))...")
         #elseif os(tvOS)
@@ -54,26 +55,31 @@ class DeviceTokenManager: NSObject {
         NSLog("📤 准备上传 APNS Token (tvOS): \(token.prefix(20))...")
         #endif
 
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.registerDeviceToken(token: token, platform: platform),
-            modelType: SimpleResponse.self
-        ) { response, responseModel in
-            if let response = response, response.code == 200 {
-                NSLog("✅ APNS Token 上传成功")
-                UserDefaults.standard.set(Date(), forKey: "apns_token_upload_date")
-                UserDefaults.standard.set(token, forKey: "last_uploaded_apns_token")
-            } else {
-                NSLog("❌ APNS Token 上传失败: \(responseModel.messageStr ?? "未知错误")")
+            decodeTo: SimpleResponse.self
+        ) { result in
+            switch result {
+            case .success(let payload):
+                if payload.model?.code == 200 || payload.context.httpStatusCode == 200 {
+                    NSLog("✅ APNS Token 上传成功")
+                    UserDefaults.standard.set(Date(), forKey: "apns_token_upload_date")
+                    UserDefaults.standard.set(token, forKey: "last_uploaded_apns_token")
+                } else {
+                    NSLog("❌ APNS Token 上传失败: \(payload.model?.msg ?? payload.context.message ?? "未知错误")")
+                }
+            case .failure(let error):
+                NSLog("❌ APNS Token 上传失败: \(error.message)")
             }
         }
     }
 
-    func uploadTokenIfNeeded(_ token: String) {
+    func uploadTokenIfNeeded(_ token: String, force: Bool) {
         let lastTokenKey = "last_uploaded_apns_token"
         let uploadDateKey = "apns_token_upload_date"
 
         let lastToken = UserDefaults.standard.string(forKey: lastTokenKey)
-        if lastToken == token {
+        if !force, lastToken == token {
             // 检查上传时间，超过24小时重新上传
             if let lastUploadDate = UserDefaults.standard.object(forKey: uploadDateKey) as? Date {
                 let daysSinceUpload = Calendar.current.dateComponents([.hour], from: lastUploadDate, to: Date()).hour ?? 0
@@ -87,19 +93,29 @@ class DeviceTokenManager: NSObject {
         uploadToken(token)
     }
 
+    func syncTokenIfAvailable(force: Bool = false) {
+        guard let token = deviceToken else { return }
+        uploadTokenIfNeeded(token, force: force)
+    }
+
     func removeToken() {
         NSLog("🗑️ 准备移除 APNS Token")
 
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.unregisterDeviceToken,
-            modelType: SimpleResponse.self
-        ) { response, responseModel in
-            if let response = response, response.code == 200 {
-                NSLog("✅ APNS Token 移除成功")
-                UserDefaults.standard.removeObject(forKey: "apns_token_upload_date")
-                UserDefaults.standard.removeObject(forKey: "last_uploaded_apns_token")
-            } else {
-                NSLog("❌ APNS Token 移除失败: \(responseModel.messageStr ?? "未知错误")")
+            decodeTo: SimpleResponse.self
+        ) { result in
+            switch result {
+            case .success(let payload):
+                if payload.model?.code == 200 || payload.context.httpStatusCode == 200 {
+                    NSLog("✅ APNS Token 移除成功")
+                    UserDefaults.standard.removeObject(forKey: "apns_token_upload_date")
+                    UserDefaults.standard.removeObject(forKey: "last_uploaded_apns_token")
+                } else {
+                    NSLog("❌ APNS Token 移除失败: \(payload.model?.msg ?? payload.context.message ?? "未知错误")")
+                }
+            case .failure(let error):
+                NSLog("❌ APNS Token 移除失败: \(error.message)")
             }
         }
     }
@@ -107,17 +123,23 @@ class DeviceTokenManager: NSObject {
     func testPush(title: String, body: String, completion: ((Bool, String?) -> Void)? = nil) {
         NSLog("🔔 发送测试推送: \(title)")
 
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.testPush(title: title, body: body),
-            modelType: SimpleResponse.self
-        ) { response, responseModel in
-            if let response = response, response.code == 200 {
-                NSLog("✅ 测试推送发送成功")
-                completion?(true, nil)
-            } else {
-                let message = responseModel.messageStr ?? "未知错误"
-                NSLog("❌ 测试推送发送失败: \(message)")
-                completion?(false, message)
+            decodeTo: SimpleResponse.self
+        ) { result in
+            switch result {
+            case .success(let payload):
+                if payload.model?.code == 200 || payload.context.httpStatusCode == 200 {
+                    NSLog("✅ 测试推送发送成功")
+                    completion?(true, nil)
+                } else {
+                    let message = payload.model?.msg ?? payload.context.message ?? "未知错误"
+                    NSLog("❌ 测试推送发送失败: \(message)")
+                    completion?(false, message)
+                }
+            case .failure(let error):
+                NSLog("❌ 测试推送发送失败: \(error.message)")
+                completion?(false, error.message)
             }
         }
     }

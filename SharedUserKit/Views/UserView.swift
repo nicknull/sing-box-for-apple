@@ -12,6 +12,7 @@ import Defaults
 import StoreKit
 import Library
 import CodeScanner
+
 struct UserView: View {
   @EnvironmentObject private var environments: ExtensionEnvironments
   @EnvironmentObject var userManager: UserManager
@@ -513,17 +514,21 @@ struct UserView: View {
 
   // MARK: - Test Push
   private func testPush() {
-    NewNetWorkRequest(
+    HUDManager.showLoading("正在发送测试推送…")
+    NetworkService.shared.request(
       AQAPIService.testPush(title: "测试推送", body: "Hello from server"),
-      modelType: SimpleResponse.self
-    ) { resp, response in
-      if response.code == 200 {
-        successMessage = "测试推送已发送"
-        successAlert = true
-      } else {
-        errorTitle = "发送失败"
-        errorSubTitle = response.messageStr ?? "未知错误"
-        errorAlert = true
+      decodeTo: SimpleResponse.self
+    ) { result in
+      switch result {
+      case .success(let payload):
+        if payload.context.httpStatusCode == 200 {
+          HUDManager.showSuccess("测试推送已发送")
+        } else {
+          let message = payload.model?.msg ?? payload.model?.data?.message ?? payload.context.message ?? "未知错误"
+          HUDManager.showFailure(message)
+        }
+      case .failure(let error):
+        HUDManager.showFailure(error.message)
       }
     }
   }
@@ -539,22 +544,23 @@ struct UserView: View {
       Defaults[.local] = scannedString
       
       // 发送网络请求
-      NewNetWorkRequest(
-        AQAPIService.local(address: Defaults[.host]),
-        successCallback: { responseModel in
+      NetworkService.shared.request(
+        AQAPIService.local(address: Defaults[.host])
+      ) { result in
+        switch result {
+        case .success:
           DispatchQueue.main.async {
             successMessage = "扫码修复成功"
             successAlert = true
           }
-        },
-        failureCallback: { responseModel in
+        case .failure(let error):
           DispatchQueue.main.async {
             errorTitle = "扫码修复失败"
-            errorSubTitle = responseModel.messageStr ?? "网络请求失败，请稍后重试"
+            errorSubTitle = error.message
             errorAlert = true
           }
         }
-      )
+      }
       
     case .failure(let error):
       // 扫描失败

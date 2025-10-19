@@ -114,7 +114,7 @@ struct TicketListView_admin: View {
     }
     
     /// 加载工单
-    private func loadTickets(reset: Bool = false) {
+    private func loadTickets(reset: Bool = false, completion: (() -> Void)? = nil) {
         if reset {
             currentPage = 1
             tickets.removeAll()
@@ -123,23 +123,35 @@ struct TicketListView_admin: View {
         isLoading = currentPage == 1
         isLoadingMore = currentPage > 1
         
-        NewNetWorkRequest(AQAPIService.getTickets_admin(pageSize: 10, current: currentPage, status: selectedStatus), modelType: [TicketModel].self) { result, response in
+        NetworkService.shared.request(
+            AQAPIService.getTickets_admin(pageSize: 10, current: currentPage, status: selectedStatus),
+            decodeTo: [TicketModel].self
+        ) { result in
             isLoading = false
             isLoadingMore = false
-            
-            if let newTickets = result {
-                if newTickets.count < 10 {
-                    canLoadMore = false
-                }
-                if currentPage == 1 {
-                    tickets = newTickets
+
+            switch result {
+            case .success(let payload):
+                if let newTickets = payload.model {
+                    if newTickets.count < 10 {
+                        canLoadMore = false
+                    }
+                    if currentPage == 1 {
+                        tickets = newTickets
+                    } else {
+                        tickets.append(contentsOf: newTickets)
+                    }
+                    currentPage += 1
+                    errorMessage = ""
                 } else {
-                    tickets.append(contentsOf: newTickets)
+                    errorMessage = payload.context.message ?? "加载工单失败"
                 }
-                currentPage += 1
-            } else {
-                errorMessage = response.messageStr ?? "加载工单失败"
+
+            case .failure(let error):
+                errorMessage = error.message
             }
+
+            completion?()
         }
     }
     
@@ -152,9 +164,9 @@ struct TicketListView_admin: View {
     /// 刷新数据
     private func refreshTickets() async {
         await withCheckedContinuation { continuation in
-            loadTickets(reset: true)
-            // 模拟 async 结束，因为 NewNetWorkRequest 没有 async 版，这里立刻返回
-            continuation.resume()
+            loadTickets(reset: true) {
+                continuation.resume()
+            }
         }
     }
 }

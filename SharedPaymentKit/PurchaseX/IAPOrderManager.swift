@@ -8,6 +8,7 @@
 import Foundation
 import StoreKit
 
+
 /// IAP 订单管理器，负责处理订单上报
 class IAPOrderManager {
 
@@ -26,7 +27,7 @@ class IAPOrderManager {
         print("  - Product ID: \(productID)")
 
         // 调用后端 API
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.reportIAPOrder(
                 transactionID: transactionID,
                 originalTransactionID: originalTransactionID,
@@ -34,13 +35,21 @@ class IAPOrderManager {
                 tradeNo: tradeNo,
                 appAccountToken: appAccountToken
             ),
-            modelType: IAPOrderResponse.self
-        ) { orderResponse, responseModel in
-            if responseModel.code == 200 {
-                print("✅ 订单上报成功")
-                completion?(true, nil)
-            } else {
-                let errorMsg = responseModel.messageStr ?? "订单上报失败"
+            decodeTo: IAPOrderResponse.self
+        ) { result in
+            switch result {
+            case .success(let payload):
+                if payload.context.httpStatusCode == 200 {
+                    print("✅ 订单上报成功")
+                    completion?(true, nil)
+                } else {
+                    let errorMsg = payload.context.message ?? "订单上报失败"
+                    print("❌ 订单上报失败: \(errorMsg)")
+                    completion?(false, errorMsg)
+                }
+
+            case .failure(let error):
+                let errorMsg = error.message
                 print("❌ 订单上报失败: \(errorMsg)")
                 completion?(false, errorMsg)
             }
@@ -49,14 +58,20 @@ class IAPOrderManager {
 
     /// 恢复购买：上传交易快照
     static func restorePurchases(appAccountToken: String, transactions: [[String: Any]], completion: ((Bool, String?) -> Void)? = nil) {
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.restoreIAPOrders(appAccountToken: appAccountToken, transactions: transactions),
-            modelType: IAPOrderResponse.self
-        ) { model, response in
-            if response.code == 200 {
-                completion?(true, nil)
-            } else {
-                completion?(false, response.messageStr ?? "恢复失败")
+            decodeTo: IAPOrderResponse.self
+        ) { result in
+            switch result {
+            case .success(let payload):
+                if payload.context.httpStatusCode == 200 {
+                    completion?(true, nil)
+                } else {
+                    completion?(false, payload.context.message ?? "恢复失败")
+                }
+
+            case .failure(let error):
+                completion?(false, error.message)
             }
         }
     }

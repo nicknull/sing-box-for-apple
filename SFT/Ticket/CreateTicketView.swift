@@ -6,6 +6,7 @@
 //
 import SwiftUI
 import ApplicationLibrary
+
 struct CreateTicketView: View {
     @State private var subject = ""
     @State private var level = 0
@@ -61,37 +62,29 @@ struct CreateTicketView: View {
     private func submit() {
         isLoading = true
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.ticketSave(
                 subject: subject,
                 level: level,
                 message: message
             ),
-            modelType: CreateTicketResponse.self
-        ) { response, error in
-            if(response != nil){
-                if(response?.message != nil ){
-                    errorMessage = response?.message ?? ""
-                    showingPopup = true
-
-                }else if(response?.data == true){
-                    dismiss()
-                }
-            }
-
+            decodeTo: CreateTicketResponse.self
+        ) { result in
             isLoading = false
-            // 在submit函数中
-//            if response?.code == 200 {
-//                showingSuccess = true
-//                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-//                    dismiss()
-//                }
-//            } else {
-//                errorMessage = error ?? "提交失败"
-//            }
-            
+            switch result {
+            case .success(let payload):
+                if payload.model?.data == true {
+                    dismiss()
+                } else {
+                    errorMessage = payload.model?.message ?? payload.context.message ?? "提交失败"
+                    showingPopup = true
+                }
+
+            case .failure(let error):
+                errorMessage = error.message
+                showingPopup = true
+            }
         }
     }
 }
-
 

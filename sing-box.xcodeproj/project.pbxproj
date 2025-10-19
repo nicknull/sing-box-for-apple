@@ -201,13 +201,9 @@
 		B635535E2AC311D000BE8873 /* IVYTrafficFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635534D2AC311CE00BE8873 /* IVYTrafficFormatter.swift */; };
 		B635535F2AC311D000BE8873 /* ModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635534E2AC311CE00BE8873 /* ModeView.swift */; };
 		B63553602AC311D000BE8873 /* JWTPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635534F2AC311CE00BE8873 /* JWTPlugin.swift */; };
-		B63553612AC311D000BE8873 /* NewResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553502AC311CF00BE8873 /* NewResponseModel.swift */; };
-		B63553622AC311D000BE8873 /* PlugProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553512AC311CF00BE8873 /* PlugProvider.swift */; };
 		B63553632AC311D000BE8873 /* AQAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553522AC311CF00BE8873 /* AQAPIService.swift */; };
 		B63553652AC311D000BE8873 /* IVYIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553542AC311CF00BE8873 /* IVYIcon.swift */; };
 		B63553662AC311D000BE8873 /* DashBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553552AC311CF00BE8873 /* DashBoardView.swift */; };
-		B63553682AC311D000BE8873 /* ResponseProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553572AC311D000BE8873 /* ResponseProvider.swift */; };
-		B63553692AC311D000BE8873 /* NewNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553582AC311D000BE8873 /* NewNetworkManager.swift */; };
 		B635536A2AC311D000BE8873 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553592AC311D000BE8873 /* LoginView.swift */; };
 		B6396FA02B662B50002FE378 /* RepairView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6396F9F2B662B50002FE378 /* RepairView.swift */; };
 		B6396FA22B6637C7002FE378 /* IndicatorPresetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6396FA12B6637C7002FE378 /* IndicatorPresetModel.swift */; };
@@ -262,6 +258,30 @@
 		B6D8D0752EA32B2F007A248E /* CrashManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0712EA32B2F007A248E /* CrashManager.swift */; };
 		B6D8D0762EA32B2F007A248E /* SharedCrashKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0722EA32B2F007A248E /* SharedCrashKit.swift */; };
 		B6D8D0772EA32B2F007A248E /* CrashManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0712EA32B2F007A248E /* CrashManager.swift */; };
+		B6D8D09A2EA4AC85007A248E /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0962EA4AC85007A248E /* NetworkService.swift */; };
+		B6D8D09B2EA4AC85007A248E /* NetworkPluginProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0932EA4AC85007A248E /* NetworkPluginProvider.swift */; };
+		B6D8D09C2EA4AC85007A248E /* NetworkRequestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0942EA4AC85007A248E /* NetworkRequestError.swift */; };
+		B6D8D09D2EA4AC85007A248E /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0922EA4AC85007A248E /* NetworkError.swift */; };
+		B6D8D09E2EA4AC85007A248E /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0912EA4AC85007A248E /* NetworkClient.swift */; };
+		B6D8D09F2EA4AC85007A248E /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0972EA4AC85007A248E /* Notifications.swift */; };
+		B6D8D0A02EA4AC85007A248E /* NetworkResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0952EA4AC85007A248E /* NetworkResponse.swift */; };
+		B6D8D0A12EA4AC85007A248E /* APIResponseContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0902EA4AC85007A248E /* APIResponseContext.swift */; };
+		B6D8D0A22EA4AC85007A248E /* APIEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D08F2EA4AC85007A248E /* APIEnvelope.swift */; };
+		B6D8D0A32EA4AC85007A248E /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0962EA4AC85007A248E /* NetworkService.swift */; };
+		B6D8D0A42EA4AC85007A248E /* NetworkPluginProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0932EA4AC85007A248E /* NetworkPluginProvider.swift */; };
+		B6D8D0A52EA4AC85007A248E /* NetworkRequestError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0942EA4AC85007A248E /* NetworkRequestError.swift */; };
+		B6D8D0A62EA4AC85007A248E /* NetworkError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0922EA4AC85007A248E /* NetworkError.swift */; };
+		B6D8D0A72EA4AC85007A248E /* NetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0912EA4AC85007A248E /* NetworkClient.swift */; };
+		B6D8D0A82EA4AC85007A248E /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0972EA4AC85007A248E /* Notifications.swift */; };
+		B6D8D0A92EA4AC85007A248E /* NetworkResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0952EA4AC85007A248E /* NetworkResponse.swift */; };
+		B6D8D0AA2EA4AC85007A248E /* APIResponseContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0902EA4AC85007A248E /* APIResponseContext.swift */; };
+		B6D8D0AB2EA4AC85007A248E /* APIEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D08F2EA4AC85007A248E /* APIEnvelope.swift */; };
+		B6D8D0B62EA4AC85007A248E /* ResponseProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0B52EA4AC85007A248E /* ResponseProvider.swift */; };
+		B6D8D0B72EA4AC85007A248E /* ResponseProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6D8D0B52EA4AC85007A248E /* ResponseProvider.swift */; };
+		B6E0F1042EA5F3F300ABCDEF /* HUDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E0F1002EA5F3F300ABCDEF /* HUDManager.swift */; };
+		B6E0F1052EA5F3F300ABCDEF /* HUDContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E0F1012EA5F3F300ABCDEF /* HUDContainer.swift */; };
+		B6E0F1062EA5F3F300ABCDEF /* HUDManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E0F1002EA5F3F300ABCDEF /* HUDManager.swift */; };
+		B6E0F1072EA5F3F300ABCDEF /* HUDContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6E0F1012EA5F3F300ABCDEF /* HUDContainer.swift */; };
 		B6F0A2322B23533200885AE8 /* DashBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6F0A2312B23533200885AE8 /* DashBoardView.swift */; };
 		B6F0A2342B23543400885AE8 /* IVYTrafficFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635534D2AC311CE00BE8873 /* IVYTrafficFormatter.swift */; };
 		B6F0A2352B23543A00885AE8 /* LoggingPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635534C2AC311CE00BE8873 /* LoggingPlugin.swift */; };
@@ -270,10 +290,6 @@
 		B6F0A2392B23545000885AE8 /* unconnect.json in Resources */ = {isa = PBXBuildFile; fileRef = B63553452AC311B000BE8873 /* unconnect.json */; };
 		B6F0A23A2B23545000885AE8 /* connecting.json in Resources */ = {isa = PBXBuildFile; fileRef = B63553442AC311B000BE8873 /* connecting.json */; };
 		B6F0A23C2B23546000885AE8 /* ModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B635534E2AC311CE00BE8873 /* ModeView.swift */; };
-		B6F0A23D2B23546600885AE8 /* NewNetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553582AC311D000BE8873 /* NewNetworkManager.swift */; };
-		B6F0A23E2B23546600885AE8 /* NewResponseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553502AC311CF00BE8873 /* NewResponseModel.swift */; };
-		B6F0A23F2B23546B00885AE8 /* PlugProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553512AC311CF00BE8873 /* PlugProvider.swift */; };
-		B6F0A2402B23546E00885AE8 /* ResponseProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553572AC311D000BE8873 /* ResponseProvider.swift */; };
 		B6F0A2412B2354B500885AE8 /* StatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553492AC311CD00BE8873 /* StatusView.swift */; };
 		B6F0A2422B23554700885AE8 /* IVYIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553542AC311CF00BE8873 /* IVYIcon.swift */; };
 		B6F0A2432B23556C00885AE8 /* AQAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B63553522AC311CF00BE8873 /* AQAPIService.swift */; };
@@ -752,13 +768,9 @@
 		B635534D2AC311CE00BE8873 /* IVYTrafficFormatter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IVYTrafficFormatter.swift; sourceTree = "<group>"; };
 		B635534E2AC311CE00BE8873 /* ModeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ModeView.swift; sourceTree = "<group>"; };
 		B635534F2AC311CE00BE8873 /* JWTPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JWTPlugin.swift; sourceTree = "<group>"; };
-		B63553502AC311CF00BE8873 /* NewResponseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewResponseModel.swift; sourceTree = "<group>"; };
-		B63553512AC311CF00BE8873 /* PlugProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlugProvider.swift; sourceTree = "<group>"; };
 		B63553522AC311CF00BE8873 /* AQAPIService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AQAPIService.swift; sourceTree = "<group>"; };
 		B63553542AC311CF00BE8873 /* IVYIcon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IVYIcon.swift; sourceTree = "<group>"; };
 		B63553552AC311CF00BE8873 /* DashBoardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DashBoardView.swift; sourceTree = "<group>"; };
-		B63553572AC311D000BE8873 /* ResponseProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResponseProvider.swift; sourceTree = "<group>"; };
-		B63553582AC311D000BE8873 /* NewNetworkManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NewNetworkManager.swift; sourceTree = "<group>"; };
 		B63553592AC311D000BE8873 /* LoginView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B6396F9F2B662B50002FE378 /* RepairView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepairView.swift; sourceTree = "<group>"; };
 		B6396FA12B6637C7002FE378 /* IndicatorPresetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IndicatorPresetModel.swift; sourceTree = "<group>"; };
@@ -784,6 +796,18 @@
 		B6CAB4932C820F6C00289B91 /* PopupMiddle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupMiddle.swift; sourceTree = "<group>"; };
 		B6D8D0712EA32B2F007A248E /* CrashManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashManager.swift; sourceTree = "<group>"; };
 		B6D8D0722EA32B2F007A248E /* SharedCrashKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedCrashKit.swift; sourceTree = "<group>"; };
+		B6D8D08F2EA4AC85007A248E /* APIEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIEnvelope.swift; sourceTree = "<group>"; };
+		B6D8D0902EA4AC85007A248E /* APIResponseContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIResponseContext.swift; sourceTree = "<group>"; };
+		B6D8D0912EA4AC85007A248E /* NetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClient.swift; sourceTree = "<group>"; };
+		B6D8D0922EA4AC85007A248E /* NetworkError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkError.swift; sourceTree = "<group>"; };
+		B6D8D0932EA4AC85007A248E /* NetworkPluginProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkPluginProvider.swift; sourceTree = "<group>"; };
+		B6D8D0942EA4AC85007A248E /* NetworkRequestError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkRequestError.swift; sourceTree = "<group>"; };
+		B6D8D0952EA4AC85007A248E /* NetworkResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkResponse.swift; sourceTree = "<group>"; };
+		B6D8D0962EA4AC85007A248E /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
+		B6D8D0972EA4AC85007A248E /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		B6D8D0B52EA4AC85007A248E /* ResponseProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseProvider.swift; sourceTree = "<group>"; };
+		B6E0F1002EA5F3F300ABCDEF /* HUDManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDManager.swift; sourceTree = "<group>"; };
+		B6E0F1012EA5F3F300ABCDEF /* HUDContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDContainer.swift; sourceTree = "<group>"; };
 		B6F0A2312B23533200885AE8 /* DashBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashBoardView.swift; sourceTree = "<group>"; };
 		B6F0A24D2B235D1600885AE8 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B6F5C7722BA07BF20038016B /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -1046,11 +1070,7 @@
 				B63553422AC311B000BE8873 /* LottieFile */,
 				3A4FB1692A735AC9007012B9 /* MainView.swift */,
 				B635534E2AC311CE00BE8873 /* ModeView.swift */,
-				B63553582AC311D000BE8873 /* NewNetworkManager.swift */,
-				B63553502AC311CF00BE8873 /* NewResponseModel.swift */,
-				B63553512AC311CF00BE8873 /* PlugProvider.swift */,
 				B6396F9F2B662B50002FE378 /* RepairView.swift */,
-				B63553572AC311D000BE8873 /* ResponseProvider.swift */,
 				B635534A2AC311CE00BE8873 /* SettingsView.swift */,
 				3A4FB1642A73568E007012B9 /* SFT.entitlements */,
 				B63553492AC311CD00BE8873 /* StatusView.swift */,
@@ -1094,8 +1114,6 @@
 		3AEC20BC2A45991900A63465 = {
 			isa = PBXGroup;
 			children = (
-				B6D8D0732EA32B2F007A248E /* SharedCrashKit */,
-				B6A1169C2EA2729900455050 /* SharedAnalyticsKit */,
 				3A4EAD112A4FEAE6005435B3 /* ApplicationLibrary */,
 				3A096F882A4ED3DE00D4A2ED /* Extension */,
 				3AEC21012A459AE300A63465 /* Frameworks */,
@@ -1110,11 +1128,15 @@
 				3AEC210A2A459B1900A63465 /* SFM */,
 				3AEECC052A6DF9CA006A0E0C /* SFM.System */,
 				3AC03B972A72BF3300B7946F /* SFT */,
+				B6A1169C2EA2729900455050 /* SharedAnalyticsKit */,
+				B6D8D0732EA32B2F007A248E /* SharedCrashKit */,
+				B6D8D0992EA4AC85007A248E /* SharedNetworkKit */,
+				77F7F6F997F16BF25BD91264 /* SharedNotificationKit */,
+				04CF7CA1B6BCC22CA760FE0A /* SharedPaymentKit */,
+				B6E0F1032EA5F3F300ABCDEF /* SharedUI */,
+				48A74B2399CB5D014C803D8E /* SharedUserKit */,
 				3AEECBF32A6DF40A006A0E0C /* SystemExtension */,
 				3AE1719B2A8128DD00393060 /* TVExtension */,
-				48A74B2399CB5D014C803D8E /* SharedUserKit */,
-				04CF7CA1B6BCC22CA760FE0A /* SharedPaymentKit */,
-				77F7F6F997F16BF25BD91264 /* SharedNotificationKit */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1455,6 +1477,48 @@
 				B6D8D0722EA32B2F007A248E /* SharedCrashKit.swift */,
 			);
 			path = SharedCrashKit;
+			sourceTree = "<group>";
+		};
+		B6D8D0982EA4AC85007A248E /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				B6D8D08F2EA4AC85007A248E /* APIEnvelope.swift */,
+				B6D8D0902EA4AC85007A248E /* APIResponseContext.swift */,
+				B6D8D0912EA4AC85007A248E /* NetworkClient.swift */,
+				B6D8D0922EA4AC85007A248E /* NetworkError.swift */,
+				B6D8D0932EA4AC85007A248E /* NetworkPluginProvider.swift */,
+				B6D8D0942EA4AC85007A248E /* NetworkRequestError.swift */,
+				B6D8D0952EA4AC85007A248E /* NetworkResponse.swift */,
+				B6D8D0962EA4AC85007A248E /* NetworkService.swift */,
+				B6D8D0972EA4AC85007A248E /* Notifications.swift */,
+				B6D8D0B52EA4AC85007A248E /* ResponseProvider.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		B6D8D0992EA4AC85007A248E /* SharedNetworkKit */ = {
+			isa = PBXGroup;
+			children = (
+				B6D8D0982EA4AC85007A248E /* Core */,
+			);
+			path = SharedNetworkKit;
+			sourceTree = "<group>";
+		};
+		B6E0F1022EA5F3F300ABCDEF /* HUD */ = {
+			isa = PBXGroup;
+			children = (
+				B6E0F1002EA5F3F300ABCDEF /* HUDManager.swift */,
+				B6E0F1012EA5F3F300ABCDEF /* HUDContainer.swift */,
+			);
+			path = HUD;
+			sourceTree = "<group>";
+		};
+		B6E0F1032EA5F3F300ABCDEF /* SharedUI */ = {
+			isa = PBXGroup;
+			children = (
+				B6E0F1022EA5F3F300ABCDEF /* HUD */,
+			);
+			path = SharedUI;
 			sourceTree = "<group>";
 		};
 		DB8DF33045AAC014B7932D11 /* Components */ = {
@@ -2144,8 +2208,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				B6396FA32B6637C7002FE378 /* IndicatorPresetModel.swift in Sources */,
-				B63553622AC311D000BE8873 /* PlugProvider.swift in Sources */,
-				B63553682AC311D000BE8873 /* ResponseProvider.swift in Sources */,
+				B6D8D0A32EA4AC85007A248E /* NetworkService.swift in Sources */,
+				B6D8D0A42EA4AC85007A248E /* NetworkPluginProvider.swift in Sources */,
+				B6D8D0A52EA4AC85007A248E /* NetworkRequestError.swift in Sources */,
+				B6D8D0A62EA4AC85007A248E /* NetworkError.swift in Sources */,
+				B6D8D0A72EA4AC85007A248E /* NetworkClient.swift in Sources */,
+				B6D8D0A82EA4AC85007A248E /* Notifications.swift in Sources */,
+				B6D8D0A92EA4AC85007A248E /* NetworkResponse.swift in Sources */,
+				B6D8D0AA2EA4AC85007A248E /* APIResponseContext.swift in Sources */,
+				B6D8D0AB2EA4AC85007A248E /* APIEnvelope.swift in Sources */,
+				B6D8D0B72EA4AC85007A248E /* ResponseProvider.swift in Sources */,
 				B63553662AC311D000BE8873 /* DashBoardView.swift in Sources */,
 				B6C9F0E12C89E01B009B0F70 /* MonitoringNetworkState.swift in Sources */,
 				B63553652AC311D000BE8873 /* IVYIcon.swift in Sources */,
@@ -2155,9 +2227,7 @@
 				B635535B2AC311D000BE8873 /* SettingsView.swift in Sources */,
 				B6396FA02B662B50002FE378 /* RepairView.swift in Sources */,
 				3A4FB1682A7358C9007012B9 /* ApplicationDelegate.swift in Sources */,
-				B63553692AC311D000BE8873 /* NewNetworkManager.swift in Sources */,
 				3A4FB16A2A735AC9007012B9 /* MainView.swift in Sources */,
-				B63553612AC311D000BE8873 /* NewResponseModel.swift in Sources */,
 				B635535A2AC311D000BE8873 /* StatusView.swift in Sources */,
 				B6A116982EA2727200455050 /* TrialManager.swift in Sources */,
 				3AC03B992A72BF3300B7946F /* Application.swift in Sources */,
@@ -2197,6 +2267,8 @@
 				3D3E8220BCA3002859BAFB5E /* DeviceTokenManager.swift in Sources */,
 				906CFBD1F9166029EF2DF095 /* SharedNotificationKit.swift in Sources */,
 				BB8E7F232B7D89D4A2BAF442 /* Defaults.swift in Sources */,
+				B6E0F1042EA5F3F300ABCDEF /* HUDManager.swift in Sources */,
+				B6E0F1052EA5F3F300ABCDEF /* HUDContainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2214,7 +2286,6 @@
 			files = (
 				B6396FA22B6637C7002FE378 /* IndicatorPresetModel.swift in Sources */,
 				3AC1944F2A50247300BD8CB9 /* ApplicationDelegate.swift in Sources */,
-				B6F0A23D2B23546600885AE8 /* NewNetworkManager.swift in Sources */,
 				B6F0A2352B23543A00885AE8 /* LoggingPlugin.swift in Sources */,
 				B6F0A2322B23533200885AE8 /* DashBoardView.swift in Sources */,
 				B6CAB4942C820F6C00289B91 /* PopupMiddle.swift in Sources */,
@@ -2224,21 +2295,28 @@
 				B6739A9B2E10170A004EDF14 /* TicketListView_admin.swift in Sources */,
 				B66FA94A2B711EF3002C6387 /* ButtonWithSafari.swift in Sources */,
 				B6165A962B25DAB2008DE6D3 /* ProfileListView.swift in Sources */,
+				B6D8D09A2EA4AC85007A248E /* NetworkService.swift in Sources */,
+				B6D8D09B2EA4AC85007A248E /* NetworkPluginProvider.swift in Sources */,
+				B6D8D09C2EA4AC85007A248E /* NetworkRequestError.swift in Sources */,
+				B6D8D09D2EA4AC85007A248E /* NetworkError.swift in Sources */,
+				B6D8D09E2EA4AC85007A248E /* NetworkClient.swift in Sources */,
+				B6D8D09F2EA4AC85007A248E /* Notifications.swift in Sources */,
+				B6D8D0A02EA4AC85007A248E /* NetworkResponse.swift in Sources */,
+				B6D8D0A12EA4AC85007A248E /* APIResponseContext.swift in Sources */,
+				B6D8D0A22EA4AC85007A248E /* APIEnvelope.swift in Sources */,
+				B6D8D0B62EA4AC85007A248E /* ResponseProvider.swift in Sources */,
 				B6F0A2372B23543A00885AE8 /* JWTPlugin.swift in Sources */,
 				B6F0A23C2B23546000885AE8 /* ModeView.swift in Sources */,
 				B6A116952EA2725300455050 /* TrialReminderView.swift in Sources */,
 				B6F0A2342B23543400885AE8 /* IVYTrafficFormatter.swift in Sources */,
 				B6739A862E0D80D0004EDF14 /* FullScreenImageView.swift in Sources */,
 				B6F0A2432B23556C00885AE8 /* AQAPIService.swift in Sources */,
-				B6F0A23F2B23546B00885AE8 /* PlugProvider.swift in Sources */,
 				B6F0A24E2B235D1600885AE8 /* SettingsView.swift in Sources */,
 				B66FA9482B711E9A002C6387 /* InAppSafariModifier.swift in Sources */,
 				B6F0A2412B2354B500885AE8 /* StatusView.swift in Sources */,
 				B6739A802E079C9D004EDF14 /* TicketChatView.swift in Sources */,
 				B6C9F0E02C89E01B009B0F70 /* MonitoringNetworkState.swift in Sources */,
 				B6F0A2422B23554700885AE8 /* IVYIcon.swift in Sources */,
-				B6F0A2402B23546E00885AE8 /* ResponseProvider.swift in Sources */,
-				B6F0A23E2B23546600885AE8 /* NewResponseModel.swift in Sources */,
 				3A44BB822A4DC28700E4C9F8 /* MainView.swift in Sources */,
 				B6C9F0DD2C889DAC009B0F70 /* SyncView.swift in Sources */,
 				B6739A7D2E079103004EDF14 /* TicketListView.swift in Sources */,
@@ -2276,6 +2354,8 @@
 				5381C8550BFA9A18D7CF7BF6 /* DeviceTokenManager.swift in Sources */,
 				4057B999ED402B108FBFB0C5 /* SharedNotificationKit.swift in Sources */,
 				605EB62C8C61DC1A48F7E9C9 /* Defaults.swift in Sources */,
+				B6E0F1062EA5F3F300ABCDEF /* HUDManager.swift in Sources */,
+				B6E0F1072EA5F3F300ABCDEF /* HUDContainer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

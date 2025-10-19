@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+
 /// OAuth 登录管理器
 class OAuthManager: ObservableObject {
 
@@ -44,34 +45,36 @@ class OAuthManager: ObservableObject {
 
             // 调用后端 API
             let fullName = credential.displayName
-            NewNetWorkRequest(
+            NetworkService.shared.request(
                 AQAPIService.oauthAppleLogin(
                     identityToken: credential.identityToken,
                     userIdentifier: credential.userIdentifier,
                     email: credential.email,
                     fullName: fullName
                 ),
-                modelType: AuthModel.self
-            ) { authModel, responseModel in
+                decodeTo: AuthModel.self
+            ) { result in
                 DispatchQueue.main.async {
                     self.isLoading = false
 
-                    if let authModel = authModel, !authModel.auth_data.isEmpty {
-                        print("✅ Apple 登录成功")
-                        self.onSuccess?(authModel)
-                    } else {
-                        let error = responseModel.messageStr ?? "Apple 登录失败"
-                        print("❌ Apple 登录失败: \(error)")
-                        self.errorMessage = error
-                        self.onFailure?(error)
+                    switch result {
+                    case .success(let payload):
+                        if let authModel = payload.model, !authModel.auth_data.isEmpty {
+                            print("✅ Apple 登录成功")
+                            self.onSuccess?(authModel)
+                        } else {
+                            let error = payload.context.message ?? "Apple 登录失败"
+                            print("❌ Apple 登录失败: \(error)")
+                            self.errorMessage = error
+                            self.onFailure?(error)
+                        }
+
+                    case .failure(let error):
+                        let message = error.message
+                        print("❌ Apple 登录失败: \(message)")
+                        self.errorMessage = message
+                        self.onFailure?(message)
                     }
-                }
-            } failureCallback: { responseModel in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    let error = responseModel.messageStr ?? "网络请求失败"
-                    self.errorMessage = error
-                    self.onFailure?(error)
                 }
             }
         }
@@ -102,29 +105,31 @@ class OAuthManager: ObservableObject {
             print("🔍 开始处理 Google 登录...")
 
             // 调用后端 API
-            NewNetWorkRequest(
+            NetworkService.shared.request(
                 AQAPIService.oauthGoogleLogin(authorizationCode: credential.authorizationCode),
-                modelType: AuthModel.self
-            ) { authModel, responseModel in
+                decodeTo: AuthModel.self
+            ) { result in
                 DispatchQueue.main.async {
                     self.isLoading = false
 
-                    if let authModel = authModel, !authModel.auth_data.isEmpty {
-                        print("✅ Google 登录成功")
-                        self.onSuccess?(authModel)
-                    } else {
-                        let error = responseModel.messageStr ?? "Google 登录失败"
-                        print("❌ Google 登录失败: \(error)")
-                        self.errorMessage = error
-                        self.onFailure?(error)
+                    switch result {
+                    case .success(let payload):
+                        if let authModel = payload.model, !authModel.auth_data.isEmpty {
+                            print("✅ Google 登录成功")
+                            self.onSuccess?(authModel)
+                        } else {
+                            let error = payload.context.message ?? "Google 登录失败"
+                            print("❌ Google 登录失败: \(error)")
+                            self.errorMessage = error
+                            self.onFailure?(error)
+                        }
+
+                    case .failure(let error):
+                        let message = error.message
+                        print("❌ Google 登录失败: \(message)")
+                        self.errorMessage = message
+                        self.onFailure?(message)
                     }
-                }
-            } failureCallback: { responseModel in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    let error = responseModel.messageStr ?? "网络请求失败"
-                    self.errorMessage = error
-                    self.onFailure?(error)
                 }
             }
         }
@@ -155,29 +160,31 @@ class OAuthManager: ObservableObject {
             print("🐙 开始处理 GitHub 登录...")
 
             // 调用后端 API
-            NewNetWorkRequest(
+            NetworkService.shared.request(
                 AQAPIService.oauthGitHubLogin(authorizationCode: credential.authorizationCode),
-                modelType: AuthModel.self
-            ) { authModel, responseModel in
+                decodeTo: AuthModel.self
+            ) { result in
                 DispatchQueue.main.async {
                     self.isLoading = false
 
-                    if let authModel = authModel, !authModel.auth_data.isEmpty {
-                        print("✅ GitHub 登录成功")
-                        self.onSuccess?(authModel)
-                    } else {
-                        let error = responseModel.messageStr ?? "GitHub 登录失败"
-                        print("❌ GitHub 登录失败: \(error)")
-                        self.errorMessage = error
-                        self.onFailure?(error)
+                    switch result {
+                    case .success(let payload):
+                        if let authModel = payload.model, !authModel.auth_data.isEmpty {
+                            print("✅ GitHub 登录成功")
+                            self.onSuccess?(authModel)
+                        } else {
+                            let error = payload.context.message ?? "GitHub 登录失败"
+                            print("❌ GitHub 登录失败: \(error)")
+                            self.errorMessage = error
+                            self.onFailure?(error)
+                        }
+
+                    case .failure(let error):
+                        let message = error.message
+                        print("❌ GitHub 登录失败: \(message)")
+                        self.errorMessage = message
+                        self.onFailure?(message)
                     }
-                }
-            } failureCallback: { responseModel in
-                DispatchQueue.main.async {
-                    self.isLoading = false
-                    let error = responseModel.messageStr ?? "网络请求失败"
-                    self.errorMessage = error
-                    self.onFailure?(error)
                 }
             }
         }

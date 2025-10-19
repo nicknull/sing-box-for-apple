@@ -59,50 +59,37 @@ enum AQAPIService{
     case reportCrash(userInfo:[String:Any], deviceInfo:[String:Any], crashInfo:[String:Any]) // 上报崩溃日志
 
 }
-extension AQAPIService:TargetType,ResponseProvider,PlugProvider{
-    func responsePrase(_ response:Response) -> NewResponseModel {
-        guard let json = try? JSON(data: response.data)else{
-            var model = NewResponseModel(code: -1)
-            model.messageStr = "非json格式的数据"
-            model.dataString = String(data: response.data, encoding: .utf8) 
-            return model
-        }
+extension AQAPIService: TargetType, ResponseProvider, NetworkPluginProvider {
+    func parseResponse(_ response: NetworkResponse) -> Result<APIEnvelope, NetworkError> {
+        do {
+            var envelope = try APIEnvelope.parse(from: response)
+            let json = try JSON(data: response.data)
 
-        let code = response.statusCode
-        var model = NewResponseModel(code: code)
-        if case .getPlans = self {
-            model.dataString = json["data"].rawString(options: [.sortedKeys])
-                ?? json["data"].rawString()
-                ?? json.rawString()
-        } else {
-            model.dataString = json["data"].rawString()
-        }
-        switch self{
-        case .signIn(_,_):
-            if (json["errors"].dictionary != nil){
-                let error  = json["errors"].dictionary![(json["errors"].dictionary?.keys.first)!]?.array?.first?.string
-                model.messageStr = error
+            switch self {
+            case .signIn(_, _):
+                if let errors = json["errors"].dictionary,
+                   let key = errors.keys.first,
+                   let message = errors[key]?.array?.first?.string {
+                    envelope.message = message
+                } else {
+                    envelope.message = json["message"].string ?? envelope.message
+                }
 
-            }else{
-                model.messageStr = json ["message"].stringValue
+            case .ticketReply, .ticketSave, .ticketClose,
+                 .ticketReply_admin, .ticketClose_admin:
+                envelope.message = json["message"].string ?? envelope.message
+                envelope.payloadData = json.rawString()?.data(using: .utf8)
+
+            default:
+                break
             }
-            
 
-        case .ticketReply(_,_,_), .ticketSave(_,_,_), .ticketClose(_):
-            model.messageStr = json["message"].stringValue
-            model.dataString = json.rawString()
-
-        case .ticketReply_admin(_,_,_), .ticketClose_admin(_):
-
-            model.messageStr = json ["message"].stringValue
-            model.dataString = json.rawString()
-
-        case .getPlans:
-            model.messageStr = json["msg"].stringValue
-        default:
-            model.messageStr = json ["msg"].stringValue
+            return .success(envelope)
+        } catch let error as NetworkError {
+            return .failure(error)
+        } catch {
+            return .failure(.underlying(error))
         }
-        return model
     }
     
     var plugins: [Moya.PluginType] {

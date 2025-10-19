@@ -6,6 +6,7 @@
 //
 
 import ExytePopupView
+
 import StoreKit
 import SwiftUI
 
@@ -455,14 +456,19 @@ extension PurchaseView {
             Task.detached {
                 var tradeNo: String?
                 let semaphore = DispatchSemaphore(value: 0)
-                NewNetWorkRequest(
+                NetworkService.shared.request(
                     AQAPIService.prepareIAPOrder(
                         productID: productID,
                         appAccountToken: appToken
                     ),
-                    modelType: PrepareIAPOrderResponse.self
-                ) { model, _ in
-                    tradeNo = model?.trade_no
+                    decodeTo: PrepareIAPOrderResponse.self
+                ) { result in
+                    switch result {
+                    case .success(let payload):
+                        tradeNo = payload.model?.trade_no
+                    case .failure(let error):
+                        print("❌ 预下单失败: \(error.message)")
+                    }
                     semaphore.signal()
                 }
                 _ = semaphore.wait(timeout: .now() + 10)
@@ -559,12 +565,20 @@ extension PurchaseView {
     }
 
     fileprivate func loadPlans() {
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.getPlans,
-            modelType: [PlanSummary].self
-        ) { model, _ in
-            DispatchQueue.main.async {
-                plans = model ?? []
+            decodeTo: [PlanSummary].self
+        ) { result in
+            switch result {
+            case .success(let payload):
+                DispatchQueue.main.async {
+                    plans = payload.model ?? []
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    alertMessage = error.message
+                    showAlert = true
+                }
             }
         }
     }

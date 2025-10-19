@@ -250,25 +250,23 @@ struct SyncView: View {
     }
     
     private func performSync() {
-        NewNetWorkRequest(AQAPIService.getService, 
-            successCallback: { responseModel in
-                DispatchQueue.main.async {
-                    handleSyncSuccess(responseModel)
-                }
-            },
-            failureCallback: { responseModel in
-                DispatchQueue.main.async {
-                    let message = responseModel.messageStr ?? "网络请求失败"
-                    syncFailed(with: message)
+        NetworkService.shared.request(AQAPIService.getService) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let context):
+                    handleSyncSuccess(context)
+                case .failure(let error):
+                    syncFailed(with: error.message)
                 }
             }
-        )
+        }
     }
     
-    private func handleSyncSuccess(_ responseModel: NewResponseModel) {
+    private func handleSyncSuccess(_ context: APIResponseContext) {
         cleanupTimers()
         
-        guard let data = Data(base64Encoded: responseModel.dataString ?? ""),
+        guard let payloadString = context.payloadString,
+              let data = Data(base64Encoded: payloadString),
               let decodedString = String(data: data, encoding: .utf8)?.removingPercentEncoding else {
             syncFailed(with: "服务器返回数据格式错误")
             return

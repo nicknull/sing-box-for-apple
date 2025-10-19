@@ -18,6 +18,7 @@ import Defaults
 import ExytePopupView
 import AuthenticationServices
 
+
 enum Focusable: Hashable {
     case none
     case row(id: String)
@@ -275,28 +276,36 @@ struct LoginView: View {
             return
         }
         logining = true
-        NewNetWorkRequest(AQAPIService.signIn(email: email, password: password), modelType: AuthModel.self) { authModel, responseModel in
-            guard (authModel?.auth_data) != nil else {
-                logining = false
-                
-                if (responseModel.messageStr != nil){
-                    errorStr = responseModel.messageStr!
+        NetworkService.shared.request(
+            AQAPIService.signIn(email: email, password: password),
+            decodeTo: AuthModel.self
+        ) { result in
+            switch result {
+            case .success(let payload):
+                guard let authModel = payload.model, !authModel.auth_data.isEmpty else {
+                    logining = false
+                    let message = payload.context.message ?? "登录失败，请稍后再试或尝试修复"
+                    errorStr = message
                     showingPopup.toggle()
-                }else{
-                    errorStr = "登录失败，请稍后再试或尝试修复"
-                    showingPopup.toggle()
+                    return
                 }
-                return
-            }
-            userManager.is_admin = authModel!.is_admin
-            userManager.email = email
-            userManager.password = password
-            userManager.auth_data = authModel!.auth_data
-            userManager.token = authModel!.token
-            Task { @MainActor in
-                await userManager.reload()
+
+                userManager.is_admin = authModel.is_admin
+                userManager.email = email
+                userManager.password = password
+                userManager.auth_data = authModel.auth_data
+                userManager.token = authModel.token
+
+                Task { @MainActor in
+                    await userManager.reload()
+                    logining = false
+                    dismiss()
+                }
+
+            case .failure(let error):
                 logining = false
-                dismiss()
+                errorStr = error.message
+                showingPopup.toggle()
             }
         }
     }

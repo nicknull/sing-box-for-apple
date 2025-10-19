@@ -4,7 +4,6 @@ import SwiftUI
 import Defaults
 import SPIndicator
 import Combine
-
 enum AppState {
     case sync      // 需要显示同步界面
     case login     // 需要登录
@@ -72,7 +71,7 @@ struct Application: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
+            HUDContainer {
                 switch appStateManager.currentState {
                 case .sync:
                     SyncView()

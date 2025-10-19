@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import SwiftyJSON
 import Defaults
+
 
 class TrialManager: ObservableObject {
     static let shared = TrialManager()
@@ -26,21 +26,30 @@ class TrialManager: ObservableObject {
         defer { isLoading = false }
 
         return await withCheckedContinuation { continuation in
-            NewNetWorkRequest(
+            NetworkService.shared.request(
                 AQAPIService.getTrialInfo,
-                modelType: TrialInfoResponse.self
-            ) { [weak self] resp, response in
+                decodeTo: TrialInfoResponse.self
+            ) { [weak self] result in
                 DispatchQueue.main.async {
                     self?.lastCheckTime = Date()
 
-                    if response.code == 200, let trialResp = resp {
-                        self?.trialInfo = trialResp.data
-                        continuation.resume(returning: .success(trialResp.data))
-                    } else {
-                        let error = NSError(domain: "TrialError", code: response.code, userInfo: [
-                            NSLocalizedDescriptionKey: response.messageStr ?? "获取试用信息失败"
+                    switch result {
+                    case .success(let payload):
+                        if payload.context.httpStatusCode == 200, let trialResp = payload.model {
+                            self?.trialInfo = trialResp.data
+                            continuation.resume(returning: .success(trialResp.data))
+                        } else {
+                            let error = NSError(domain: "TrialError", code: payload.context.httpStatusCode, userInfo: [
+                                NSLocalizedDescriptionKey: payload.context.message ?? "获取试用信息失败"
+                            ])
+                            continuation.resume(returning: .failure(error))
+                        }
+
+                    case .failure(let error):
+                        let nsError = NSError(domain: "TrialError", code: error.httpStatusCode, userInfo: [
+                            NSLocalizedDescriptionKey: error.message
                         ])
-                        continuation.resume(returning: .failure(error))
+                        continuation.resume(returning: .failure(nsError))
                     }
                 }
             }
@@ -53,18 +62,27 @@ class TrialManager: ObservableObject {
         defer { isLoading = false }
 
         return await withCheckedContinuation { continuation in
-            NewNetWorkRequest(
+            NetworkService.shared.request(
                 AQAPIService.claimTrial,
-                modelType: TrialClaimResponse.self
-            ) { resp, response in
+                decodeTo: TrialClaimResponse.self
+            ) { result in
                 DispatchQueue.main.async {
-                    if response.code == 200, let claimResp = resp, let claimData = claimResp.data {
-                        continuation.resume(returning: .success(claimData))
-                    } else {
-                        let error = NSError(domain: "TrialError", code: response.code, userInfo: [
-                            NSLocalizedDescriptionKey: response.messageStr ?? "领取试用失败"
+                    switch result {
+                    case .success(let payload):
+                        if payload.context.httpStatusCode == 200, let claimData = payload.model?.data {
+                            continuation.resume(returning: .success(claimData))
+                        } else {
+                            let error = NSError(domain: "TrialError", code: payload.context.httpStatusCode, userInfo: [
+                                NSLocalizedDescriptionKey: payload.context.message ?? "领取试用失败"
+                            ])
+                            continuation.resume(returning: .failure(error))
+                        }
+
+                    case .failure(let error):
+                        let nsError = NSError(domain: "TrialError", code: error.httpStatusCode, userInfo: [
+                            NSLocalizedDescriptionKey: error.message
                         ])
-                        continuation.resume(returning: .failure(error))
+                        continuation.resume(returning: .failure(nsError))
                     }
                 }
             }

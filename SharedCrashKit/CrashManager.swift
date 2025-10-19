@@ -11,6 +11,7 @@ import Defaults
 import SystemConfiguration
 import Moya
 
+
 // MARK: - 崩溃响应模型
 struct CrashReportResponse: Codable {
     let code: Int
@@ -185,21 +186,48 @@ public class CrashManager {
 
     /// 同步上报崩溃（用于崩溃时立即上报）
     private func reportCrashSync(userInfo: [String: Any], deviceInfo: [String: Any], crashInfo: [String: Any]) {
-        NewNetWorkRequest(
-            AQAPIService.reportCrash(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo),
-            modelType: CrashReportResponse.self
-        ) { response, responseModel in
-            if let response = response, response.code == 200 {
-                print("✅ CrashManager upload successful")
-            } else {
-                print("❌ CrashManager upload failed: \(responseModel.messageStr ?? "未知错误")")
-                // 如果上报失败，保存到本地
-                self.saveCrashToLocal(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
+        let target = AQAPIService.reportCrash(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
+        let plugins = (target as? NetworkPluginProvider)?.plugins ?? []
+        let provider = MoyaProvider<MultiTarget>(plugins: plugins)
+        let semaphore = DispatchSemaphore(value: 0)
+
+        var uploadSucceeded = false
+        var failureReason: String?
+
+        provider.request(MultiTarget(target)) { result in
+            defer { semaphore.signal() }
+
+            switch result {
+            case let .success(response):
+                if response.statusCode == 200 {
+                    if let crashResponse = try? JSONDecoder().decode(CrashReportResponse.self, from: response.data) {
+                        if crashResponse.code == 200 || crashResponse.data?.success == true {
+                            uploadSucceeded = true
+                        } else {
+                            failureReason = crashResponse.msg ?? crashResponse.data?.message ?? "服务器返回错误"
+                        }
+                    } else {
+                        uploadSucceeded = true
+                    }
+                } else {
+                    failureReason = "HTTP \(response.statusCode)"
+                }
+
+            case let .failure(error):
+                failureReason = error.localizedDescription
             }
-        } failureCallback: { responseModel in
-            print("❌ CrashManager upload failed: \(responseModel.messageStr ?? "网络错误")")
-            // 如果上报失败，保存到本地
-            self.saveCrashToLocal(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
+        }
+
+        let waitResult = semaphore.wait(timeout: .now() + 3)
+        if waitResult == .timedOut {
+            failureReason = "请求超时"
+        }
+
+        if uploadSucceeded {
+            print("✅ CrashManager upload successful")
+        } else {
+            print("❌ CrashManager upload failed: \(failureReason ?? "未知错误")")
+            saveCrashToLocal(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
         }
     }
 
@@ -318,20 +346,24 @@ public class CrashManager {
             return
         }
 
-        NewNetWorkRequest(
+        NetworkService.shared.request(
             AQAPIService.reportCrash(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo),
-            modelType: CrashReportResponse.self
-        ) { response, responseModel in
-            if let response = response, response.code == 200 {
-                print("✅ CrashManager async upload successful")
-                completion(true)
-            } else {
-                print("❌ CrashManager async upload failed: \(responseModel.messageStr ?? "未知错误")")
+            decodeTo: CrashReportResponse.self
+        ) { result in
+            switch result {
+            case .success(let payload):
+                if payload.model?.code == 200 || payload.context.httpStatusCode == 200 {
+                    print("✅ CrashManager async upload successful")
+                    completion(true)
+                } else {
+                    print("❌ CrashManager async upload failed: \(payload.model?.msg ?? payload.context.message ?? "未知错误")")
+                    completion(false)
+                }
+
+            case .failure(let error):
+                print("❌ CrashManager async upload failed: \(error.message)")
                 completion(false)
             }
-        } failureCallback: { responseModel in
-            print("❌ CrashManager async upload failed: \(responseModel.messageStr ?? "网络错误")")
-            completion(false)
         }
     }
 
