@@ -15,6 +15,7 @@ import CodeScanner
 #if DEBUG
 import SharedCrashKit
 #endif
+
 struct UserView: View {
   @EnvironmentObject private var environments: ExtensionEnvironments
   @EnvironmentObject var userManager: UserManager
