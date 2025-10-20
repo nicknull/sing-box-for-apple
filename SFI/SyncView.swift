@@ -191,17 +191,12 @@ struct SyncView: View {
     
     private func startSyncProcess() {
         syncState = .initializing
-        
+        showSkipButton = false
+        scheduleSkipButtonTimerIfNeeded()
+
         // 延迟1秒开始，给网络权限申请一些时间
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             checkNetworkAndSync()
-        }
-        
-        // 10秒后显示跳过按钮
-        skipButtonTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
-            DispatchQueue.main.async {
-                showSkipButton = true
-            }
         }
     }
     
@@ -225,17 +220,20 @@ struct SyncView: View {
             // 同步过程中网络断开
             syncState = .waitingNetwork
             cleanupTimers()
+            scheduleSkipButtonTimerIfNeeded()
         }
     }
-    
+
     private func startSync() {
         guard monitor.isConnected else {
             syncState = .waitingNetwork
+            scheduleSkipButtonTimerIfNeeded()
             return
         }
-        
+
         syncState = .syncing
         errorMessage = ""
+        scheduleSkipButtonTimerIfNeeded()
         
         // 设置30秒超时
         timeoutTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: false) { _ in
@@ -305,6 +303,7 @@ struct SyncView: View {
         cleanupTimers()
         syncState = .failed
         errorMessage = message
+        scheduleSkipButtonTimerIfNeeded()
     }
     
     private func retrySync() {
@@ -325,6 +324,16 @@ struct SyncView: View {
         timeoutTimer = nil
         skipButtonTimer?.invalidate()
         skipButtonTimer = nil
+    }
+
+    private func scheduleSkipButtonTimerIfNeeded() {
+        guard !showSkipButton, skipButtonTimer == nil else { return }
+
+        skipButtonTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+            DispatchQueue.main.async {
+                showSkipButton = true
+            }
+        }
     }
 }
 
