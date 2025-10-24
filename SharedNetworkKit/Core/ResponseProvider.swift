@@ -12,7 +12,7 @@ public extension ResponseProvider {
         } catch let error as NetworkError {
             return .failure(error)
         } catch {
-            return .failure(.underlying(error))
+            return .failure(.underlying(error, data: response.data))
         }
     }
 }

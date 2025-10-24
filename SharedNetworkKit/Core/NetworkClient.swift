@@ -46,7 +46,8 @@ public final class NetworkClient {
 
     private func mapError(_ error: MoyaError) -> NetworkError {
         switch error {
-        case let .underlying(underlyingError, _):
+        case let .underlying(underlyingError, response):
+            let data = response?.data
             if let urlError = underlyingError as? URLError {
                 switch urlError.code {
                 case .cancelled:
@@ -56,28 +57,32 @@ public final class NetworkClient {
                 case .timedOut:
                     return .timeout
                 default:
-                    return .underlying(urlError)
+                    return .underlying(urlError, data: data)
                 }
             }
-            return .underlying(underlyingError)
+            return .underlying(underlyingError, data: data)
 
         case let .statusCode(response):
             let message = String(data: response.data, encoding: .utf8)
             return .server(statusCode: response.statusCode, message: message, data: response.data)
 
-        case let .objectMapping(error, _):
-            return .decoding(underlying: error)
+        case let .objectMapping(error, response):
+            return .decoding(underlying: error, data: response.data)
         case let .encodableMapping(error):
-            return .decoding(underlying: error)
+            return .decoding(underlying: error, data: nil)
         case let .parameterEncoding(error):
-            return .decoding(underlying: error)
-        case .jsonMapping, .imageMapping, .stringMapping:
-            return .invalidResponse
+            return .decoding(underlying: error, data: nil)
+        case let .jsonMapping(response):
+            return .invalidResponse(data: response.data)
+        case let .imageMapping(response):
+            return .invalidResponse(data: response.data)
+        case let .stringMapping(response):
+            return .invalidResponse(data: response.data)
         case .requestMapping:
-            return .invalidResponse
+            return .invalidResponse(data: nil)
 
         @unknown default:
-            return .underlying(error)
+            return .underlying(error, data: nil)
         }
     }
 }

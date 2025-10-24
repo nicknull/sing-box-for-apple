@@ -16,6 +16,7 @@ public struct APIEnvelope {
     }
 
     public static func parse(from response: NetworkResponse) throws -> APIEnvelope {
+        // 首先尝试解析为 JSON
         do {
             let json = try JSON(data: response.data)
             let message = json["msg"].string ?? json["message"].string
@@ -29,7 +30,20 @@ public struct APIEnvelope {
                 rawJSON: json.rawString()
             )
         } catch {
-            throw NetworkError.invalidResponse
+            // JSON 解析失败，但如果是 200 状态码，则视为成功的非 JSON 响应
+            if response.statusCode == 200 {
+                // 对于非 JSON 的成功响应，将原始数据作为 payload
+                let rawString = String(data: response.data, encoding: .utf8)
+                return APIEnvelope(
+                    apiCode: 200, // 使用 HTTP 状态码作为 apiCode
+                    message: "Success",
+                    payloadData: response.data,
+                    rawJSON: rawString
+                )
+            } else {
+                // 其他情况仍然抛出包含原始数据的错误
+                throw NetworkError.invalidResponse(data: response.data)
+            }
         }
     }
 }

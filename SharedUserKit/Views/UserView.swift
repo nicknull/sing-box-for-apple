@@ -12,9 +12,7 @@ import Defaults
 import StoreKit
 import Library
 import CodeScanner
-#if DEBUG
-import SharedCrashKit
-#endif
+
 
 struct UserView: View {
   @EnvironmentObject private var environments: ExtensionEnvironments

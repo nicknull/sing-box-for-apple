@@ -5,10 +5,10 @@ public enum NetworkError: Error {
     case cancelled
     case notConnected
     case timeout
-    case invalidResponse
+    case invalidResponse(data: Data?)
     case server(statusCode: Int, message: String?, data: Data?)
-    case decoding(underlying: Error)
-    case underlying(Error)
+    case decoding(underlying: Error, data: Data?)
+    case underlying(Error, data: Data?)
 }
 
 public extension NetworkError {
@@ -45,9 +45,9 @@ public extension NetworkError {
             return "响应格式无效"
         case let .server(_, message, _):
             return message ?? "服务器返回错误"
-        case let .decoding(error):
+        case let .decoding(error, _):
             return "数据解析失败：\(error.localizedDescription)"
-        case let .underlying(error):
+        case let .underlying(error, _):
             return error.localizedDescription
         }
     }
@@ -70,5 +70,27 @@ public extension NetworkError {
         case .underlying:
             return false
         }
+    }
+
+    /// 获取错误相关的原始响应数据
+    var rawData: Data? {
+        switch self {
+        case .cancelled, .notConnected, .timeout:
+            return nil
+        case let .invalidResponse(data):
+            return data
+        case let .server(_, _, data):
+            return data
+        case let .decoding(_, data):
+            return data
+        case let .underlying(_, data):
+            return data
+        }
+    }
+
+    /// 获取原始响应数据的字符串表示
+    var rawDataString: String? {
+        guard let data = rawData else { return nil }
+        return String(data: data, encoding: .utf8)
     }
 }

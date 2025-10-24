@@ -1058,7 +1058,6 @@
 				B6F5C7722BA07BF20038016B /* GoogleService-Info.plist */,
 				3AC03B982A72BF3300B7946F /* Application.swift */,
 				3A4FB1672A7358C9007012B9 /* ApplicationDelegate.swift */,
-				B63553522AC311CF00BE8873 /* AQAPIService.swift */,
 				3AC03B9C2A72BF3500B7946F /* Assets.xcassets */,
 				B63553552AC311CF00BE8873 /* DashBoardView.swift */,
 				3A4FB1652A73574B007012B9 /* Info.plist */,
@@ -1482,6 +1481,7 @@
 		B6D8D0982EA4AC85007A248E /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				B63553522AC311CF00BE8873 /* AQAPIService.swift */,
 				B6D8D08F2EA4AC85007A248E /* APIEnvelope.swift */,
 				B6D8D0902EA4AC85007A248E /* APIResponseContext.swift */,
 				B6D8D0912EA4AC85007A248E /* NetworkClient.swift */,

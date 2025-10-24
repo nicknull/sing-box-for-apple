@@ -63,32 +63,35 @@ extension AQAPIService: TargetType, ResponseProvider, NetworkPluginProvider {
     func parseResponse(_ response: NetworkResponse) -> Result<APIEnvelope, NetworkError> {
         do {
             var envelope = try APIEnvelope.parse(from: response)
-            let json = try JSON(data: response.data)
 
-            switch self {
-            case .signIn(_, _):
-                if let errors = json["errors"].dictionary,
-                   let key = errors.keys.first,
-                   let message = errors[key]?.array?.first?.string {
-                    envelope.message = message
-                } else {
+            // 只有在是 JSON 响应时才进行特殊处理
+            if let json = try? JSON(data: response.data) {
+                switch self {
+                case .signIn(_, _):
+                    if let errors = json["errors"].dictionary,
+                       let key = errors.keys.first,
+                       let message = errors[key]?.array?.first?.string {
+                        envelope.message = message
+                    } else {
+                        envelope.message = json["message"].string ?? envelope.message
+                    }
+
+                case .ticketReply, .ticketSave, .ticketClose,
+                     .ticketReply_admin, .ticketClose_admin:
                     envelope.message = json["message"].string ?? envelope.message
+                    envelope.payloadData = json.rawString()?.data(using: .utf8)
+
+                default:
+                    break
                 }
-
-            case .ticketReply, .ticketSave, .ticketClose,
-                 .ticketReply_admin, .ticketClose_admin:
-                envelope.message = json["message"].string ?? envelope.message
-                envelope.payloadData = json.rawString()?.data(using: .utf8)
-
-            default:
-                break
             }
+            // 对于非 JSON 响应，APIEnvelope.parse 已经处理了，无需额外处理
 
             return .success(envelope)
         } catch let error as NetworkError {
             return .failure(error)
         } catch {
-            return .failure(.underlying(error))
+            return .failure(.underlying(error, data: response.data))
         }
     }
     
@@ -389,6 +392,9 @@ extension AQAPIService: TargetType, ResponseProvider, NetworkPluginProvider {
                 "device_token": token,
                 "platform": platform
             ], encoding: JSONEncoding.default)
+
+        case .unregisterDeviceToken:
+            return .requestPlain
 
         case let .testPush(title, body):
             return .requestParameters(parameters: [

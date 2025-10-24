@@ -21,6 +21,11 @@ public struct APIResponseContext {
         guard let data = payloadData else { return nil }
         return String(data: data, encoding: .utf8)
     }
+
+    /// 当 payloadData 直接是原始响应数据时（如 getService 接口），获取其字符串内容
+    public var rawPayloadString: String? {
+        return payloadString
+    }
 }
 
 /// 携带泛型模型的响应上下文。

@@ -37,7 +37,7 @@ public final class NetworkService {
                 return .success(APIResponseWithModel(context: context, model: model))
             } catch {
                 let requestError = NetworkRequestError(
-                    error: .decoding(underlying: error),
+                    error: .decoding(underlying: error, data: context.response.data),
                     context: context
                 )
                 return .failure(requestError)

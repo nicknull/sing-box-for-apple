@@ -27,6 +27,26 @@ public struct NetworkRequestError: Error {
             }
         }()
     }
+
+    /// 获取错误相关的原始响应数据
+    /// 优先从 context 获取，如果没有则从 error 中获取
+    public var rawData: Data? {
+        return context?.response.data ?? error.rawData
+    }
+
+    /// 获取原始响应数据的字符串表示
+    public var rawDataString: String? {
+        guard let data = rawData else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    /// 获取原始 JSON 字符串（如果有的话）
+    public var rawJSON: String? {
+        return context?.rawJSON ?? {
+            guard let data = rawData else { return nil }
+            return String(data: data, encoding: .utf8)
+        }()
+    }
 }
 
 extension NetworkRequestError: LocalizedError {
