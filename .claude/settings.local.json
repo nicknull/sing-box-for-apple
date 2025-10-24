@@ -39,7 +39,9 @@
       "Bash(php artisan:*)",
       "Bash(ruby:*)",
       "Bash(git rm:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(grep:*)",
+      "Bash(bash scripts/bump_build_version.sh)"
     ],
     "deny": [],
     "ask": []
