@@ -1686,6 +1686,7 @@
 				3A4FB15B2A73467F007012B9 /* Embed Frameworks */,
 				3A4FB1632A7346A1007012B9 /* Embed Foundation Extensions */,
 				CB20B9497E60733D5983A093 /* [CP] Embed Pods Frameworks */,
+				9710F32B23E03312CA66BDD1 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1695,8 +1696,6 @@
 				3AE171A82A81294400393060 /* PBXTargetDependency */,
 			);
 			name = SFT;
-			packageProductDependencies = (
-			);
 			productName = SFT;
 			productReference = 3AC03B962A72BF3300B7946F /* sing-box.app */;
 			productType = "com.apple.product-type.application";
@@ -1731,6 +1730,7 @@
 				3A9759222A4EB69C00E4404B /* Embed Frameworks */,
 				3A8655172A4FA26600B7181F /* Embed ExtensionKit Extensions */,
 				B62C4A55DD09D91C42A4E853 /* [CP] Embed Pods Frameworks */,
+				A1DD8EECF5D0CA2B0877506A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1924,7 +1924,7 @@
 				B65F59302D6B53B200F1F695 /* XCRemoteSwiftPackageReference "BetterSafariView" */,
 				B65F59332D6B53DC00F1F695 /* XCRemoteSwiftPackageReference "BinaryCodable" */,
 				B65F59362D6B53F200F1F695 /* XCRemoteSwiftPackageReference "CodeScanner" */,
-				B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB" */,
+				B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 				B65F593C2D6B543A00F1F695 /* XCRemoteSwiftPackageReference "LoadingButton" */,
 				B65F593F2D6B545300F1F695 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */,
 				B65F59452D6B549800F1F695 /* XCRemoteSwiftPackageReference "SwiftyPing" */,
@@ -2038,6 +2038,40 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		9710F32B23E03312CA66BDD1 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A1DD8EECF5D0CA2B0877506A /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		B62C4A55DD09D91C42A4E853 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -2046,13 +2080,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -2067,13 +2097,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -3709,7 +3735,7 @@
 				minimumVersion = 2.5.2;
 			};
 		};
-		B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB" */ = {
+		B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/groue/GRDB.swift";
 			requirement = {
@@ -3777,7 +3803,7 @@
 		};
 		B65F593A2D6B542200F1F695 /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB" */;
+			package = B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
 		};
 		B65F593D2D6B543A00F1F695 /* LoadingButton */ = {
@@ -3797,7 +3823,7 @@
 		};
 		B65F59482D6B568900F1F695 /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB" */;
+			package = B65F59392D6B542200F1F695 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
 		};
 		B65F594A2D6B56BD00F1F695 /* BinaryCodable */ = {

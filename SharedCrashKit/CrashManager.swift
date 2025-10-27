@@ -11,6 +11,7 @@ import Defaults
 import SystemConfiguration
 import Moya
 import Darwin
+import PLCrashReporter
 
 
 // MARK: - 崩溃响应模型
@@ -34,6 +35,10 @@ public class CrashManager {
     private let queue = DispatchQueue(label: "com.gy.crashmanager", qos: .utility)
     private var eventLogs: [String] = []
     private let maxEventLogs = 50 // 最多保留50条事件日志
+    private let crashLogsDirectoryName = "CrashLogs"
+    private let sessionMarkerKey = "com.gy.crashmanager.activeSession"
+    private let uncleanExitFlagKey = "com.gy.crashmanager.uncleanExit"
+    private var crashReporter: PLCrashReporter?
 
     private init() {}
 
@@ -42,13 +47,9 @@ public class CrashManager {
         guard !isInstalled else { return }
         isInstalled = true
 
-        // 安装异常处理器
-        NSSetUncaughtExceptionHandler { exception in
-            CrashManager.shared.handleException(exception)
-        }
+        setupSessionMonitoring()
 
-        // 安装信号处理器
-        installSignalHandlers()
+        configureCrashReporter()
 
         // 启动时检查并上报本地崩溃日志
         queue.async {
@@ -56,6 +57,129 @@ public class CrashManager {
         }
 
         print("🔍 CrashManager installed successfully")
+    }
+
+    private func setupSessionMonitoring() {
+        let defaults = UserDefaults.standard
+
+        if defaults.bool(forKey: sessionMarkerKey) {
+            defaults.set(false, forKey: sessionMarkerKey)
+            defaults.set(true, forKey: uncleanExitFlagKey)
+        }
+
+        defaults.set(true, forKey: sessionMarkerKey)
+
+        if defaults.bool(forKey: uncleanExitFlagKey) {
+            defaults.set(false, forKey: uncleanExitFlagKey)
+            queue.async {
+                self.persistUnexpectedTerminationCrash()
+            }
+        }
+
+        atexit_b {
+            CrashManager.shared.handleProcessExit()
+        }
+    }
+
+    private func configureCrashReporter() {
+        let config = PLCrashReporterConfig(signalHandlerType: .mach, symbolicationStrategy: .all)
+        crashReporter = PLCrashReporter(configuration: config)
+
+        guard let crashReporter else {
+            print("⚠️ Failed to instantiate PLCrashReporter")
+            return
+        }
+
+        if crashReporter.hasPendingCrashReport() {
+            handlePendingCrashReport(crashReporter: crashReporter)
+        }
+
+        do {
+            try crashReporter.enableAndReturnError()
+            print("🔐 PLCrashReporter enabled")
+        } catch {
+            print("❌ Failed to enable PLCrashReporter: \(error)")
+        }
+    }
+
+    private func handlePendingCrashReport(crashReporter: PLCrashReporter) {
+        do {
+            let reportData = try crashReporter.loadPendingCrashReportDataAndReturnError()
+            let report = try PLCrashReport(data: reportData)
+            let crashInfo = crashInfo(from: report)
+            let userInfo = collectUserInfo()
+            let deviceInfo = collectDeviceInfo()
+
+            persistCrash(
+                userInfo: userInfo,
+                deviceInfo: deviceInfo,
+                crashInfo: crashInfo,
+                trigger: "plcrash_report"
+            )
+
+            crashReporter.purgePendingCrashReport()
+        } catch {
+            print("❌ Failed to process pending PLCrash report: \(error)")
+        }
+    }
+
+    private func crashInfo(from report: PLCrashReport) -> [String: Any] {
+        var crashInfo: [String: Any] = [:]
+
+        crashInfo["crash_id"] = report.uuid?.uuidString ?? UUID().uuidString
+
+        if let timestamp = report.systemInfo?.timestamp {
+            crashInfo["timestamp"] = ISO8601DateFormatter().string(from: timestamp)
+        } else {
+            crashInfo["timestamp"] = ISO8601DateFormatter().string(from: Date())
+        }
+
+        crashInfo["type"] = "plcrash"
+
+        if let signalInfo = report.signalInfo {
+            crashInfo["signal_name"] = signalInfo.name
+            crashInfo["signal_code"] = signalInfo.code
+            crashInfo["signal_address"] = String(format: "0x%llx", signalInfo.address)
+        }
+
+        if let exceptionInfo = report.exceptionInfo {
+            crashInfo["exception_name"] = exceptionInfo.exceptionName
+            if let reason = exceptionInfo.exceptionReason {
+                crashInfo["exception_reason"] = reason
+            }
+
+            let addresses = exceptionInfo.stackAddresses as? [NSNumber]
+            if let addresses, !addresses.isEmpty {
+                crashInfo["exception_stack_addresses"] = addresses.map { String(format: "0x%llx", $0.uint64Value) }
+            }
+        }
+
+        if let applicationInfo = report.applicationInfo {
+            crashInfo["app_identifier"] = applicationInfo.applicationIdentifier
+            if let version = applicationInfo.applicationVersion {
+                crashInfo["app_version"] = version
+            }
+            if let marketing = applicationInfo.applicationMarketingVersion {
+                crashInfo["app_marketing_version"] = marketing
+            }
+        }
+
+        if let systemInfo = report.systemInfo {
+            crashInfo["os_name"] = systemInfo.operatingSystem
+            if let version = systemInfo.operatingSystemVersion {
+                crashInfo["os_version"] = version
+            }
+        }
+
+        if let formatted = try? PLCrashReportTextFormatter.stringValue(for: report, with: .iOS) {
+            crashInfo["formatted_report"] = formatted
+        }
+
+        return crashInfo
+    }
+
+    private func handleProcessExit() {
+        UserDefaults.standard.set(false, forKey: sessionMarkerKey)
     }
 
     /// 收集用户信息
@@ -139,157 +263,47 @@ public class CrashManager {
         return deviceInfo
     }
 
-    /// 收集崩溃信息
-    private func collectCrashInfo(exception: NSException?, signal: Int32?) -> [String: Any] {
-        var crashInfo: [String: Any] = [:]
-
-        crashInfo["crash_id"] = UUID().uuidString
-        crashInfo["timestamp"] = ISO8601DateFormatter().string(from: Date())
-
-        if let exception = exception {
-            crashInfo["type"] = "exception"
-            crashInfo["exception_name"] = exception.name.rawValue
-            crashInfo["exception_reason"] = exception.reason ?? ""
-            crashInfo["stack_trace"] = exception.callStackSymbols.joined(separator: "\n")
-        } else if let signal = signal {
-            crashInfo["type"] = "signal"
-            crashInfo["signal"] = signal
-            crashInfo["signal_name"] = getSignalName(signal)
-            crashInfo["stack_trace"] = Thread.callStackSymbols.joined(separator: "\n")
-        }
-
-        // 线程信息
-        crashInfo["thread_name"] = Thread.current.name ?? "unknown"
-        crashInfo["is_main_thread"] = Thread.isMainThread
-
-        return crashInfo
-    }
-
-    /// 处理异常
-    private func handleException(_ exception: NSException) {
-        let userInfo = collectUserInfo()
-        let deviceInfo = collectDeviceInfo()
-        let crashInfo = collectCrashInfo(exception: exception, signal: nil)
-
-        // 立即上报
-        reportCrashSync(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
-    }
-
-    /// 处理信号
-    private func handleSignal(_ signalCode: Int32) {
-        let userInfo = collectUserInfo()
-        let deviceInfo = collectDeviceInfo()
-        let crashInfo = collectCrashInfo(exception: nil, signal: signalCode)
-
-        // 立即上报
-        reportCrashSync(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
-
-        // 恢复默认处理并重新触发，让系统照常终止进程
-        Darwin.signal(signalCode, SIG_DFL)
-        kill(getpid(), signalCode)
-    }
-
-    /// 同步上报崩溃（用于崩溃时立即上报）
-    private func reportCrashSync(userInfo: [String: Any], deviceInfo: [String: Any], crashInfo: [String: Any]) {
-        let target = AQAPIService.reportCrash(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
-        let plugins = (target as? NetworkPluginProvider)?.plugins ?? []
-        let provider = MoyaProvider<MultiTarget>(plugins: plugins)
-        let semaphore = DispatchSemaphore(value: 0)
-
-        var uploadSucceeded = false
-        var failureReason: String?
-
-        provider.request(MultiTarget(target)) { result in
-            defer { semaphore.signal() }
-
-            switch result {
-            case let .success(response):
-                if response.statusCode == 200 {
-                    if let crashResponse = try? JSONDecoder().decode(CrashReportResponse.self, from: response.data) {
-                        if crashResponse.code == 200 || crashResponse.data?.success == true {
-                            uploadSucceeded = true
-                        } else {
-                            failureReason = crashResponse.msg ?? crashResponse.data?.message ?? "服务器返回错误"
-                        }
-                    } else {
-                        uploadSucceeded = true
-                    }
-                } else {
-                    failureReason = "HTTP \(response.statusCode)"
-                }
-
-            case let .failure(error):
-                failureReason = error.localizedDescription
-            }
-        }
-
-        let waitResult = semaphore.wait(timeout: .now() + 3)
-        if waitResult == .timedOut {
-            failureReason = "请求超时"
-        }
-
-        if uploadSucceeded {
-            print("✅ CrashManager upload successful")
-        } else {
-            print("❌ CrashManager upload failed: \(failureReason ?? "未知错误")")
-            saveCrashToLocal(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo)
-        }
-    }
-
-    /// 保存崩溃信息到本地
-    private func saveCrashToLocal(userInfo: [String: Any], deviceInfo: [String: Any], crashInfo: [String: Any]) {
-        let crashData: [String: Any] = [
+    private func persistCrash(userInfo: [String: Any], deviceInfo: [String: Any], crashInfo: [String: Any], trigger: String, markSessionTerminated: Bool = false) {
+        var crashData: [String: Any] = [
             "user_info": userInfo,
             "device_info": deviceInfo,
             "crash_info": crashInfo,
+            "trigger": trigger,
             "timestamp": ISO8601DateFormatter().string(from: Date())
         ]
 
+        if !eventLogs.isEmpty {
+            crashData["recent_events"] = eventLogs
+        }
+
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: crashData, options: .prettyPrinted)
-            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            let crashLogsDir = documentsPath.appendingPathComponent("CrashLogs")
+            let jsonData = try JSONSerialization.data(withJSONObject: crashData, options: [])
+            let fileURL = try crashFileURL()
+            try jsonData.write(to: fileURL, options: .atomic)
+            print("💾 Crash saved to local: \(fileURL.lastPathComponent)")
 
-            // 创建目录
-            try FileManager.default.createDirectory(at: crashLogsDir, withIntermediateDirectories: true)
-
-            // 保存文件
-            let filename = "crash_\(Date().timeIntervalSince1970).json"
-            let fileURL = crashLogsDir.appendingPathComponent(filename)
-            try jsonData.write(to: fileURL)
-
-            print("💾 Crash saved to local: \(fileURL.path)")
-        } catch {
-            print("❌ Failed to save crash to local: \(error)")
-        }
-    }
-
-    /// 安装信号处理器
-    private func installSignalHandlers() {
-        let signals = [SIGABRT, SIGILL, SIGSEGV, SIGFPE, SIGBUS, SIGPIPE, SIGTRAP, SIGQUIT]
-
-        for signal in signals {
-            var action = sigaction()
-            action.__sigaction_u.__sa_handler = { signal in
-                CrashManager.shared.handleSignal(signal)
+            if markSessionTerminated {
+                UserDefaults.standard.set(false, forKey: sessionMarkerKey)
             }
-            sigemptyset(&action.sa_mask)
-            action.sa_flags = SA_RESETHAND | SA_NODEFER
-            sigaction(signal, &action, nil)
+
+            queue.async {
+                self.uploadCrashFile(at: fileURL)
+            }
+        } catch {
+            print("❌ Failed to persist crash: \(error)")
         }
     }
 
-    /// 获取信号名称
-    private func getSignalName(_ signal: Int32) -> String {
-        switch signal {
-        case SIGABRT: return "SIGABRT"
-        case SIGILL: return "SIGILL"
-        case SIGSEGV: return "SIGSEGV"
-        case SIGFPE: return "SIGFPE"
-        case SIGBUS: return "SIGBUS"
-        case SIGPIPE: return "SIGPIPE"
-        default: return "UNKNOWN(\(signal))"
+    private func crashFileURL() throws -> URL {
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            throw NSError(domain: "CrashManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法获取文档目录"])
         }
+
+        let crashLogsDir = documentsPath.appendingPathComponent(crashLogsDirectoryName)
+        try FileManager.default.createDirectory(at: crashLogsDir, withIntermediateDirectories: true)
+
+        let filename = "crash_\(UUID().uuidString).json"
+        return crashLogsDir.appendingPathComponent(filename)
     }
 
     /// 上传待处理的崩溃日志
@@ -298,7 +312,7 @@ public class CrashManager {
             return
         }
 
-        let crashLogsDir = documentsPath.appendingPathComponent("CrashLogs")
+        let crashLogsDir = documentsPath.appendingPathComponent(crashLogsDirectoryName)
 
         do {
             let crashFiles = try FileManager.default.contentsOfDirectory(at: crashLogsDir, includingPropertiesForKeys: nil)
@@ -325,10 +339,8 @@ public class CrashManager {
                 return
             }
 
-            // 异步上报
-            uploadCrashDataAsync(crashData: crashInfo) { [weak self] success in
+            uploadCrashDataAsync(crashData: crashInfo) { success in
                 if success {
-                    // 上报成功，删除本地文件
                     try? FileManager.default.removeItem(at: fileURL)
                     print("✅ Uploaded and removed crash file: \(fileURL.lastPathComponent)")
                 } else {
@@ -441,19 +453,7 @@ public class CrashManager {
                 crashInfo["recent_events"] = self.eventLogs
             }
 
-            // 异步上报
-            self.uploadCrashDataAsync(crashData: [
-                "user_info": userInfo,
-                "device_info": deviceInfo,
-                "crash_info": crashInfo,
-                "timestamp": ISO8601DateFormatter().string(from: Date())
-            ]) { success in
-                if success {
-                    print("✅ Custom crash report uploaded successfully")
-                } else {
-                    print("❌ Failed to upload custom crash report")
-                }
-            }
+            self.persistCrash(userInfo: userInfo, deviceInfo: deviceInfo, crashInfo: crashInfo, trigger: "custom")
         }
     }
 
@@ -480,4 +480,31 @@ extension Defaults.Keys {
     static let user_id = Key<String?>("user_id")
     static let jwt_token = Key<String?>("jwt_token")
 //    static let host = Key<String>("host", default: "")
+}
+
+// MARK: - Unexpected Termination Support
+extension CrashManager {
+    private func persistUnexpectedTerminationCrash() {
+        let userInfo = collectUserInfo()
+        let deviceInfo = collectDeviceInfo()
+
+        let crashInfo: [String: Any] = [
+            "crash_id": UUID().uuidString,
+            "timestamp": ISO8601DateFormatter().string(from: Date()),
+            "type": "unexpected_exit",
+            "reason": "Detected unclean shutdown",
+            "thread_name": Thread.current.name ?? "unknown",
+            "is_main_thread": Thread.isMainThread
+        ]
+
+        persistCrash(
+            userInfo: userInfo,
+            deviceInfo: deviceInfo,
+            crashInfo: crashInfo,
+            trigger: "unclean_exit",
+            markSessionTerminated: true
+        )
+
+        UserDefaults.standard.set(true, forKey: sessionMarkerKey)
+    }
 }

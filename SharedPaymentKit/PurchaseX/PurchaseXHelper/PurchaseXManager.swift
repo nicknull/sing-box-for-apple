@@ -153,7 +153,83 @@ public class PurchaseXManager: NSObject, ObservableObject {
         }
 
         // Start a purchase transaction
-        guard let result = try? await product.purchase(options: purchaseOptions) else {
+        do {
+            let result = try await product.purchase(options: purchaseOptions)
+
+            switch result {
+            case .success(let verificationResult):
+                let checkResult = checkTransactionVerificationResult(result: verificationResult)
+                if !checkResult.verified {
+                    purchaseState = .failedVerification
+
+                    // 记录验证失败事件
+                     SharedAnalyticsKit.shared.logIAPPurchase(
+                         productId: product.id,
+                         success: false,
+                         amount: NSDecimalNumber(decimal: product.price).doubleValue,
+                         transactionId: checkResult.transaction.id.description
+                     )
+                     SharedAnalyticsKit.shared.logCustomError(
+                         message: "IAP transaction verification failed",
+                         context: "iap_purchase"
+                     )
+
+                    throw PurchaseXException.transactionVerificationFailed
+                }
+
+                let validatedTransaction = checkResult.transaction
+
+                // 记录购买成功事件
+                 SharedAnalyticsKit.shared.logIAPPurchase(
+                     productId: product.id,
+                     success: true,
+                     amount: NSDecimalNumber(decimal: product.price).doubleValue,
+                     transactionId: validatedTransaction.id.description
+                 )
+
+                // 触发购买成功回调，用于上报后端（由上层负责 finish）
+                onPurchaseSuccess?(validatedTransaction)
+
+                // Because consumable's transaction are not stored in the receipt, So treat it differently.
+                if validatedTransaction.productType == .consumable {
+                    if !PXDataPersistence.purchase(productId: product.id){
+                        PXLog.event(.consumableKeychainError)
+                    }
+                }
+                purchaseState = .complete
+                return (transaction: validatedTransaction, purchaseState: .complete)
+            case .userCancelled:
+                purchaseState = .cancelled
+
+                // 记录用户取消购买事件
+                 SharedAnalyticsKit.shared.logCustomEvent(name: "iap_purchase_cancelled", parameters: [
+                     "product_id": product.id,
+                     "price": NSDecimalNumber(decimal: product.price).doubleValue
+                 ])
+
+                return (transaction: nil, purchaseState: .cancelled)
+            case .pending:
+                purchaseState = .pending
+
+                // 记录购买待处理事件
+                 SharedAnalyticsKit.shared.logCustomEvent(name: "iap_purchase_pending", parameters: [
+                     "product_id": product.id,
+                     "price": NSDecimalNumber(decimal: product.price).doubleValue
+                 ])
+
+                return (transaction: nil, purchaseState: .pending)
+            default:
+                purchaseState = .unknown
+
+                // 记录未知状态事件
+                 SharedAnalyticsKit.shared.logCustomEvent(name: "iap_purchase_unknown", parameters: [
+                     "product_id": product.id,
+                     "price": NSDecimalNumber(decimal: product.price).doubleValue
+                 ])
+
+                return (transaction: nil, purchaseState: .unknown)
+            }
+        } catch {
             purchaseState = .failed
 
             // 记录购买失败事件
@@ -163,81 +239,25 @@ public class PurchaseXManager: NSObject, ObservableObject {
                  amount: NSDecimalNumber(decimal: product.price).doubleValue
              )
 
-            throw PurchaseXException.purchaseException
-        }
-        
-        switch result {
-        case .success(let verificationResult):
-            let checkResult = checkTransactionVerificationResult(result: verificationResult)
-            if !checkResult.verified {
-                purchaseState = .failedVerification
-
-                // 记录验证失败事件
-                 SharedAnalyticsKit.shared.logIAPPurchase(
-                     productId: product.id,
-                     success: false,
-                     amount: NSDecimalNumber(decimal: product.price).doubleValue,
-                     transactionId: checkResult.transaction.id.description
-                 )
-                 SharedAnalyticsKit.shared.logCustomError(
-                     message: "IAP transaction verification failed",
-                     context: "iap_purchase"
-                 )
-
-                throw PurchaseXException.transactionVerificationFailed
-            }
-
-            let validatedTransaction = checkResult.transaction
-
-            // 记录购买成功事件
-             SharedAnalyticsKit.shared.logIAPPurchase(
-                 productId: product.id,
-                 success: true,
-                 amount: NSDecimalNumber(decimal: product.price).doubleValue,
-                 transactionId: validatedTransaction.id.description
-             )
-
-            // 触发购买成功回调，用于上报后端（由上层负责 finish）
-            onPurchaseSuccess?(validatedTransaction)
-
-            // Because consumable's transaction are not stored in the receipt, So treat it differently.
-            if validatedTransaction.productType == .consumable {
-                if !PXDataPersistence.purchase(productId: product.id){
-                    PXLog.event(.consumableKeychainError)
+            // 根据错误类型抛出更具体的异常
+            if let storeKitError = error as? StoreKitError {
+                switch storeKitError {
+                case .userCancelled:
+                    // 这种情况通常不会走到这里，但为了完整性
+                    purchaseState = .cancelled
+                    return (transaction: nil, purchaseState: .cancelled)
+                case .notAllowedToMakePayments:
+                    throw PurchaseXException.userNotAllowedToMakePurchases
+                case .paymentNotAllowed:
+                    throw PurchaseXException.paymentMethodNotAvailable
+                case .networkError(_):
+                    throw PurchaseXException.networkError(storeKitError.localizedDescription)
+                default:
+                    throw PurchaseXException.unknownError(storeKitError.localizedDescription)
                 }
+            } else {
+                throw PurchaseXException.unknownError(error.localizedDescription)
             }
-            purchaseState = .complete
-            return (transaction: validatedTransaction, purchaseState: .complete)
-        case .userCancelled:
-            purchaseState = .cancelled
-
-            // 记录用户取消购买事件
-             SharedAnalyticsKit.shared.logCustomEvent(name: "iap_purchase_cancelled", parameters: [
-                 "product_id": product.id,
-                 "price": NSDecimalNumber(decimal: product.price).doubleValue
-             ])
-
-            return (transaction: nil, purchaseState: .cancelled)
-        case .pending:
-            purchaseState = .pending
-
-            // 记录购买待处理事件
-             SharedAnalyticsKit.shared.logCustomEvent(name: "iap_purchase_pending", parameters: [
-                 "product_id": product.id,
-                 "price": NSDecimalNumber(decimal: product.price).doubleValue
-             ])
-
-            return (transaction: nil, purchaseState: .pending)
-        default:
-            purchaseState = .unknown
-
-            // 记录未知状态事件
-             SharedAnalyticsKit.shared.logCustomEvent(name: "iap_purchase_unknown", parameters: [
-                 "product_id": product.id,
-                 "price": NSDecimalNumber(decimal: product.price).doubleValue
-             ])
-
-            return (transaction: nil, purchaseState: .unknown)
         }
     }
     

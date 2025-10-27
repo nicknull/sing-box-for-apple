@@ -26,6 +26,10 @@ struct PurchaseView: View {
     @State private var showSuccess = false
     @State private var plans: [PlanSummary] = []
 
+    // 购买失败相关状态
+    @State private var purchaseFailureError: PurchaseXException?
+    @State private var showPurchaseFailureAlert = false
+
     private let productIDs: [String]
     private let productGroups: [ProductGroup] = [
         ProductGroup(
@@ -116,6 +120,20 @@ struct PurchaseView: View {
                     )
                 )
             }
+            .purchaseFailureAlert(
+                isPresented: $showPurchaseFailureAlert,
+                error: purchaseFailureError,
+                onRetry: {
+                    // 重试逻辑可以在这里实现
+                    showPurchaseFailureAlert = false
+                    purchaseFailureError = nil
+                },
+                onGoToWebsite: {
+                    showPurchaseFailureAlert = false
+                    purchaseFailureError = nil
+                    openWebsitePurchasePage()
+                }
+            )
             .popup(isPresented: $isPurchasing) {
                 hudView
             } customize: {
@@ -332,8 +350,18 @@ extension PurchaseView {
             await MainActor.run {
                 isPurchasing = false
             }
-            await MainActor.run {
-                presentAlert("购买出错: \(error.localizedDescription)")
+
+            // 检查是否是我们自定义的购买异常
+            if let purchaseError = error as? PurchaseXException {
+                await MainActor.run {
+                    purchaseFailureError = purchaseError
+                    showPurchaseFailureAlert = true
+                }
+            } else {
+                // 其他类型的错误，使用原有的提示方式
+                await MainActor.run {
+                    presentAlert("购买出错: \(error.localizedDescription)")
+                }
             }
         }
     }
@@ -610,6 +638,26 @@ extension PurchaseView {
         //                .fill(Color(uiColor: .secondarySystemBackground))
         //        )
         //        .padding(.vertical, 4)
+    }
+
+    /// 打开官网购买页面
+    fileprivate func openWebsitePurchasePage() {
+        let websiteURL = "\(Defaults[.host])/#/buy"
+
+        guard let url = URL(string: websiteURL) else {
+            presentAlert("无法打开官网链接")
+            return
+        }
+
+        #if os(iOS) || os(tvOS)
+        if UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+        } else {
+            presentAlert("无法打开官网链接")
+        }
+        #elseif os(macOS)
+        NSWorkspace.shared.open(url)
+        #endif
     }
 
 }

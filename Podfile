@@ -80,6 +80,7 @@ def lib
   pod 'CryptoSwift'
   pod 'Defaults'
   pod 'CodableWrappers'
+  pod 'PLCrashReporter'
 
   # Firebase Analytics and Crashlytics
   pod 'Firebase/Analytics'
