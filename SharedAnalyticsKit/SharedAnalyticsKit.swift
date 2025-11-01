@@ -9,7 +9,6 @@ import Foundation
 import UIKit
 import Firebase
 import FirebaseAnalytics
-import FirebaseCrashlytics
 
 public enum SharedAnalyticsKit {
     /// 获取Analytics管理器单例
@@ -24,9 +23,7 @@ public enum SharedAnalyticsKit {
             return
         }
 
-        FirebaseApp.configure()
-        Crashlytics.crashlytics().setCrashlyticsCollectionEnabled(true)
-        print("🔥 Firebase Analytics & Crashlytics configured")
+        print("🔥 Firebase Analytics configured (without Crashlytics)")
     }
 
     /// 便捷方法：记录应用启动

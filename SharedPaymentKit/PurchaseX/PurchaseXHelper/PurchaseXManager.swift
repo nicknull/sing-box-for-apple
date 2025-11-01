@@ -243,17 +243,43 @@ public class PurchaseXManager: NSObject, ObservableObject {
             if let storeKitError = error as? StoreKitError {
                 switch storeKitError {
                 case .userCancelled:
-                    // 这种情况通常不会走到这里，但为了完整性
                     purchaseState = .cancelled
                     return (transaction: nil, purchaseState: .cancelled)
-                case .notAllowedToMakePayments:
-                    throw PurchaseXException.userNotAllowedToMakePurchases
-                case .paymentNotAllowed:
+                case .networkError(let urlError):
+                    throw PurchaseXException.networkError(urlError.localizedDescription)
+                case .systemError(let underlyingError):
+                    if let skError = underlyingError as? SKError {
+                        switch skError.code {
+                        case .paymentNotAllowed, .clientInvalid:
+                            throw PurchaseXException.userNotAllowedToMakePurchases
+                        case .paymentInvalid:
+                            throw PurchaseXException.paymentMethodNotAvailable
+                        case .paymentCancelled:
+                            purchaseState = .cancelled
+                            return (transaction: nil, purchaseState: .cancelled)
+                        default:
+                            throw PurchaseXException.unknownError(skError.localizedDescription)
+                        }
+                    }
+                    throw PurchaseXException.unknownError(underlyingError.localizedDescription)
+                case .notAvailableInStorefront, .unsupported:
                     throw PurchaseXException.paymentMethodNotAvailable
-                case .networkError(_):
-                    throw PurchaseXException.networkError(storeKitError.localizedDescription)
-                default:
+                case .notEntitled:
+                    throw PurchaseXException.userNotAllowedToMakePurchases
+                case .unknown:
                     throw PurchaseXException.unknownError(storeKitError.localizedDescription)
+                }
+            } else if let skError = error as? SKError {
+                switch skError.code {
+                case .paymentNotAllowed, .clientInvalid:
+                    throw PurchaseXException.userNotAllowedToMakePurchases
+                case .paymentInvalid:
+                    throw PurchaseXException.paymentMethodNotAvailable
+                case .paymentCancelled:
+                    purchaseState = .cancelled
+                    return (transaction: nil, purchaseState: .cancelled)
+                default:
+                    throw PurchaseXException.unknownError(skError.localizedDescription)
                 }
             } else {
                 throw PurchaseXException.unknownError(error.localizedDescription)

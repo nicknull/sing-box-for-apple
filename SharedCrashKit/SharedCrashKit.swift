@@ -20,6 +20,11 @@ public enum SharedCrashKit {
         print("🔍 SharedCrashKit configured")
     }
 
+    /// 便捷方法：验证安装状态
+    public static func verifyInstallation() -> Bool {
+        shared.verifyInstallation()
+    }
+
     /// 便捷方法：手动上报自定义崩溃信息
     /// 用于捕获非致命错误或特定业务逻辑错误
     public static func reportCustomCrash(
@@ -40,4 +45,11 @@ public enum SharedCrashKit {
     public static func logEvent(name: String, parameters: [String: Any] = [:]) {
         shared.logEvent(name: name, parameters: parameters)
     }
+
+#if DEBUG
+    /// 便捷方法：触发测试崩溃（仅 Debug 版本）
+    public static func triggerTestCrash(reason: String = "测试触发崩溃", signal: Int32 = SIGABRT) {
+        shared.triggerTestCrash(reason: reason, signal: signal)
+    }
+#endif
 }

@@ -2,7 +2,7 @@
 //  CrashManager.swift
 //  SharedCrashKit
 //
-//  崩溃日志收集管理器
+//  基于 PLCrashReporter 的崩溃日志收集管理器
 //
 
 import Foundation
@@ -11,7 +11,7 @@ import Defaults
 import SystemConfiguration
 import Moya
 import Darwin
-import PLCrashReporter
+import CrashReporter
 
 
 // MARK: - 崩溃响应模型
@@ -27,7 +27,7 @@ struct CrashReportData: Codable {
     let crash_log_id: Int?
 }
 
-/// 崩溃日志收集管理器
+/// 基于 PLCrashReporter 的崩溃日志收集管理器
 public class CrashManager {
     public static let shared = CrashManager()
 
@@ -40,65 +40,109 @@ public class CrashManager {
     private let uncleanExitFlagKey = "com.gy.crashmanager.uncleanExit"
     private var crashReporter: PLCrashReporter?
 
+    private static let iso8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
     private init() {}
+
+    private func iso8601String(from date: Date = Date()) -> String {
+        CrashManager.iso8601Formatter.string(from: date)
+    }
 
     /// 安装崩溃监听器
     public func install() {
-        guard !isInstalled else { return }
-        isInstalled = true
-
-        setupSessionMonitoring()
-
-        configureCrashReporter()
-
-        // 启动时检查并上报本地崩溃日志
-        queue.async {
-            self.uploadPendingCrashLogs()
+        guard !isInstalled else {
+            print("🔍 CrashManager already installed")
+            return
         }
 
-        print("🔍 CrashManager installed successfully")
+        print("🔍 CrashManager installing...")
+        isInstalled = true
+
+        do {
+            setupSessionMonitoring()
+            print("🔍 Session monitoring setup completed")
+
+            configureCrashReporter()
+            print("🔍 Crash reporter configured")
+
+            // 启动时检查并上报本地崩溃日志
+            queue.async {
+                self.uploadPendingCrashLogs()
+            }
+
+            print("🔍 CrashManager installed successfully")
+        } catch {
+            print("❌ CrashManager installation failed: \(error)")
+            isInstalled = false
+        }
     }
 
     private func setupSessionMonitoring() {
+        print("🔍 Setting up session monitoring...")
         let defaults = UserDefaults.standard
 
         if defaults.bool(forKey: sessionMarkerKey) {
             defaults.set(false, forKey: sessionMarkerKey)
             defaults.set(true, forKey: uncleanExitFlagKey)
+            print("🔍 Detected previous unclean exit")
         }
 
         defaults.set(true, forKey: sessionMarkerKey)
 
         if defaults.bool(forKey: uncleanExitFlagKey) {
             defaults.set(false, forKey: uncleanExitFlagKey)
+            print("🔍 Processing unexpected termination crash...")
             queue.async {
                 self.persistUnexpectedTerminationCrash()
             }
         }
 
-        atexit_b {
-            CrashManager.shared.handleProcessExit()
+        // 更安全的退出处理
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            self.handleProcessExit()
         }
+
+        print("🔍 Session monitoring setup complete")
     }
 
     private func configureCrashReporter() {
-        let config = PLCrashReporterConfig(signalHandlerType: .mach, symbolicationStrategy: .all)
-        crashReporter = PLCrashReporter(configuration: config)
+        print("🔍 Configuring PLCrashReporter...")
 
-        guard let crashReporter else {
-            print("⚠️ Failed to instantiate PLCrashReporter")
+        // 使用 BSD 信号处理类型，更稳定
+        guard let config = PLCrashReporterConfig(signalHandlerType: .BSD, symbolicationStrategy: .all) else {
+            print("❌ Failed to create PLCrashReporterConfig")
             return
         }
 
-        if crashReporter.hasPendingCrashReport() {
-            handlePendingCrashReport(crashReporter: crashReporter)
+        guard let reporter = PLCrashReporter(configuration: config) else {
+            print("❌ Failed to create PLCrashReporter instance")
+            return
+        }
+
+        crashReporter = reporter
+        print("🔍 PLCrashReporter instance created")
+
+        if reporter.hasPendingCrashReport() {
+            print("🔍 Found pending crash report, processing asynchronously...")
+            queue.async {
+                self.handlePendingCrashReport(crashReporter: reporter)
+            }
         }
 
         do {
-            try crashReporter.enableAndReturnError()
-            print("🔐 PLCrashReporter enabled")
+            try reporter.enableAndReturnError()
+            print("🔐 PLCrashReporter enabled successfully")
         } catch {
             print("❌ Failed to enable PLCrashReporter: \(error)")
+            crashReporter = nil
         }
     }
 
@@ -126,12 +170,16 @@ public class CrashManager {
     private func crashInfo(from report: PLCrashReport) -> [String: Any] {
         var crashInfo: [String: Any] = [:]
 
-        crashInfo["crash_id"] = report.uuid?.uuidString ?? UUID().uuidString
+        if let uuidRef = report.uuidRef {
+            crashInfo["crash_id"] = CFUUIDCreateString(nil, uuidRef) as String
+        } else {
+            crashInfo["crash_id"] = UUID().uuidString
+        }
 
         if let timestamp = report.systemInfo?.timestamp {
-            crashInfo["timestamp"] = ISO8601DateFormatter().string(from: timestamp)
+            crashInfo["timestamp"] = iso8601String(from: timestamp)
         } else {
-            crashInfo["timestamp"] = ISO8601DateFormatter().string(from: Date())
+            crashInfo["timestamp"] = iso8601String()
         }
 
         crashInfo["type"] = "plcrash"
@@ -148,9 +196,8 @@ public class CrashManager {
                 crashInfo["exception_reason"] = reason
             }
 
-            let addresses = exceptionInfo.stackAddresses as? [NSNumber]
-            if let addresses, !addresses.isEmpty {
-                crashInfo["exception_stack_addresses"] = addresses.map { String(format: "0x%llx", $0.uint64Value) }
+            if let frames = exceptionInfo.stackFrames as? [PLCrashReportStackFrameInfo], !frames.isEmpty {
+                crashInfo["exception_stack_addresses"] = frames.map { String(format: "0x%llx", $0.instructionPointer) }
             }
         }
 
@@ -171,8 +218,12 @@ public class CrashManager {
             }
         }
 
-        if let formatted = try? PLCrashReportTextFormatter.stringValue(for: report, with: .iOS) {
+        // 使用现代 API 生成格式化报告
+        do {
+            let formatted = try PLCrashReportTextFormatter.stringValue(for: report, with: PLCrashReportTextFormatiOS)
             crashInfo["formatted_report"] = formatted
+        } catch {
+            print("⚠️ Failed to format crash report: \(error)")
         }
 
         return crashInfo
@@ -269,15 +320,20 @@ public class CrashManager {
             "device_info": deviceInfo,
             "crash_info": crashInfo,
             "trigger": trigger,
-            "timestamp": ISO8601DateFormatter().string(from: Date())
+            "timestamp": iso8601String()
         ]
 
         if !eventLogs.isEmpty {
             crashData["recent_events"] = eventLogs
         }
 
+        guard let sanitizedCrashData = sanitizedJSONObject(from: crashData) as? [String: Any] else {
+            print("❌ Failed to sanitize crash data for JSON serialization")
+            return
+        }
+
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: crashData, options: [])
+            let jsonData = try JSONSerialization.data(withJSONObject: sanitizedCrashData, options: [])
             let fileURL = try crashFileURL()
             try jsonData.write(to: fileURL, options: .atomic)
             print("💾 Crash saved to local: \(fileURL.lastPathComponent)")
@@ -304,6 +360,78 @@ public class CrashManager {
 
         let filename = "crash_\(UUID().uuidString).json"
         return crashLogsDir.appendingPathComponent(filename)
+    }
+
+    private func sanitizedJSONObject(from value: Any) -> Any? {
+        switch value {
+        case is NSNull:
+            return NSNull()
+        case let bool as Bool:
+            return bool
+        case let string as String:
+            return string
+        case let int as Int:
+            return int
+        case let int as Int8:
+            return NSNumber(value: int)
+        case let int as Int16:
+            return NSNumber(value: int)
+        case let int as Int32:
+            return NSNumber(value: int)
+        case let int as Int64:
+            return NSNumber(value: int)
+        case let uint as UInt:
+            return NSNumber(value: uint)
+        case let uint as UInt8:
+            return NSNumber(value: uint)
+        case let uint as UInt16:
+            return NSNumber(value: uint)
+        case let uint as UInt32:
+            return NSNumber(value: uint)
+        case let uint as UInt64:
+            return NSNumber(value: uint)
+        case let double as Double:
+            return double
+        case let float as Float:
+            return NSNumber(value: float)
+        case let cgFloat as CGFloat:
+            return NSNumber(value: Double(cgFloat))
+        case let number as NSNumber:
+            return number
+        case let date as Date:
+            return iso8601String(from: date)
+        case let url as URL:
+            return url.absoluteString
+        case let uuid as UUID:
+            return uuid.uuidString
+        case let data as Data:
+            return data.base64EncodedString()
+        case let dict as [String: Any]:
+            var sanitized: [String: Any] = [:]
+            for (key, value) in dict {
+                if let sanitizedValue = sanitizedJSONObject(from: value) {
+                    sanitized[key] = sanitizedValue
+                }
+            }
+            return sanitized
+        case let dict as [AnyHashable: Any]:
+            var sanitized: [String: Any] = [:]
+            for (key, value) in dict {
+                guard let keyString = key as? String else { continue }
+                if let sanitizedValue = sanitizedJSONObject(from: value) {
+                    sanitized[keyString] = sanitizedValue
+                }
+            }
+            return sanitized
+        case let array as [Any]:
+            return array.compactMap { sanitizedJSONObject(from: $0) }
+        case let array as NSArray:
+            return array.compactMap { sanitizedJSONObject(from: $0) }
+        case let error as any Error:
+            return error.localizedDescription
+        default:
+            return String(describing: value)
+        }
     }
 
     /// 上传待处理的崩溃日志
@@ -399,7 +527,25 @@ public class CrashManager {
             }
         }
     }
-    // MARK: - Public Convenience Methods
+    /// 验证 PLCrashReporter 是否正常初始化
+    public func verifyInstallation() -> Bool {
+        guard isInstalled else {
+            print("❌ CrashManager not installed")
+            return false
+        }
+
+        guard let reporter = crashReporter else {
+            print("❌ PLCrashReporter instance not found")
+            return false
+        }
+
+        // 检查 PLCrashReporter 是否启用
+        // 注意：PLCrashReporter 1.12.0 版本的 API 可能没有直接的 isEnabled 方法
+        // 我们通过能否正常创建实例来判断
+        print("✅ CrashManager verification successful")
+        print("📊 PLCrashReporter status: initialized and configured")
+        return true
+    }
 
     /// 触发一次测试崩溃，用于验证崩溃日志捕获与上报链路。
     public func triggerTestCrash(reason: String = "测试触发崩溃", signal: Int32 = SIGABRT) {
@@ -433,7 +579,7 @@ public class CrashManager {
 
             var crashInfo: [String: Any] = [
                 "crash_id": UUID().uuidString,
-                "timestamp": ISO8601DateFormatter().string(from: Date()),
+                "timestamp": self.iso8601String(),
                 "type": "custom",
                 "exception_name": errorName,
                 "exception_reason": errorMessage,
@@ -460,7 +606,7 @@ public class CrashManager {
     /// 记录关键业务事件（可用于崩溃分析上下文）
     public func logEvent(name: String, parameters: [String: Any] = [:]) {
         queue.async {
-            let timestamp = ISO8601DateFormatter().string(from: Date())
+            let timestamp = self.iso8601String()
             let eventDescription = "\(timestamp): \(name) - \(parameters)"
 
             self.eventLogs.append(eventDescription)
@@ -490,7 +636,7 @@ extension CrashManager {
 
         let crashInfo: [String: Any] = [
             "crash_id": UUID().uuidString,
-            "timestamp": ISO8601DateFormatter().string(from: Date()),
+            "timestamp": iso8601String(),
             "type": "unexpected_exit",
             "reason": "Detected unclean shutdown",
             "thread_name": Thread.current.name ?? "unknown",

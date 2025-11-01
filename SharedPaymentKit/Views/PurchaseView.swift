@@ -9,7 +9,7 @@ import ExytePopupView
 
 import StoreKit
 import SwiftUI
-
+import Defaults
 private typealias PurchaseResult = (
     transaction: StoreKit.Transaction?, purchaseState: PurchaseXState
 )
@@ -120,20 +120,9 @@ struct PurchaseView: View {
                     )
                 )
             }
-            .purchaseFailureAlert(
-                isPresented: $showPurchaseFailureAlert,
-                error: purchaseFailureError,
-                onRetry: {
-                    // 重试逻辑可以在这里实现
-                    showPurchaseFailureAlert = false
-                    purchaseFailureError = nil
-                },
-                onGoToWebsite: {
-                    showPurchaseFailureAlert = false
-                    purchaseFailureError = nil
-                    openWebsitePurchasePage()
-                }
-            )
+            .alert(isPresented: $showPurchaseFailureAlert) {
+                makePurchaseFailureAlert()
+            }
             .popup(isPresented: $isPurchasing) {
                 hudView
             } customize: {
@@ -177,6 +166,54 @@ extension PurchaseView {
         case loading
         case loaded([Product])
         case empty
+    }
+}
+
+// MARK: - Alert Builders
+
+extension PurchaseView {
+    fileprivate func makePurchaseFailureAlert() -> Alert {
+        guard let error = purchaseFailureError else {
+            return Alert(
+                title: Text("错误"),
+                message: Text("未知错误"),
+                dismissButton: .default(Text("确定")) {
+                    showPurchaseFailureAlert = false
+                }
+            )
+        }
+
+        let errorMessage = error.userFriendlyMessage()
+
+        let resetState = {
+            showPurchaseFailureAlert = false
+            purchaseFailureError = nil
+        }
+
+        if error.shouldShowWebsiteOption() {
+            return Alert(
+                title: Text("购买失败"),
+                message: Text("\(errorMessage)\n\n您也可以前往官网进行购买"),
+                primaryButton: .default(Text("前往官网")) {
+                    resetState()
+                    openWebsitePurchasePage()
+                },
+                secondaryButton: .cancel(Text("取消")) {
+                    resetState()
+                }
+            )
+        } else {
+            return Alert(
+                title: Text("购买失败"),
+                message: Text(errorMessage),
+                primaryButton: .default(Text("重试")) {
+                    resetState()
+                },
+                secondaryButton: .cancel(Text("取消")) {
+                    resetState()
+                }
+            )
+        }
     }
 }
 

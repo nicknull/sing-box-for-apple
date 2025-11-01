@@ -1,4 +1,5 @@
 import ApplicationLibrary
+import FirebaseCore
 import Defaults
 import Foundation
 import Libbox
@@ -11,14 +12,23 @@ class ApplicationDelegate: NSObject, UIApplicationDelegate {
     private var profileServer: ProfileServer?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions _: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        // 🔍 安装崩溃日志收集器（需要尽早安装）
+        FirebaseApp.configure()
+        // 🔥 首先初始化 Firebase（必须在其他依赖 Firebase 的服务之前）
+        SharedAnalyticsKit.configure()
+
+        // 🔍 安装崩溃日志收集器
         SharedCrashKit.install()
 
-        // 初始化 Firebase Analytics
-         SharedAnalyticsKit.configure()
+        // 🔍 验证崩溃收集器是否正常工作
+        let isVerified = SharedCrashKit.verifyInstallation()
+        if isVerified {
+            print("✅ PLCrashReporter verification successful")
+        } else {
+            print("❌ PLCrashReporter verification failed")
+        }
 
         // 记录应用启动事件
-         SharedAnalyticsKit.logAppLaunch()
+        SharedAnalyticsKit.logAppLaunch()
 
         let options = LibboxSetupOptions()
         options.basePath = FilePath.sharedDirectory.relativePath

@@ -1,14 +1,17 @@
 import Foundation
 import Firebase
 import FirebaseAnalytics
-import FirebaseCrashlytics
 import UIKit
 
 /// Analytics事件管理器
 public class AnalyticsManager {
     public static let shared = AnalyticsManager()
 
-    private init() {}
+    private init() {
+        // 确保在任何统计调用前已经初始化 Firebase
+        if FirebaseApp.app() == nil {
+        }
+    }
 
     // MARK: - 用户行为统计
 
@@ -96,10 +99,9 @@ public class AnalyticsManager {
 
     // MARK: - 错误统计
 
-    /// 记录非致命错误
+    /// 记录非致命错误（改用自定义崩溃收集）
     public func logError(error: Error, context: String? = nil) {
         let nsError = error as NSError
-        Crashlytics.crashlytics().record(error: nsError)
 
         var parameters: [String: Any] = [
             "error_code": nsError.code,
@@ -112,12 +114,18 @@ public class AnalyticsManager {
         }
 
         Analytics.logEvent("app_error", parameters: parameters)
+
+        // 使用我们自己的 CrashManager 记录错误
+        SharedCrashKit.reportCustomCrash(
+            errorName: "\(nsError.domain):\(nsError.code)",
+            errorMessage: nsError.localizedDescription,
+            stackTrace: Thread.callStackSymbols,
+            additionalInfo: context.map { ["context": $0] }
+        )
     }
 
-    /// 记录自定义错误信息
+    /// 记录自定义错误信息（改用自定义崩溃收集）
     public func logCustomError(message: String, code: Int = 0, context: String? = nil) {
-        Crashlytics.crashlytics().log(message)
-
         var parameters: [String: Any] = [
             "error_message": message,
             "error_code": code
@@ -128,6 +136,14 @@ public class AnalyticsManager {
         }
 
         Analytics.logEvent("custom_error", parameters: parameters)
+
+        // 使用我们自己的 CrashManager 记录错误
+        SharedCrashKit.reportCustomCrash(
+            errorName: "CustomError:\(code)",
+            errorMessage: message,
+            stackTrace: Thread.callStackSymbols,
+            additionalInfo: context.map { ["context": $0] }
+        )
     }
 
     // MARK: - 性能统计
@@ -154,12 +170,10 @@ public class AnalyticsManager {
         Analytics.setUserProperty(value, forName: name)
     }
 
-    /// 设置用户ID
+    /// 设置用户ID（不再同步到 Crashlytics）
     public func setUserId(_ userId: String?) {
         Analytics.setUserID(userId)
-        if let userId = userId {
-            Crashlytics.crashlytics().setUserID(userId)
-        }
+        // 注：不再使用 Crashlytics，用户ID只设置到 Firebase Analytics
     }
 
     // MARK: - 自定义事件
