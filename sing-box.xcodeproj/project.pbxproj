@@ -236,6 +236,8 @@
 		B6739A9C2E10170A004EDF14 /* TicketChatView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A982E10170A004EDF14 /* TicketChatView_admin.swift */; };
 		B6739A9D2E10170A004EDF14 /* TicketListView_admin.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6739A992E10170A004EDF14 /* TicketListView_admin.swift */; };
 		B67B200B2C54CA3B00310430 /* FormItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67B200A2C54CA3B00310430 /* FormItem.swift */; };
+		B68D07322EB3A455002D2F38 /* CrashReporter in Frameworks */ = {isa = PBXBuildFile; productRef = B68D07312EB3A455002D2F38 /* CrashReporter */; };
+		B68D07342EB3A46F002D2F38 /* CrashReporter in Frameworks */ = {isa = PBXBuildFile; productRef = B68D07332EB3A46F002D2F38 /* CrashReporter */; };
 		B6A116952EA2725300455050 /* TrialReminderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A116942EA2725300455050 /* TrialReminderView.swift */; };
 		B6A116972EA2727200455050 /* TrialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A116962EA2727200455050 /* TrialManager.swift */; };
 		B6A116982EA2727200455050 /* TrialManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A116962EA2727200455050 /* TrialManager.swift */; };
@@ -861,6 +863,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3A4FB1572A73467F007012B9 /* Library.framework in Frameworks */,
+				B68D07342EB3A46F002D2F38 /* CrashReporter in Frameworks */,
 				3A4FB15C2A73468C007012B9 /* ApplicationLibrary.framework in Frameworks */,
 				73E3F276B018793766793EFE /* Pods_SFT.framework in Frameworks */,
 			);
@@ -888,6 +891,7 @@
 				8B1FD840C012527391975357 /* Pods_SFI.framework in Frameworks */,
 				B65F59472D6B549800F1F695 /* SwiftyPing in Frameworks */,
 				B65F593B2D6B542200F1F695 /* GRDB in Frameworks */,
+				B68D07322EB3A455002D2F38 /* CrashReporter in Frameworks */,
 				B65F59322D6B53B200F1F695 /* BetterSafariView in Frameworks */,
 				B65F593E2D6B543A00F1F695 /* LoadingButton in Frameworks */,
 			);
@@ -1686,7 +1690,6 @@
 				3A4FB15B2A73467F007012B9 /* Embed Frameworks */,
 				3A4FB1632A7346A1007012B9 /* Embed Foundation Extensions */,
 				CB20B9497E60733D5983A093 /* [CP] Embed Pods Frameworks */,
-				9710F32B23E03312CA66BDD1 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1730,7 +1733,6 @@
 				3A9759222A4EB69C00E4404B /* Embed Frameworks */,
 				3A8655172A4FA26600B7181F /* Embed ExtensionKit Extensions */,
 				B62C4A55DD09D91C42A4E853 /* [CP] Embed Pods Frameworks */,
-				A1DD8EECF5D0CA2B0877506A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -1749,6 +1751,7 @@
 				B65F593A2D6B542200F1F695 /* GRDB */,
 				B65F593D2D6B543A00F1F695 /* LoadingButton */,
 				B65F59462D6B549800F1F695 /* SwiftyPing */,
+				B68D07312EB3A455002D2F38 /* CrashReporter */,
 			);
 			productName = SFI;
 			productReference = 3AEC20F32A459AB400A63465 /* iFlash.app */;
@@ -1929,6 +1932,7 @@
 				B65F593F2D6B545300F1F695 /* XCRemoteSwiftPackageReference "MacControlCenterUI" */,
 				B65F59452D6B549800F1F695 /* XCRemoteSwiftPackageReference "SwiftyPing" */,
 				B6A116A52EA284E900455050 /* XCRemoteSwiftPackageReference "QRCode" */,
+				B68D07302EB3A455002D2F38 /* XCRemoteSwiftPackageReference "plcrashreporter" */,
 			);
 			productRefGroup = 3AEC20C72A45991900A63465 /* Products */;
 			projectDirPath = "";
@@ -2038,40 +2042,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		9710F32B23E03312CA66BDD1 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SFT/Pods-SFT-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		A1DD8EECF5D0CA2B0877506A /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SFI/Pods-SFI-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		B62C4A55DD09D91C42A4E853 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -3775,6 +3745,14 @@
 				minimumVersion = 26.1.0;
 			};
 		};
+		B68D07302EB3A455002D2F38 /* XCRemoteSwiftPackageReference "plcrashreporter" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/plcrashreporter";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.12.0;
+			};
+		};
 		B6A116A52EA284E900455050 /* XCRemoteSwiftPackageReference "QRCode" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/dagronf/QRCode.git";
@@ -3835,6 +3813,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B65F59602D6B5BF600F1F695 /* XCRemoteSwiftPackageReference "QRCode" */;
 			productName = QRCode;
+		};
+		B68D07312EB3A455002D2F38 /* CrashReporter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B68D07302EB3A455002D2F38 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
+			productName = CrashReporter;
+		};
+		B68D07332EB3A46F002D2F38 /* CrashReporter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B68D07302EB3A455002D2F38 /* XCRemoteSwiftPackageReference "plcrashreporter" */;
+			productName = CrashReporter;
 		};
 		B6A116A62EA284E900455050 /* QRCode */ = {
 			isa = XCSwiftPackageProductDependency;
