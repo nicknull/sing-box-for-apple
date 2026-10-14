@@ -1,13 +1,47 @@
 import ApplicationLibrary
+import Libbox
 import Library
+import NetworkExtension
 import SwiftUI
 
-public struct MacApplication: Scene {
-    @State private var showMenuBarExtra = false
-    @State private var isMenuPresented = false
-    @StateObject private var environments = ExtensionEnvironments()
+@MainActor
+public final class MacApplicationState: ObservableObject {
+    @Published fileprivate var showMenuBarExtra = false
+    @Published fileprivate var menuBarExtraSpeedMode = MenuBarExtraSpeedMode.enabled.rawValue
+    fileprivate let environments = ExtensionEnvironments()
+    fileprivate var statusBarController: StatusBarController?
 
-    public init() {}
+    private var isInitialized = false
+
+    func initialize() async {
+        guard !isInitialized else { return }
+        isInitialized = true
+        showMenuBarExtra = await SharedPreferences.showMenuBarExtra.get()
+        menuBarExtraSpeedMode = await SharedPreferences.menuBarExtraSpeedMode.get()
+        statusBarController = StatusBarController(environments: environments)
+        statusBarController?.updateVisibility(showMenuBarExtra)
+        statusBarController?.updateSpeedMode(menuBarExtraSpeedMode)
+    }
+}
+
+public struct MacApplication: Scene {
+    @State private var isInitialized = false
+    @ObservedObject private var applicationState: MacApplicationState
+    @StateObject private var peerStore = TailscaleSSHPeerStore()
+    @StateObject private var tailscaleViewModel = TailscaleStatusViewModel()
+    @StateObject private var taildropSendManager = TaildropSendManager()
+    @StateObject private var taildropInbox = TaildropInboxViewModel()
+    @StateObject private var updateManager = UpdateManager()
+    @State private var showUpdateCheckPrompt = false
+
+    private let profileEditor: (Binding<String>, Bool) -> AnyView = { text, isEditable in
+        AnyView(ProfileEditorWrapperView(text: text, isEditable: isEditable))
+    }
+
+    public init(applicationState: MacApplicationState) {
+        self.applicationState = applicationState
+    }
+
     public var body: some Scene {
         Window("sing-box", id: "main", content: {
             MainView()
@@ -16,12 +50,56 @@ public struct MacApplication: Scene {
                         await initialize()
                     }
                 }
-                .environment(\.showMenuBarExtra, $showMenuBarExtra)
-                .environmentObject(environments)
+                .environment(\.showMenuBarExtra, $applicationState.showMenuBarExtra)
+                .environment(\.menuBarExtraSpeedMode, $applicationState.menuBarExtraSpeedMode)
+                .tailscaleStatusSubscription(tailscaleViewModel, environments: applicationState.environments, peerStore: peerStore)
+                .environmentObject(applicationState.environments)
+                .environmentObject(peerStore)
+                .environmentObject(tailscaleViewModel)
+                .environmentObject(taildropSendManager)
+                .environmentObject(taildropInbox)
+                .environmentObject(updateManager)
+                .alert(
+                    "Check Update",
+                    isPresented: $showUpdateCheckPrompt
+                ) {
+                    Button("Ok") {
+                        Task {
+                            await SharedPreferences.updateCheckPrompted.set(true)
+                            await SharedPreferences.checkUpdateEnabled.set(true)
+                            await runAutomaticUpdateCheck()
+                        }
+                    }
+                    Button("No, thanks", role: .cancel) {
+                        Task {
+                            await SharedPreferences.updateCheckPrompted.set(true)
+                        }
+                    }
+                } message: {
+                    Text("Would you like to enable automatic update checking from **GitHub**?")
+                }
+                .sheet(isPresented: $updateManager.isUpdateSheetPresented, onDismiss: {
+                    updateManager.dismissUpdateSheet()
+                }) {
+                    UpdateSheet(updateManager: updateManager)
+                        .environmentObject(applicationState.environments)
+                }
+                .onChangeCompat(of: applicationState.showMenuBarExtra) { newValue in
+                    applicationState.statusBarController?.updateVisibility(newValue)
+                    Task {
+                        await SharedPreferences.showMenuBarExtra.set(newValue)
+                    }
+                }
+                .onChangeCompat(of: applicationState.menuBarExtraSpeedMode) { newValue in
+                    applicationState.statusBarController?.updateSpeedMode(newValue)
+                    Task {
+                        await SharedPreferences.menuBarExtraSpeedMode.set(newValue)
+                    }
+                }
         })
         .windowResizability(.contentSize)
         .commands {
-            if showMenuBarExtra {
+            if applicationState.showMenuBarExtra {
                 CommandGroup(replacing: .appTermination) {
                     Button("Quit sing-box") {
                         hide(closeApp: true)
@@ -38,24 +116,75 @@ public struct MacApplication: Scene {
             SidebarCommands()
             CommandGroup(replacing: .appSettings) {
                 Button("Settings") {
-                    environments.openSettings.send()
+                    applicationState.environments.openSettings.send()
                 }
                 .keyboardShortcut(",", modifiers: [.command])
             }
         }
 
-        MenuBarExtra(isInserted: $showMenuBarExtra) {
-            MenuView(isMenuPresented: $isMenuPresented)
-                .environmentObject(environments)
-        } label: {
-            Image("MenuIcon")
+        WindowGroup(for: EditProfileContentView.Context.self) { $context in
+            EditProfileContentWindow(context: context)
+                .environment(\.profileEditor, profileEditor)
         }
-        .menuBarExtraStyle(.window)
-        .menuBarExtraAccess(isPresented: $isMenuPresented)
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 700, height: 500)
+
+        WindowGroup(for: TailscaleSSHPresentedSession.self) { $session in
+            TailscaleSSHTerminalWindow(session: session)
+                .environmentObject(peerStore)
+        }
+        .defaultSize(width: 880, height: 560)
+        .commands {
+            TerminalCommands()
+        }
     }
 
     private func initialize() async {
-        showMenuBarExtra = await SharedPreferences.showMenuBarExtra.get()
+        guard !isInitialized else { return }
+        isInitialized = true
+
+        if Variant.useSystemExtension {
+            let shouldPresentCachedUpdate = await updateManager.loadCachedUpdate()
+            let checkUpdateEnabled = await SharedPreferences.checkUpdateEnabled.get()
+            let prompted = await SharedPreferences.updateCheckPrompted.get()
+            if !prompted {
+                showUpdateCheckPrompt = true
+            } else if checkUpdateEnabled {
+                if shouldPresentCachedUpdate {
+                    await presentUpdateSheet()
+                }
+                Task {
+                    await runAutomaticUpdateCheck()
+                }
+            }
+        }
+    }
+
+    private func runAutomaticUpdateCheck() async {
+        let shouldPresent = await updateManager.checkForUpdate(presentIfFound: true, showsAlertOnFailure: false)
+        if shouldPresent {
+            await presentUpdateSheet()
+        }
+    }
+
+    private func presentUpdateSheet() async {
+        guard updateManager.updateInfo != nil else { return }
+        await openMainWindowIfNeeded()
+        await updateManager.showUpdateSheet()
+    }
+
+    private func openMainWindowIfNeeded() async {
+        let mainWindow = NSApp.windows.first(where: { $0.identifier?.rawValue == "main" })
+        let shouldActivate = NSApp.activationPolicy() == .accessory || !(mainWindow?.isVisible ?? false) || !NSApp.isActive
+        guard shouldActivate else { return }
+
+        NSApp.setActivationPolicy(.regular)
+        mainWindow?.makeKeyAndOrderFront(nil)
+        if let dockApp = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first {
+            dockApp.activate()
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     private func hide(closeApp: Bool) {

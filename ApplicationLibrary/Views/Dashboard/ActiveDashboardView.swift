@@ -3,143 +3,176 @@ import Libbox
 import Library
 import SwiftUI
 
-@MainActor
-public struct ActiveDashboardView: View {
-    @Environment(\.scenePhase) var scenePhase
-    @Environment(\.selection) private var parentSelection
+@MainActor public struct ActiveDashboardView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var environments: ExtensionEnvironments
     @EnvironmentObject private var profile: ExtensionProfile
-    @State private var isLoading = true
-    @State private var profileList: [ProfilePreview] = []
-    @State private var selectedProfileID: Int64 = 0
-    @State private var alert: Alert?
-    @State private var selection = DashboardPage.overview
-    @State private var systemProxyAvailable = false
-    @State private var systemProxyEnabled = false
+    @ObservedObject private var coordinator: DashboardViewModel
+    @ObservedObject private var cardConfiguration: DashboardCardConfiguration
+    #if os(tvOS)
+        @State private var showCardManagement = false
+        @State private var showGroups = false
+        @State private var showConnections = false
+        @State private var buttonState = ButtonVisibilityState()
+    #endif
 
-    public init() {}
+    public init(coordinator: DashboardViewModel, cardConfiguration: DashboardCardConfiguration) {
+        _coordinator = ObservedObject(wrappedValue: coordinator)
+        _cardConfiguration = ObservedObject(wrappedValue: cardConfiguration)
+    }
+
     public var body: some View {
-        if isLoading {
-            ProgressView().onAppear {
-                Task {
-                    await doReload()
-                }
-            }
-        } else {
-            if ApplicationLibrary.inPreview {
-                body1
-            } else {
-                body1
-                    .onAppear {
-                        Task {
-                            await doReloadSystemProxy()
-                        }
-                    }
-                    .onChangeCompat(of: profile.status) { newStatus in
-                        if newStatus == .connected {
-                            Task {
-                                await doReloadSystemProxy()
-                            }
-                        }
-                    }
-            }
-        }
+        viewContent
     }
 
-    private var body1: some View {
-        VStack {
+    @ViewBuilder private var viewContent: some View {
+        if coordinator.isLoading {
+            ProgressView()
             #if os(iOS) || os(tvOS)
-                if ApplicationLibrary.inPreview || profile.status.isConnectedStrict {
-                    Picker("Page", selection: $selection) {
-                        ForEach(DashboardPage.enabledCases()) { page in
-                            page.label
-                        }
+                .onAppear {
+                    Task {
+                        await coordinator.reload()
                     }
-                    .pickerStyle(.segmented)
-                    #if os(iOS)
-                        .padding([.leading, .trailing])
-                        .navigationBarTitleDisplayMode(.inline)
-                    #endif
-                    TabView(selection: $selection) {
-                        ForEach(DashboardPage.enabledCases()) { page in
-                            page.contentView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
-                                .tag(page)
-                        }
-                    }
-                    #if os(iOS)
-                    .navigationBarTitleDisplayMode(.inline)
-                    #endif
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                } else {
-                    OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
                 }
-            #elseif os(macOS)
-                OverviewView($profileList, $selectedProfileID, $systemProxyAvailable, $systemProxyEnabled)
             #endif
-        }
-        .onReceive(environments.profileUpdate) { _ in
-            Task {
-                await doReload()
-            }
-        }
-        .onReceive(environments.selectedProfileUpdate) { _ in
-            Task {
-                selectedProfileID = await SharedPreferences.selectedProfileID.get()
-                if profile.status.isConnected {
-                    await doReloadSystemProxy()
-                }
-            }
-        }
-        .alertBinding($alert)
-    }
-
-    private func doReload() async {
-        defer {
-            isLoading = false
-        }
-        if ApplicationLibrary.inPreview {
-            profileList = [
-                ProfilePreview(Profile(id: 0, name: "profile local", type: .local, path: "")),
-                ProfilePreview(Profile(id: 1, name: "profile remote", type: .remote, path: "", lastUpdated: Date(timeIntervalSince1970: 0))),
-            ]
-            systemProxyAvailable = true
-            systemProxyEnabled = true
-            selectedProfileID = 0
-
         } else {
-            do {
-                profileList = try await ProfileManager.list().map { ProfilePreview($0) }
-                if profileList.isEmpty {
+            content.onAppear {
+                guard !Variant.screenshotMode, profile.status.isConnected else {
                     return
                 }
-                selectedProfileID = await SharedPreferences.selectedProfileID.get()
-                if profileList.filter({ profile in
-                    profile.id == selectedProfileID
-                })
-                .isEmpty {
-                    selectedProfileID = profileList[0].id
-                    await SharedPreferences.selectedProfileID.set(selectedProfileID)
+                Task {
+                    await coordinator.reloadSystemProxy()
                 }
+            }.onChangeCompat(of: profile.status) { status in
+                guard !Variant.screenshotMode, status == .connected else {
+                    return
+                }
+                Task {
+                    await coordinator.reloadSystemProxy()
+                }
+            }
+        }
+    }
 
-            } catch {
-                alert = Alert(error)
+    @ViewBuilder private var content: some View {
+        Group {
+            overviewPage
+        }
+        #if os(tvOS)
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarLeading) {
+                navigationButtons
+            }
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button {
+                    showCardManagement = true
+                } label: {
+                    Image(systemName: "square.grid.2x2")
+                }
+                StartStopButton()
+            }
+        }
+        .navigationDestination(isPresented: $showGroups) {
+            GroupListView()
+                .navigationTitle("Groups")
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        BackButton()
+                    }
+                }
+        }
+        .navigationDestination(isPresented: $showConnections) {
+            ConnectionListView()
+                .navigationTitle("Connections")
+                .toolbar {
+                    ToolbarItemGroup(placement: .topBarLeading) {
+                        BackButton()
+                    }
+                }
+        }
+        .navigationDestination(isPresented: $showCardManagement) {
+            CardManagementView(onDisappear: {
+                Task { await cardConfiguration.reload() }
+            })
+            .navigationTitle("Dashboard Items")
+            .toolbar {
+                ToolbarItemGroup(placement: .topBarLeading) {
+                    BackButton()
+                }
+            }
+        }
+        #endif
+        .onAppear {
+            environments.connect()
+        }.onChangeCompat(of: scenePhase) { phase in
+            guard phase == .active else {
                 return
             }
+            environments.connect()
+        }.onChangeCompat(of: profile.status) { status in
+            guard status.isConnected else {
+                return
+            }
+            environments.connect()
+        }.onReceive(environments.profileUpdate) { _ in
+            Task {
+                await coordinator.reload()
+            }
+        }.onReceive(environments.selectedProfileUpdate) { _ in
+            Task {
+                await coordinator.updateSelectedProfile()
+                if profile.status.isConnected {
+                    await coordinator.reloadSystemProxy()
+                }
+            }
         }
-        environments.emptyProfiles = profileList.isEmpty
+        #if os(tvOS)
+        .onReceive(environments.commandClient.$groups) { _ in
+            Task { @MainActor in
+                updateButtonVisibility()
+            }
+        }.onReceive(profile.$status) { _ in
+            Task { @MainActor in
+                updateButtonVisibility()
+            }
+        }.onAppear {
+            updateButtonVisibility()
+        }
+        #endif
     }
 
-    private nonisolated func doReloadSystemProxy() async {
-        do {
-            let status = try LibboxNewStandaloneCommandClient()!.getSystemProxyStatus()
-            await MainActor.run {
-                systemProxyAvailable = status.available
-                systemProxyEnabled = status.enabled
-            }
-        } catch {
-            await MainActor.run {
-                alert = Alert(error)
+    private var overviewPage: some View {
+        OverviewView(
+            $coordinator.profileList,
+            $coordinator.selectedProfileID,
+            $coordinator.systemProxyAvailable,
+            $coordinator.systemProxyEnabled,
+            cardConfiguration: cardConfiguration
+        )
+    }
+
+    #if os(tvOS)
+        private func updateButtonVisibility() {
+            var newState = buttonState
+            newState.update(profile: profile, commandClient: environments.commandClient)
+            if newState != buttonState {
+                buttonState = newState
             }
         }
-    }
+
+        private var navigationButtons: some View {
+            NavigationButtonsView(
+                showGroupsButton: buttonState.showGroupsButton,
+                showConnectionsButton: buttonState.showConnectionsButton,
+                groupsCount: buttonState.groupsCount,
+                connectionsCount: buttonState.connectionsCount,
+                onGroupsTap: {
+                    showGroups = true
+                },
+                onConnectionsTap: {
+                    showConnections = true
+                }
+            )
+        }
+    #endif
 }

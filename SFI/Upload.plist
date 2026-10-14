@@ -5,10 +5,6 @@
 	<key>destination</key>
 	<string>upload</string>
 	<key>method</key>
-	<string>app-store</string>
-	<key>manageAppVersionAndBuildNumber</key>
-	<true/>
-	<key>uploadSymbols</key>
-	<true/>
+	<string>app-store-connect</string>
 </dict>
 </plist>

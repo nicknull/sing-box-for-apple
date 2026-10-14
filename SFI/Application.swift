@@ -1,3 +1,4 @@
+import ApplicationLibrary
 import Foundation
 import Library
 import SwiftUI
@@ -9,10 +10,20 @@ struct Application: App {
     @UIApplicationDelegateAdaptor private var appDelegate: ApplicationDelegate
     @StateObject private var environments = ExtensionEnvironments()
     @StateObject private var userManager = UserManager()
+    @StateObject private var peerStore = TailscaleSSHPeerStore()
+    @StateObject private var tailscaleViewModel = TailscaleStatusViewModel()
+    @StateObject private var taildropSendManager = TaildropSendManager()
+    @StateObject private var taildropInbox = TaildropInboxViewModel()
     @State var syncingConfig:Bool = false
     @State var synced:Bool = false
     @State var showSyncView:Bool = false
     let serviceInterval: TimeInterval = 3 * 24 * 60 * 60 // 3 days in seconds
+
+    init() {
+        Task { @MainActor in
+            await ImportedFontStore.shared.bootstrap()
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -24,7 +35,12 @@ struct Application: App {
                     .environmentObject(userManager)
                     .navigationTitle("闪电加速器");
 
-            }        
+            }
+            .tailscaleStatusSubscription(tailscaleViewModel, environments: environments, peerStore: peerStore)
+            .environmentObject(peerStore)
+            .environmentObject(tailscaleViewModel)
+            .environmentObject(taildropSendManager)
+            .environmentObject(taildropInbox)
             .fullScreenCover(isPresented: $showSyncView, content: {
                 SyncView()
             })
@@ -64,5 +80,5 @@ struct Application: App {
 
         }
     }
-    
+
 }

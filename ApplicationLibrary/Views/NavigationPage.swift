@@ -8,19 +8,46 @@ public enum NavigationPage: Int, CaseIterable, Identifiable {
     }
 
     case dashboard
-    #if os(macOS)
+    #if !os(tvOS)
         case groups
         case connections
     #endif
     case logs
-    case profiles
+    case tools
     case settings
 }
 
 public extension NavigationPage {
-    #if os(macOS)
-        static var macosDefaultPages: [NavigationPage] {
-            [.logs, .profiles, .settings]
+    init?(snapshotValue: String) {
+        switch snapshotValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "dashboard":
+            self = .dashboard
+        case "logs":
+            self = .logs
+        case "tools":
+            self = .tools
+        case "settings":
+            self = .settings
+        #if !os(tvOS)
+            case "groups":
+                self = .groups
+            case "connections":
+                self = .connections
+        #endif
+        default:
+            return nil
+        }
+    }
+
+    #if !os(tvOS)
+        static var sidebarDefaultPages: [NavigationPage] {
+            [.logs, .tools, .settings]
+        }
+    #endif
+
+    #if os(iOS)
+        static var tabPages: [NavigationPage] {
+            [.dashboard, .logs, .tools, .settings]
         }
     #endif
 
@@ -33,16 +60,16 @@ public extension NavigationPage {
         switch self {
         case .dashboard:
             return String(localized: "Dashboard")
-        #if os(macOS)
+        #if !os(tvOS)
             case .groups:
                 return String(localized: "Groups")
             case .connections:
-                return NSLocalizedString("Connections", comment: "")
+                return String(localized: "Connections")
         #endif
         case .logs:
             return String(localized: "Logs")
-        case .profiles:
-            return String(localized: "Profiles")
+        case .tools:
+            return String(localized: "Tools")
         case .settings:
             return String(localized: "Settings")
         }
@@ -52,16 +79,16 @@ public extension NavigationPage {
         switch self {
         case .dashboard:
             return "text.and.command.macwindow"
-        #if os(macOS)
+        #if !os(tvOS)
             case .groups:
                 return "rectangle.3.group.fill"
             case .connections:
                 return "list.bullet.rectangle.portrait.fill"
         #endif
         case .logs:
-            return "doc.text.fill"
-        case .profiles:
-            return "list.bullet.rectangle.fill"
+            return "list.bullet.rectangle"
+        case .tools:
+            return "terminal.fill"
         case .settings:
             return "gear.circle.fill"
         }
@@ -69,11 +96,11 @@ public extension NavigationPage {
 
     @MainActor
     var contentView: some View {
-        viewBuilder {
+        Group {
             switch self {
             case .dashboard:
                 DashboardView()
-            #if os(macOS)
+            #if !os(tvOS)
                 case .groups:
                     GroupListView()
                 case .connections:
@@ -81,8 +108,8 @@ public extension NavigationPage {
             #endif
             case .logs:
                 LogView()
-            case .profiles:
-                ProfileView()
+            case .tools:
+                ToolsView()
             case .settings:
                 SettingView()
             }
@@ -93,7 +120,8 @@ public extension NavigationPage {
         #endif
     }
 
-    #if os(macOS)
+    #if !os(tvOS)
+        @MainActor
         func visible(_ profile: ExtensionProfile?) -> Bool {
             switch self {
             case .groups, .connections:

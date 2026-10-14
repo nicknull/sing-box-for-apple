@@ -1,6 +1,7 @@
 import Foundation
 import Libbox
 import NetworkExtension
+import os.log
 #if os(iOS)
     import WidgetKit
 #endif
@@ -9,53 +10,249 @@ import NetworkExtension
 #endif
 
 open class ExtensionProvider: NEPacketTunnelProvider {
-    public var username: String? = nil
-    private var commandServer: LibboxCommandServer!
-    private var boxService: LibboxBoxService!
-    private var systemProxyAvailable = false
-    private var systemProxyEnabled = false
-    private var platformInterface: ExtensionPlatformInterface!
+    private static let logger = Logger(category: "ExtensionProvider")
 
-    override open func startTunnel(options _: [String: NSObject]?) async throws {
-        LibboxClearServiceError()
+    public private(set) var commandServer: LibboxCommandServer?
+    private lazy var platformInterface = ExtensionPlatformInterface(self)
+    public var tunnelOptions: [String: NSObject]?
+    private var startOptionsURL: URL?
 
-        let options = LibboxSetupOptions()
-        options.basePath = FilePath.sharedDirectory.relativePath
-        options.workingPath = FilePath.workingDirectory.relativePath
-        options.tempPath = FilePath.cacheDirectory.relativePath
-        var error: NSError?
-        #if os(tvOS)
-            options.isTVOS = true
+    public struct OverridePreferences {
+        public var includeAllNetworks: Bool = false
+        public var systemProxyEnabled: Bool = true
+        public var excludeDefaultRoute: Bool = false
+        public var autoRouteUseSubRangesByDefault: Bool = false
+        public var excludeAPNsRoute: Bool = false
+    }
+
+    public var overridePreferences: OverridePreferences?
+    #if os(iOS)
+        private var screenStateObserver: ScreenStateObserver?
+    #endif
+
+    private func applyStartOptions(_ options: [String: NSObject]) throws {
+        try ApplicationLocale.apply(options["locale"] as? String)
+        tunnelOptions = options
+        overridePreferences = OverridePreferences(
+            includeAllNetworks: (options["includeAllNetworks"] as? NSNumber)?.boolValue ?? false,
+            systemProxyEnabled: (options["systemProxyEnabled"] as? NSNumber)?.boolValue ?? true,
+            excludeDefaultRoute: (options["excludeDefaultRoute"] as? NSNumber)?.boolValue ?? false,
+            autoRouteUseSubRangesByDefault: (options["autoRouteUseSubRangesByDefault"] as? NSNumber)?.boolValue ?? false,
+            excludeAPNsRoute: (options["excludeAPNsRoute"] as? NSNumber)?.boolValue ?? false
+        )
+    }
+
+    private func platformMetadata() -> String {
+        var metadata: [String: Any] = [:]
+        #if !os(tvOS)
+            var networkExtension: [String: Any] = [
+                "includeAllNetworks": protocolConfiguration.includeAllNetworks,
+                "excludeLocalNetworks": protocolConfiguration.excludeLocalNetworks,
+                "enforceRoutes": protocolConfiguration.enforceRoutes,
+            ]
+            if #available(iOS 16.4, macOS 13.3, *) {
+                networkExtension["excludeAPNs"] = protocolConfiguration.excludeAPNs
+                networkExtension["excludeCellularServices"] = protocolConfiguration.excludeCellularServices
+            }
+            if #available(iOS 17.4, macOS 14.4, *) {
+                networkExtension["excludeDeviceCommunication"] = protocolConfiguration.excludeDeviceCommunication
+            }
+            metadata["networkExtension"] = networkExtension
         #endif
-        if let username {
-            options.username = username
+        if let overridePreferences {
+            metadata["profileOverride"] = [
+                "systemProxyEnabled": overridePreferences.systemProxyEnabled,
+                "excludeDefaultRoute": overridePreferences.excludeDefaultRoute,
+                "autoRouteUseSubRangesByDefault": overridePreferences.autoRouteUseSubRangesByDefault,
+                "excludeAPNsRoute": overridePreferences.excludeAPNsRoute,
+            ]
         }
-        LibboxSetup(options, &error)
-        if let error {
-            writeFatalError("(packet-tunnel) error: setup service: \(error.localizedDescription)")
+        return PlatformMetadata.json(metadata)
+    }
+
+    private func persistStartOptions(_ options: [String: NSObject]) throws {
+        guard let startOptionsURL else {
             return
         }
+        let data = try ExtensionStartOptions.encode(options)
+        try data.write(to: startOptionsURL, options: .atomic)
+    }
 
-        LibboxRedirectStderr(FilePath.cacheDirectory.appendingPathComponent("stderr.log").relativePath, &error)
-        if let error {
-            writeFatalError("(packet-tunnel) redirect stderr error: \(error.localizedDescription)")
-            return
+    private func loadPersistedStartOptions() throws -> [String: NSObject]? {
+        guard let startOptionsURL, FileManager.default.fileExists(atPath: startOptionsURL.path) else {
+            return nil
         }
+        let data = try Data(contentsOf: startOptionsURL)
+        return try ExtensionStartOptions.decode(data)
+    }
 
-        await LibboxSetMemoryLimit(!SharedPreferences.ignoreMemoryLimit.get())
-
-        if platformInterface == nil {
-            platformInterface = ExtensionPlatformInterface(self)
+    private func resolveStartOptions(_ startOptions: [String: NSObject]?) throws -> [String: NSObject] {
+        if let startOptions, startOptions["configContent"] as? String != nil {
+            return startOptions
         }
-        commandServer = await LibboxNewCommandServer(platformInterface, Int32(SharedPreferences.maxLogLines.get()))
+        let persistedOptions: [String: NSObject]?
         do {
-            try commandServer.start()
+            persistedOptions = try loadPersistedStartOptions()
         } catch {
-            writeFatalError("(packet-tunnel): log server start error: \(error.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel) error: load start options: \(error.localizedDescription)")
+        }
+        if let persistedOptions {
+            if let startOptions {
+                return persistedOptions.merging(startOptions) { _, new in new }
+            }
+            return persistedOptions
+        }
+        throw ExtensionStartupError("(packet-tunnel) error: missing start options")
+    }
+
+    #if os(macOS)
+        private var xpcListener: NSXPCListener!
+        private var xpcService: CommandXPCService!
+        private var locationManager: CLLocationManager?
+        private var locationDelegate: stubLocationDelegate?
+    #endif
+
+    override public init() {
+        LibboxPrepareCrashSignalHandlers()
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                NativeCrashReporter.installForCurrentProcess(
+                    basePath: FileManager.default.homeDirectoryForCurrentUser
+                        .appendingPathComponent("NativeCrash")
+                )
+            } else {
+                NativeCrashReporter.installForCurrentProcess()
+            }
+        #else
+            NativeCrashReporter.installForCurrentProcess()
+        #endif
+        LibboxReinstallCrashSignalHandlers()
+        super.init()
+    }
+
+    override open func startTunnel(options startOptions: [String: NSObject]?) async throws {
+        let basePath: String
+        let workingPath: String
+        let tempPath: String
+
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                let containerURL = FileManager.default.homeDirectoryForCurrentUser
+                basePath = containerURL.path
+                workingPath = containerURL.appendingPathComponent("Working").path
+                tempPath = containerURL.appendingPathComponent("Temp").path
+            } else {
+                basePath = FilePath.sharedDirectory.relativePath
+                workingPath = FilePath.workingDirectory.relativePath
+                tempPath = FilePath.cacheDirectory.relativePath
+            }
+        #else
+            basePath = FilePath.sharedDirectory.relativePath
+            workingPath = FilePath.workingDirectory.relativePath
+            tempPath = FilePath.cacheDirectory.relativePath
+        #endif
+
+        startOptionsURL = URL(fileURLWithPath: basePath).appendingPathComponent(ExtensionStartOptions.snapshotFileName)
+
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                let socketPath = basePath + "/command.sock"
+                let machServiceName = AppConfiguration.systemExtensionMachServiceName
+                xpcService = CommandXPCService(socketPath: socketPath)
+                xpcListener = NSXPCListener(machServiceName: machServiceName)
+                xpcListener.delegate = xpcService
+            }
+        #endif
+
+        let effectiveOptions = try resolveStartOptions(startOptions)
+        try applyStartOptions(effectiveOptions)
+        if effectiveOptions["configContent"] == nil {
+            throw ExtensionStartupError("(packet-tunnel) error: missing configContent in tunnel options")
+        }
+        do {
+            try persistStartOptions(effectiveOptions)
+        } catch {
+            throw ExtensionStartupError("(packet-tunnel) error: persist start options: \(error.localizedDescription)")
+        }
+        let options = LibboxSetupOptions()
+        options.basePath = basePath
+        options.workingPath = workingPath
+        options.tempPath = tempPath
+
+        options.logMaxLines = 3000
+        options.debug = Variant.inDebug
+        options.crashReportSource = "NetworkExtension"
+        options.appVersion = Bundle.application.versionNumber
+        options.appMarketingVersion = Bundle.application.version
+        options.platformMetadata = platformMetadata()
+
+        #if os(tvOS)
+            if let port = effectiveOptions["commandServerPort"] as? NSNumber {
+                options.commandServerListenPort = port.int32Value
+            }
+            if let secret = effectiveOptions["commandServerSecret"] as? String {
+                options.commandServerSecret = secret
+            }
+        #endif
+
+        #if os(macOS)
+            options.oomKillerEnabled = (effectiveOptions["oomKillerEnabled"] as? NSNumber)?.boolValue ?? false
+            let oomMemoryLimitMB = (effectiveOptions["oomMemoryLimitMB"] as? NSNumber)?.int64Value ?? 0
+            options.oomMemoryLimit = oomMemoryLimitMB * 1024 * 1024
+            options.oomKillerDisabled = !((effectiveOptions["oomKillerKillConnections"] as? NSNumber)?.boolValue ?? false)
+        #else
+            options.oomKillerEnabled = true
+        #endif
+        options.powerReportEnabled = (effectiveOptions["powerReportEnabled"] as? NSNumber)?.boolValue ?? false
+
+        var setupError: NSError?
+        LibboxSetup(options, &setupError)
+        if let setupError {
+            throw ExtensionStartupError("(packet-tunnel) error: setup service: \(setupError.localizedDescription)")
+        }
+        LibboxPromoteOOMDraft()
+        LibboxDiscardPowerReportDraft()
+
+        var error: NSError?
+        commandServer = LibboxNewCommandServer(platformInterface, platformInterface, &error)
+        if let error {
+            throw ExtensionStartupError("(packet-tunnel): create command server error: \(error.localizedDescription)")
+        }
+        do {
+            try commandServer!.start()
+        } catch {
+            throw ExtensionStartupError("(packet-tunnel): start command server error: \(error.localizedDescription)")
+        }
+
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                xpcListener.resume()
+                Self.logger.info("set Command Server")
+                xpcService.commandServer = commandServer
+            }
+        #endif
+
+        do {
+            try await startService()
+        } catch {
+            #if os(macOS)
+                if Variant.useSystemExtension {
+                    xpcService.markServiceNotReady(error)
+                }
+            #endif
+            throw error
         }
         writeMessage("(packet-tunnel): Here I stand")
-        await startService()
+        #if os(iOS)
+            if let commandServer {
+                screenStateObserver = ScreenStateObserver(commandServer: commandServer)
+            }
+        #endif
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                xpcService.markServiceReady()
+            }
+        #endif
         #if os(iOS)
             if #available(iOS 18.0, *) {
                 ControlCenter.shared.reloadControls(ofKind: ExtensionProfile.controlKind)
@@ -63,87 +260,37 @@ open class ExtensionProvider: NEPacketTunnelProvider {
         #endif
     }
 
-    func writeMessage(_ message: String) {
+    func writeMessage(_ message: String, level: LogLevel = .error) {
         if let commandServer {
-            commandServer.writeMessage(message)
+            commandServer.writeMessage(Int32(level.rawValue), message: message)
         }
     }
 
-    public func writeFatalError(_ message: String) {
-        #if DEBUG
-            NSLog(message)
-        #endif
-        writeMessage(message)
-        var error: NSError?
-        LibboxWriteServiceError(message, &error)
-        cancelTunnelWithError(nil)
-    }
+    private func startService() async throws {
+        guard let configContent = tunnelOptions?["configContent"] as? String else {
+            throw ExtensionStartupError("(packet-tunnel) error: missing configContent in tunnel options")
+        }
 
-    private func startService() async {
-        let profile: Profile?
+        let options = LibboxOverrideOptions()
         do {
-            profile = try await ProfileManager.get(Int64(SharedPreferences.selectedProfileID.get()))
+            try commandServer!.startOrReloadService(configContent, options: options)
         } catch {
-            writeFatalError("(packet-tunnel) error: read selected profile: \(error.localizedDescription)")
-            return
+            throw ExtensionStartupError("(packet-tunnel) error: start service: \(error.localizedDescription)")
         }
-        guard let profile else {
-            writeFatalError("(packet-tunnel) error: missing selected profile")
-            return
-        }
-        let configContent: String
-        do {
-            configContent = try profile.read()
-        } catch {
-            writeFatalError("(packet-tunnel) error: read config file \(profile.path): \(error.localizedDescription)")
-            return
-        }
-        var error: NSError?
-        let service = LibboxNewService(configContent, platformInterface, &error)
-        if let error {
-            writeFatalError("(packet-tunnel) error: create service: \(error.localizedDescription)")
-            return
-        }
-        guard let service else {
-            return
-        }
-        do {
-            try service.start()
-        } catch {
-            writeFatalError("(packet-tunnel) error: start service: \(error.localizedDescription)")
-            return
-        }
-        commandServer.setService(service)
-        boxService = service
         #if os(macOS)
-            await SharedPreferences.startedByUser.set(true)
-            if service.needWIFIState() {
-                if !Variant.useSystemExtension {
-                    locationManager = CLLocationManager()
-                    locationDelegate = stubLocationDelegate(boxService)
-                    locationManager?.delegate = locationDelegate
-                    locationManager?.requestLocation()
-                } else {
-                    commandServer.writeMessage("(packet-tunnel) WIFI SSID and BSSID information is not currently available in the standalone version of SFM. We are working on resolving this issue.")
-                }
+            if !Variant.useSystemExtension, commandServer!.needWIFIState() {
+                locationManager = CLLocationManager()
+                locationDelegate = stubLocationDelegate()
+                locationManager!.delegate = locationDelegate
+                locationManager!.requestLocation()
             }
         #endif
     }
 
     #if os(macOS)
 
-        private var locationManager: CLLocationManager?
-        private var locationDelegate: stubLocationDelegate?
-
         class stubLocationDelegate: NSObject, CLLocationManagerDelegate {
-            private unowned let boxService: LibboxBoxService
-            init(_ boxService: LibboxBoxService) {
-                self.boxService = boxService
-            }
-
-            func locationManagerDidChangeAuthorization(_: CLLocationManager) {
-                boxService.updateWIFIState()
-            }
+            func locationManagerDidChangeAuthorization(_: CLLocationManager) {}
 
             func locationManager(_: CLLocationManager, didUpdateLocations _: [CLLocation]) {}
 
@@ -152,48 +299,49 @@ open class ExtensionProvider: NEPacketTunnelProvider {
 
     #endif
 
-    private func stopService() {
-        if let service = boxService {
-            do {
-                try service.close()
-            } catch {
-                writeMessage("(packet-tunnel) error: stop service: \(error.localizedDescription)")
-            }
-            boxService = nil
-            commandServer.setService(nil)
+    func stopService() {
+        do {
+            try commandServer?.closeService()
+        } catch {
+            writeMessage("(packet-tunnel) stop service: \(error.localizedDescription)")
         }
-        if let platformInterface {
-            platformInterface.reset()
-        }
+        platformInterface.reset()
     }
 
-    func reloadService() async {
+    func reloadService() async throws {
         writeMessage("(packet-tunnel) reloading service")
         reasserting = true
         defer {
             reasserting = false
         }
-        stopService()
-        commandServer.resetLog()
-        await startService()
-    }
-
-    func postServiceClose() {
-        boxService = nil
+        try await startService()
     }
 
     override open func stopTunnel(with reason: NEProviderStopReason) async {
         writeMessage("(packet-tunnel) stopping, reason: \(reason)")
+        #if os(iOS)
+            screenStateObserver?.cancel()
+            screenStateObserver = nil
+        #endif
         stopService()
         if let server = commandServer {
             try? await Task.sleep(nanoseconds: 100 * NSEC_PER_MSEC)
-            try? server.close()
+            server.close()
             commandServer = nil
         }
         #if os(macOS)
-            if reason == .userInitiated {
-                await SharedPreferences.startedByUser.set(reason == .userInitiated)
+            if Variant.useSystemExtension {
+                xpcService.markServiceNotReady(NSError(domain: "CommandXPC", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "Command server stopped",
+                ]))
+                xpcListener.invalidate()
+                xpcListener = nil
+                xpcService.commandServer = nil
+                xpcService = nil
+                UserServiceEndpointRegistry.shared.clear()
             }
+            locationManager = nil
+            locationDelegate = nil
         #endif
         #if os(iOS)
             if #available(iOS 18.0, *) {
@@ -203,18 +351,26 @@ open class ExtensionProvider: NEPacketTunnelProvider {
     }
 
     override open func handleAppMessage(_ messageData: Data) async -> Data? {
-        messageData
+        do {
+            let options = try ExtensionStartOptions.decode(messageData)
+            try applyStartOptions(options)
+            try persistStartOptions(options)
+            try await reloadService()
+            return nil
+        } catch {
+            return error.localizedDescription.data(using: .utf8)
+        }
     }
 
     override open func sleep() async {
-        if let boxService {
-            boxService.pause()
+        if let commandServer {
+            commandServer.pause()
         }
     }
 
     override open func wake() {
-        if let boxService {
-            boxService.wake()
+        if let commandServer {
+            commandServer.wake()
         }
     }
 }

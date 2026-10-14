@@ -1,6 +1,13 @@
 #if os(macOS)
     import Foundation
+    import os
     import SystemExtensions
+
+    private let logger = Logger(category: "SystemExtension")
+
+    public extension Notification.Name {
+        static let systemExtensionInstalled = Notification.Name("systemExtensionInstalled")
+    }
 
     public class SystemExtension: NSObject, OSSystemExtensionRequestDelegate {
         private let forceUpdate: Bool
@@ -26,10 +33,10 @@
                existing.bundleVersion == ext.bundleVersion,
                existing.bundleShortVersion == ext.bundleShortVersion
             {
-                NSLog("Skip update system extension")
+                logger.info("Skip update system extension")
                 return .cancel
             } else {
-                NSLog("Update system extension")
+                logger.info("Update system extension")
                 return .replace
             }
         }

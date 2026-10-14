@@ -1,14 +1,17 @@
 import AppKit
 import Foundation
+import Libbox
 import Library
 import MacLibrary
 
 class StandaloneApplicationDelegate: ApplicationDelegate {
-    public func applicationWillFinishLaunching(_: Notification) {
+    func applicationWillFinishLaunching(_: Notification) {
         Variant.useSystemExtension = true
-        Variant.isBeta = false
+        LibboxSetXPCDialer(CommandXPCDialer.shared)
         Task {
             await setupSystemExtension()
+            await HelperServiceManager.updateRootHelperIfNeeded()
+            UserServiceEndpointPublisher.shared.start()
         }
     }
 

@@ -1,3 +1,4 @@
+import Library
 import MacLibrary
 import SwiftUI
 
@@ -5,7 +6,11 @@ import SwiftUI
 struct Application: App {
     @NSApplicationDelegateAdaptor private var appDelegate: ApplicationDelegate
 
+    init() {
+        ScreenshotLocalization.applyIfNeeded()
+    }
+
     var body: some Scene {
-        MacApplication()
+        MacApplication(applicationState: appDelegate.applicationState)
     }
 }

@@ -2,10 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AppGroupIdentifier</key>
+	<string>$(APP_GROUP_IDENTIFIER)</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.gy.iflash.update_profiles</string>
 	</array>
+	<key>BasePackageIdentifier</key>
+	<string>$(BASE_PACKAGE_IDENTIFIER)</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
@@ -22,6 +26,14 @@
 				<string>com.gy.iflash.profile</string>
 			</array>
 		</dict>
+	</array>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>zh-Hans</string>
+		<string>zh-Hant</string>
+		<string>ru</string>
+		<string>fa</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -44,6 +56,8 @@
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
 	</dict>
 	<key>NSApplicationServices</key>
 	<dict>
@@ -52,6 +66,10 @@
 			<dict>
 				<key>NSApplicationServiceIdentifier</key>
 				<string>sing-box:profile</string>
+			</dict>
+			<dict>
+				<key>NSApplicationServiceIdentifier</key>
+				<string>sing-box:report-transfer</string>
 			</dict>
 		</array>
 	</dict>
@@ -67,9 +85,15 @@
 			<string>Any</string>
 		</dict>
 	</dict>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>processing</string>
 	</array>
 	<key>UTExportedTypeDeclarations</key>
 	<array>

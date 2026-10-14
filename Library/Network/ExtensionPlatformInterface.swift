@@ -1,12 +1,17 @@
 import Foundation
 import Libbox
 import NetworkExtension
+import os
 import UserNotifications
 #if os(macOS)
     import CoreWLAN
 #endif
+#if os(iOS) || os(tvOS)
+    import DeviceKit
+#endif
 
 public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtocol, LibboxCommandServerHandlerProtocol {
+    private static let logger = Logger(category: "ExtensionPlatformInterface")
     private let tunnel: ExtensionProvider
     private var networkSettings: NEPacketTunnelNetworkSettings?
 
@@ -22,24 +27,33 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
     private func openTun0(_ options: LibboxTunOptionsProtocol?, _ ret0_: UnsafeMutablePointer<Int32>?) async throws {
         guard let options else {
-            throw NSError(domain: "nil options", code: 0)
+            throw NSError(domain: "ExtensionPlatformInterface", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Nil options")])
         }
         guard let ret0_ else {
-            throw NSError(domain: "nil return pointer", code: 0)
+            throw NSError(domain: "ExtensionPlatformInterface", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Nil return pointer")])
         }
 
-        let autoRouteUseSubRangesByDefault = await SharedPreferences.autoRouteUseSubRangesByDefault.get()
-        let excludeAPNs = await SharedPreferences.excludeAPNsRoute.get()
+        let prefs = tunnel.overridePreferences ?? ExtensionProvider.OverridePreferences()
+        let autoRouteUseSubRangesByDefault = prefs.autoRouteUseSubRangesByDefault
+        let excludeAPNs = prefs.excludeAPNsRoute
+        let excludeDefaultRoute = prefs.excludeDefaultRoute
+        let systemProxyEnabled = prefs.systemProxyEnabled
 
         let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
         if options.getAutoRoute() {
             settings.mtu = NSNumber(value: options.getMTU())
 
-            let dnsServer = try options.getDNSServerAddress()
-            let dnsSettings = NEDNSSettings(servers: [dnsServer.value])
-            dnsSettings.matchDomains = [""]
-            dnsSettings.matchDomainsNoSearch = true
-            settings.dnsSettings = dnsSettings
+            var dnsSettings: NEDNSSettings?
+            if options.getDNSMode()!.value != LibboxDNSModeDisabled {
+                let dnsServerIterator = try options.getDNSServerAddress()
+                var dnsServers: [String] = []
+                while dnsServerIterator.hasNext() {
+                    dnsServers.append(dnsServerIterator.next())
+                }
+                if !dnsServers.isEmpty {
+                    dnsSettings = NEDNSSettings(servers: dnsServers)
+                }
+            }
 
             var ipv4Address: [String] = []
             var ipv4Mask: [String] = []
@@ -78,7 +92,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 let ipv4RoutePrefix = inet4RouteExcludeAddressIterator.next()!
                 ipv4ExcludeRoutes.append(NEIPv4Route(destinationAddress: ipv4RoutePrefix.address(), subnetMask: ipv4RoutePrefix.mask()))
             }
-            if await SharedPreferences.excludeDefaultRoute.get(), !ipv4Routes.isEmpty {
+            if excludeDefaultRoute, !ipv4Routes.isEmpty {
                 if !ipv4ExcludeRoutes.contains(where: { it in
                     it.destinationAddress == "0.0.0.0" && it.destinationSubnetMask == "255.255.255.254"
                 }) {
@@ -134,9 +148,26 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
                 ipv6ExcludeRoutes.append(NEIPv6Route(destinationAddress: ipv6RoutePrefix.address(), networkPrefixLength: NSNumber(value: ipv6RoutePrefix.prefix())))
             }
 
+            if excludeDefaultRoute, !ipv6Routes.isEmpty {
+                if !ipv6ExcludeRoutes.contains(where: { it in
+                    it.destinationAddress == "::" && it.destinationNetworkPrefixLength == 127
+                }) {
+                    ipv6ExcludeRoutes.append(NEIPv6Route(destinationAddress: "::", networkPrefixLength: 127))
+                }
+            }
+
             ipv6Settings.includedRoutes = ipv6Routes
             ipv6Settings.excludedRoutes = ipv6ExcludeRoutes
             settings.ipv6Settings = ipv6Settings
+
+            let hasDefaultRoute = ipv4Routes.contains(where: {
+                $0.destinationAddress == "0.0.0.0" && $0.destinationSubnetMask == "0.0.0.0"
+            })
+            if !hasDefaultRoute {
+                dnsSettings?.matchDomains = [""]
+                dnsSettings?.matchDomainsNoSearch = true
+            }
+            settings.dnsSettings = dnsSettings
         }
 
         if options.isHTTPProxyEnabled() {
@@ -144,7 +175,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             let proxyServer = NEProxyServer(address: options.getHTTPProxyServer(), port: Int(options.getHTTPProxyServerPort()))
             proxySettings.httpServer = proxyServer
             proxySettings.httpsServer = proxyServer
-            if await SharedPreferences.systemProxyEnabled.get() {
+            if systemProxyEnabled {
                 proxySettings.httpEnabled = true
                 proxySettings.httpsEnabled = true
             }
@@ -186,7 +217,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         if tunFdFromLoop != -1 {
             ret0_.pointee = tunFdFromLoop
         } else {
-            throw NSError(domain: "missing file descriptor", code: 0)
+            throw NSError(domain: "ExtensionPlatformInterface", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Missing file descriptor")])
         }
     }
 
@@ -196,16 +227,47 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
 
     public func autoDetectControl(_: Int32) throws {}
 
-    public func findConnectionOwner(_: Int32, sourceAddress _: String?, sourcePort _: Int32, destinationAddress _: String?, destinationPort _: Int32, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
-        throw NSError(domain: "not implemented", code: 0)
-    }
-
-    public func packageName(byUid _: Int32, error _: NSErrorPointer) -> String {
-        ""
-    }
-
-    public func uid(byPackageName _: String?, ret0_ _: UnsafeMutablePointer<Int32>?) throws {
-        throw NSError(domain: "not implemented", code: 0)
+    public func findConnectionOwner(_ ipProtocol: Int32, sourceAddress: String?, sourcePort: Int32, destinationAddress: String?, destinationPort: Int32) throws -> LibboxConnectionOwner {
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                guard let sourceAddress, let destinationAddress else {
+                    throw NSError(domain: "findConnectionOwner", code: 0, userInfo: [
+                        NSLocalizedDescriptionKey: "Missing source or destination address",
+                    ])
+                }
+                let owner = try RootHelperClient.shared.findConnectionOwner(
+                    ipProtocol: ipProtocol,
+                    sourceAddress: sourceAddress,
+                    sourcePort: sourcePort,
+                    destinationAddress: destinationAddress,
+                    destinationPort: destinationPort
+                )
+                let result = LibboxConnectionOwner()
+                result.userId = owner.userId
+                result.userName = owner.userName
+                result.processPath = owner.processPath
+                return result
+            }
+        #elseif JAILBREAK
+            guard let sourceAddress, let destinationAddress else {
+                throw NSError(domain: "findConnectionOwner", code: 0, userInfo: [
+                    NSLocalizedDescriptionKey: "Missing source or destination address",
+                ])
+            }
+            let owner = try ShellHelperClient.shared.findConnectionOwner(
+                ipProtocol: ipProtocol,
+                sourceAddress: sourceAddress,
+                sourcePort: sourcePort,
+                destinationAddress: destinationAddress,
+                destinationPort: destinationPort
+            )
+            let result = LibboxConnectionOwner()
+            result.userId = owner.userId
+            result.userName = owner.userName
+            result.processPath = owner.processPath
+            return result
+        #endif
+        throw NSError(domain: "ExtensionPlatformInterface", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "Not implemented")])
     }
 
     public func useProcFS() -> Bool {
@@ -219,7 +281,8 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         tunnel.writeMessage(message)
     }
 
-    private var nwMonitor: NWPathMonitor? = nil
+    private var nwMonitor: NWPathMonitor?
+    private var lastNetworkPath: String?
 
     public func startDefaultInterfaceMonitor(_ listener: LibboxInterfaceUpdateListenerProtocol?) throws {
         guard let listener else {
@@ -240,22 +303,66 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     private func onUpdateDefaultInterface(_ listener: LibboxInterfaceUpdateListenerProtocol, _ path: Network.NWPath) {
-        if path.status == .unsatisfied {
-            listener.updateDefaultInterface("", interfaceIndex: -1, isExpensive: false, isConstrained: false)
-        } else {
-            let defaultInterface = path.availableInterfaces.first!
-            listener.updateDefaultInterface(defaultInterface.name, interfaceIndex: Int32(defaultInterface.index), isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+        let networkPath = describeNetworkPath(path)
+        listener.updateNetworkPath(networkPath)
+        if networkPath == lastNetworkPath {
+            return
         }
+        lastNetworkPath = networkPath
+        guard path.status != .unsatisfied,
+              let defaultInterface = path.availableInterfaces.first
+        else {
+            listener.updateDefaultInterface("", interfaceIndex: -1, isExpensive: false, isConstrained: false)
+            return
+        }
+        listener.updateDefaultInterface(defaultInterface.name, interfaceIndex: Int32(defaultInterface.index), isExpensive: path.isExpensive, isConstrained: path.isConstrained)
+    }
+
+    private func describeNetworkPath(_ path: Network.NWPath) -> String {
+        var components: [String] = []
+        switch path.status {
+        case .satisfied:
+            components.append("satisfied")
+        case .unsatisfied:
+            components.append("unsatisfied(\(path.unsatisfiedReason))")
+        case .requiresConnection:
+            components.append("requiresConnection")
+        @unknown default:
+            components.append("unknown")
+        }
+        if !path.availableInterfaces.isEmpty {
+            components.append("interfaces=" + path.availableInterfaces.map { "\($0.name)#\($0.index)/\($0.type)" }.joined(separator: ","))
+        }
+        if !path.gateways.isEmpty {
+            components.append("gateways=" + path.gateways.map { "\($0)" }.sorted().joined(separator: ","))
+        }
+        if path.supportsIPv4 {
+            components.append("ipv4")
+        }
+        if path.supportsIPv6 {
+            components.append("ipv6")
+        }
+        if path.supportsDNS {
+            components.append("dns")
+        }
+        if path.isExpensive {
+            components.append("expensive")
+        }
+        if path.isConstrained {
+            components.append("constrained")
+        }
+        return components.joined(separator: " ")
     }
 
     public func closeDefaultInterfaceMonitor(_: LibboxInterfaceUpdateListenerProtocol?) throws {
         nwMonitor?.cancel()
         nwMonitor = nil
+        lastNetworkPath = nil
     }
 
     public func getInterfaces() throws -> LibboxNetworkInterfaceIteratorProtocol {
         guard let nwMonitor else {
-            throw NSError(domain: "NWMonitor not started", code: 0)
+            throw NSError(domain: "ExtensionPlatformInterface", code: 0, userInfo: [NSLocalizedDescriptionKey: String(localized: "NWMonitor not started")])
         }
         let path = nwMonitor.currentPath
         if path.status == .unsatisfied {
@@ -287,7 +394,7 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             iterator = array.makeIterator()
         }
 
-        private var nextValue: LibboxNetworkInterface? = nil
+        private var nextValue: LibboxNetworkInterface?
 
         func hasNext() -> Bool {
             nextValue = iterator.next()
@@ -304,10 +411,10 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
     }
 
     public func includeAllNetworks() -> Bool {
-        #if !os(tvOS)
-            return SharedPreferences.includeAllNetworks.getBlocking()
-        #else
+        #if os(tvOS)
             return false
+        #else
+            return tunnel.overridePreferences?.includeAllNetworks ?? false
         #endif
     }
 
@@ -315,12 +422,20 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         guard let networkSettings else {
             return
         }
-        tunnel.reasserting = true
-        tunnel.setTunnelNetworkSettings(nil) { _ in
+        runBlocking {
+            self.tunnel.reasserting = true
+            defer { self.tunnel.reasserting = false }
+            await withCheckedContinuation { continuation in
+                self.tunnel.setTunnelNetworkSettings(nil) { _ in
+                    continuation.resume()
+                }
+            }
+            await withCheckedContinuation { continuation in
+                self.tunnel.setTunnelNetworkSettings(networkSettings) { _ in
+                    continuation.resume()
+                }
+            }
         }
-        tunnel.setTunnelNetworkSettings(networkSettings) { _ in
-        }
-        tunnel.reasserting = false
     }
 
     public func readWIFIState() -> LibboxWIFIState? {
@@ -333,6 +448,9 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             }
             return LibboxWIFIState(network.ssid, wifiBSSID: network.bssid)!
         #elseif os(macOS)
+            if Variant.useSystemExtension {
+                return UserServiceClient.shared.readWIFIState()
+            }
             guard let interface = CWWiFiClient.shared().interface() else {
                 return nil
             }
@@ -348,18 +466,46 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         #endif
     }
 
+    public func readWIFISSID() -> String? {
+        #if os(iOS)
+            return runBlocking {
+                await NEHotspotNetwork.fetchCurrent()?.ssid
+            }
+        #elseif os(macOS)
+            return CWWiFiClient.shared().interface()?.ssid()
+        #else
+            return nil
+        #endif
+    }
+
+    public func connectSSHAgent(_ ret0_: UnsafeMutablePointer<Int32>?) throws {
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                guard let fd = UserServiceClient.shared.connectSSHAgent() else {
+                    throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                        NSLocalizedDescriptionKey: "Failed to connect to SSH agent",
+                    ])
+                }
+                ret0_?.pointee = fd
+                return
+            }
+        #endif
+        throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+            NSLocalizedDescriptionKey: "SSH agent forwarding is not supported",
+        ])
+    }
+
+    public func serviceStop() throws {
+        tunnel.stopService()
+    }
+
     public func serviceReload() throws {
-        runBlocking { [self] in
-            await tunnel.reloadService()
+        try runBlocking { [self] in
+            try await tunnel.reloadService()
         }
     }
 
-    public func postServiceClose() {
-        reset()
-        tunnel.postServiceClose()
-    }
-
-    public func getSystemProxyStatus() -> LibboxSystemProxyStatus? {
+    public func getSystemProxyStatus() throws -> LibboxSystemProxyStatus {
         let status = LibboxSystemProxyStatus()
         guard let networkSettings else {
             return status
@@ -396,8 +542,28 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
         }
     }
 
+    public func triggerNativeCrash() throws {
+        DispatchQueue.global().asyncAfter(deadline: .now() + .milliseconds(200)) {
+            fatalError("debug native crash")
+        }
+    }
+
+    public func writeDebugMessage(_ message: String?) {
+        guard let message else {
+            return
+        }
+        Self.logger.debug("\(message, privacy: .public)")
+    }
+
     func reset() {
         networkSettings = nil
+        nwMonitor?.cancel()
+        nwMonitor = nil
+        #if os(macOS)
+            neighborCallbackListener?.invalidate()
+            neighborCallbackListener = nil
+            neighborCallbackHandler = nil
+        #endif
     }
 
     public func send(_ notification: LibboxNotification?) throws {
@@ -405,6 +571,12 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             guard let notification else {
                 return
             }
+            #if os(macOS)
+                if Variant.useSystemExtension {
+                    try UserServiceClient.shared.sendNotification(notification)
+                    return
+                }
+            #endif
             let center = UNUserNotificationCenter.current()
             let content = UNMutableNotificationContent()
 
@@ -418,9 +590,350 @@ public class ExtensionPlatformInterface: NSObject, LibboxPlatformInterfaceProtoc
             content.interruptionLevel = .active
             let request = UNNotificationRequest(identifier: notification.identifier, content: content, trigger: nil)
             try runBlocking {
-                try await center.requestAuthorization(options: [.alert])
+                #if !JAILBREAK
+                    try await center.requestAuthorization(options: [.alert])
+                #endif
                 try await center.add(request)
             }
         #endif
     }
+
+    public func cancelNotification(_ identifier: String?, typeID _: Int32) throws {
+        #if !os(tvOS)
+            guard let identifier else {
+                return
+            }
+            #if os(macOS)
+                if Variant.useSystemExtension {
+                    try UserServiceClient.shared.cancelNotification(identifier)
+                    return
+                }
+            #endif
+            let center = UNUserNotificationCenter.current()
+            center.removePendingNotificationRequests(withIdentifiers: [identifier])
+            center.removeDeliveredNotifications(withIdentifiers: [identifier])
+        #endif
+    }
+
+    #if os(macOS)
+        private var neighborCallbackListener: NSXPCListener?
+        private var neighborCallbackHandler: NeighborCallbackHandler?
+    #endif
+
+    public func startNeighborMonitor(_ listener: LibboxNeighborUpdateListenerProtocol?) throws {
+        #if os(macOS)
+            guard let listener else { return }
+            if Variant.useSystemExtension {
+                let handler = NeighborCallbackHandler(listener)
+                let xpcListener = NSXPCListener.anonymous()
+                xpcListener.delegate = handler
+                xpcListener.resume()
+                try RootHelperClient.shared.startNeighborMonitor(
+                    callbackEndpoint: xpcListener.endpoint
+                )
+                neighborCallbackListener = xpcListener
+                neighborCallbackHandler = handler
+                return
+            }
+        #endif
+    }
+
+    public func registerMyInterface(_ name: String?) {
+        #if os(macOS)
+            guard let name, !name.isEmpty else { return }
+            if Variant.useSystemExtension {
+                try? RootHelperClient.shared.registerMyInterface(name: name)
+            }
+        #endif
+    }
+
+    public func closeNeighborMonitor(_: LibboxNeighborUpdateListenerProtocol?) throws {
+        #if os(macOS)
+            if Variant.useSystemExtension {
+                try? RootHelperClient.shared.closeNeighborMonitor()
+                neighborCallbackListener?.invalidate()
+                neighborCallbackListener = nil
+                neighborCallbackHandler = nil
+                return
+            }
+        #endif
+    }
+
+    public func localDNSTransport() -> (any LibboxLocalDNSTransportProtocol)? {
+        nil
+    }
+
+    public func systemCertificates() -> (any LibboxStringIteratorProtocol)? {
+        nil
+    }
+
+    public func usePlatformShell() -> Bool {
+        #if os(macOS)
+            return Variant.useSystemExtension
+        #elseif JAILBREAK
+            return true
+        #else
+            return false
+        #endif
+    }
+
+    public func checkPlatformShell() throws {
+        #if os(macOS) || JAILBREAK
+            _ = try ShellHelperClient.shared.getVersion()
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "SSH server is not supported",
+            ])
+        #endif
+    }
+
+    public func openShellSession(_ user: LibboxPlatformUser?, command: String?, environ: (any LibboxStringIteratorProtocol)?, term: String?, rows: Int32, cols: Int32) throws -> any LibboxShellSessionProtocol {
+        #if os(macOS) || JAILBREAK
+            guard let user else {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "missing user",
+                ])
+            }
+            let command = command ?? ""
+            let term = term ?? ""
+            let envStrings = environ?.toArray() ?? []
+
+            let groups = user.groups()?.toArray() ?? []
+            let payload = PlatformUserPayload(
+                username: user.username,
+                uid: user.uid,
+                gid: user.gid,
+                homeDir: user.homeDir,
+                shell: user.shell,
+                groups: groups
+            )
+
+            let (fileHandle, handle) = try ShellHelperClient.shared.openShellSession(
+                user: payload,
+                command: command,
+                environ: envStrings,
+                term: term,
+                rows: rows,
+                cols: cols
+            )
+
+            return RootHelperShellSession(fileHandle: fileHandle, handle: handle)
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "SSH server is not supported",
+            ])
+        #endif
+    }
+
+    public func readSystemSSHHostKey(_ error: NSErrorPointer) -> String {
+        #if os(macOS) || JAILBREAK
+            do {
+                return try ShellHelperClient.shared.readSystemSSHHostKey()
+            } catch let keyError {
+                error?.pointee = keyError as NSError
+                return ""
+            }
+        #else
+            error?.pointee = NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "not supported on this platform",
+            ])
+            return ""
+        #endif
+    }
+
+    public func lookupSFTPServer(_ error: NSErrorPointer) -> String {
+        #if JAILBREAK
+            return JailbreakConfiguration.sftpServerPath
+        #else
+            error?.pointee = NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "lookupSFTPServer is not supported on Apple platforms",
+            ])
+            return ""
+        #endif
+    }
+
+    public func tailscaleHostname() -> String {
+        #if os(iOS) || os(tvOS)
+            return Device.current.safeDescription
+        #else
+            return ""
+        #endif
+    }
+
+    public func usePlatformBridge() -> Bool {
+        #if os(macOS)
+            return Variant.useSystemExtension
+        #elseif JAILBREAK
+            return true
+        #else
+            return false
+        #endif
+    }
+
+    public func createBridge(_ options: LibboxBridgeOptions?) throws -> any LibboxBridgeSessionProtocol {
+        #if os(macOS) || JAILBREAK
+            guard let options else {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "createBridge: missing options",
+                ])
+            }
+            let handshake = try ShellHelperClient.shared.createBridgeService(
+                bridgeName: options.bridgeName,
+                mtu: options.mtu,
+                inet4Port: options.inet4Port,
+                inet6Port: options.inet6Port,
+                interfaceName: options.interface
+            )
+            let tunFd = dup(handshake.fileHandle.fileDescriptor)
+            guard tunFd >= 0 else {
+                let dupErrno = errno
+                try? ShellHelperClient.shared.closeBridgeService(handle: handshake.handle)
+                throw NSError(domain: "ExtensionPlatformInterface", code: Int(dupErrno), userInfo: [
+                    NSLocalizedDescriptionKey: "dup bridge tun fd: \(String(cString: strerror(dupErrno)))",
+                ])
+            }
+            try? handshake.fileHandle.close()
+            return BridgeServiceSession(
+                fileDescriptor: tunFd,
+                name: handshake.name,
+                inet6Active: handshake.inet6Active,
+                handle: handshake.handle
+            )
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "bridge is not supported on this platform",
+            ])
+        #endif
+    }
+
+    #if os(macOS) || JAILBREAK
+        private class BridgeServiceSession: NSObject, LibboxBridgeSessionProtocol {
+            private let tunFileDescriptor: Int32
+            private let tunName: String
+            private let tunInet6Active: Bool
+            private let handle: String
+
+            init(fileDescriptor: Int32, name: String, inet6Active: Bool, handle: String) {
+                tunFileDescriptor = fileDescriptor
+                tunName = name
+                tunInet6Active = inet6Active
+                self.handle = handle
+            }
+
+            func fileDescriptor() -> Int32 {
+                tunFileDescriptor
+            }
+
+            func name() -> String {
+                tunName
+            }
+
+            func inet6Active() -> Bool {
+                tunInet6Active
+            }
+
+            func setEgress(_ interfaceName: String?) throws {
+                try ShellHelperClient.shared.setBridgeEgress(handle: handle, egress: interfaceName ?? "")
+            }
+
+            func close() throws {
+                try? ShellHelperClient.shared.closeBridgeService(handle: handle)
+                Darwin.close(tunFileDescriptor)
+            }
+        }
+    #endif
+
+    public func lookupUser(_ username: String?) throws -> LibboxPlatformUser {
+        #if os(macOS) || JAILBREAK
+            guard let username else {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "lookupUser: username is required",
+                ])
+            }
+            guard let pw = getpwnam(username) else {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "user not found: \(username)",
+                ])
+            }
+            let result = LibboxPlatformUser()
+            result.username = String(cString: pw.pointee.pw_name)
+            result.uid = Int32(pw.pointee.pw_uid)
+            result.gid = Int32(pw.pointee.pw_gid)
+            result.homeDir = String(cString: pw.pointee.pw_dir)
+            if let shellPtr = pw.pointee.pw_shell {
+                result.shell = String(cString: shellPtr)
+            }
+
+            var ngroups: Int32 = 64
+            var groupIDs = [Int32](repeating: 0, count: Int(ngroups))
+            var rc = groupIDs.withUnsafeMutableBufferPointer { buffer in
+                getgrouplist(username, Int32(bitPattern: pw.pointee.pw_gid), buffer.baseAddress, &ngroups)
+            }
+            if rc == -1 {
+                groupIDs = [Int32](repeating: 0, count: Int(ngroups))
+                rc = groupIDs.withUnsafeMutableBufferPointer { buffer in
+                    getgrouplist(username, Int32(bitPattern: pw.pointee.pw_gid), buffer.baseAddress, &ngroups)
+                }
+            }
+            if rc == -1 {
+                throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                    NSLocalizedDescriptionKey: "getgrouplist failed for \(username)",
+                ])
+            }
+            result.setGroups(Array(groupIDs.prefix(Int(ngroups))).toInt32Iterator())
+            return result
+        #else
+            throw NSError(domain: "ExtensionPlatformInterface", code: -1, userInfo: [
+                NSLocalizedDescriptionKey: "SSH server is not supported",
+            ])
+        #endif
+    }
 }
+
+#if os(macOS)
+    private class NeighborCallbackHandler: NSObject, NSXPCListenerDelegate, NeighborTableListenerProtocol {
+        private let listener: LibboxNeighborUpdateListenerProtocol
+
+        init(_ listener: LibboxNeighborUpdateListenerProtocol) {
+            self.listener = listener
+        }
+
+        func listener(_: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
+            let exportedInterface = NSXPCInterface(with: NeighborTableListenerProtocol.self)
+            RootHelperXPC.configureListenerInterface(exportedInterface)
+            newConnection.exportedInterface = exportedInterface
+            newConnection.exportedObject = self
+            newConnection.resume()
+            return true
+        }
+
+        func updateNeighborTable(entries: NSArray) {
+            let iterator = NeighborEntryArrayIterator(entries)
+            listener.updateNeighborTable(iterator)
+        }
+    }
+
+    private class NeighborEntryArrayIterator: NSObject, LibboxNeighborEntryIteratorProtocol {
+        private var entries: [NeighborEntryResult]
+        private var index = 0
+
+        init(_ array: NSArray) {
+            entries = array.compactMap { $0 as? NeighborEntryResult }
+        }
+
+        func hasNext() -> Bool {
+            index < entries.count
+        }
+
+        func next() -> LibboxNeighborEntry? {
+            guard index < entries.count else { return nil }
+            let result = entries[index]
+            index += 1
+            let entry = LibboxNeighborEntry()
+            entry.address = result.address
+            entry.macAddress = result.macAddress
+            entry.hostname = result.hostname
+            return entry
+        }
+    }
+#endif

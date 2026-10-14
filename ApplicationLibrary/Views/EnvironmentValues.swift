@@ -17,6 +17,19 @@ public extension EnvironmentValues {
         }
     }
 
+    private struct menuBarExtraSpeedModeKey: EnvironmentKey {
+        static let defaultValue: Binding<Int> = .constant(1)
+    }
+
+    var menuBarExtraSpeedMode: Binding<Int> {
+        get {
+            self[menuBarExtraSpeedModeKey.self]
+        }
+        set {
+            self[menuBarExtraSpeedModeKey.self] = newValue
+        }
+    }
+
     private struct selectionKey: EnvironmentKey {
         static let defaultValue: Binding<NavigationPage> = .constant(.dashboard)
     }
@@ -53,6 +66,45 @@ public extension EnvironmentValues {
         }
         set {
             self[importProfileKey.self] = newValue
+        }
+    }
+
+    private struct cardConfigurationVersionKey: EnvironmentKey {
+        static var defaultValue: Int = 0
+    }
+
+    var cardConfigurationVersion: Int {
+        get {
+            self[cardConfigurationVersionKey.self]
+        }
+        set {
+            self[cardConfigurationVersionKey.self] = newValue
+        }
+    }
+
+    private struct logBottomInsetKey: EnvironmentKey {
+        static var defaultValue: CGFloat = 0
+    }
+
+    var logBottomInset: CGFloat {
+        get {
+            self[logBottomInsetKey.self]
+        }
+        set {
+            self[logBottomInsetKey.self] = newValue
+        }
+    }
+
+    private struct remoteControlInToolbarKey: EnvironmentKey {
+        static var defaultValue: Bool = false
+    }
+
+    var remoteControlInToolbar: Bool {
+        get {
+            self[remoteControlInToolbarKey.self]
+        }
+        set {
+            self[remoteControlInToolbarKey.self] = newValue
         }
     }
 }
